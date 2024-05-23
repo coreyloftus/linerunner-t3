@@ -1,0 +1,44 @@
+[
+    {
+        "project": "Peter and the Starcatcher",
+        "scenes": [
+            {
+                "title": "Scene 0 (Prologue)",
+                "lines": [
+                    {
+                        "character": "Boy",
+                        "line": "When I was a boy, I wished I could fly."
+                    },
+                    {
+                        "character": "Prentiss",
+                        "line": "Me too."
+                    },
+                    {
+                        "character": "Scott",
+                        "line": "So did I!"
+                    },
+                    {
+                        "character": "Boy",
+                        "line": "Out the window and over the trees --"
+                    },
+                    {
+                        "character": "Smee",
+                        "line": "-- high as a cloud and lighter than air --"
+                    },
+                    {
+                        "character": "Molly",
+                        "line": "-- then loop the loop and up to the stars! I dreamed about flying all the time. What? Girls dream."
+                    },
+                    {
+                        "character": "Boy",
+                        "line": "Up to the stars - I like that."
+                    },
+                    {
+                        "character": "Molly",
+                        "line": "Me too."
+                    }
+                ]
+            }
+                    ]
+    }
+]
