@@ -1,9 +1,8 @@
 import * as React from "react";
 import { api } from "~/trpc/server";
-
-import { Navbar } from "~/components/Navbar";
 import ScriptBox from "~/components/ScriptDisplay/scriptBox";
 import NewScriptSelect from "~/components/newScriptSelect";
+import { ScriptContext, ScriptProvider } from "./context";
 
 export default async function Home() {
   const hello = await api.post.hello({ text: "Line Runner T3" });
@@ -21,7 +20,9 @@ export default async function Home() {
         <p>{hello ? hello.greeting : ""}</p>
       </div>
       <div>
-        <ScriptBox />
+        <ScriptProvider>
+          <ScriptBox />
+        </ScriptProvider>
       </div>
     </div>
   );

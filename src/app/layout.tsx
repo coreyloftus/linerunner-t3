@@ -1,9 +1,7 @@
 import "~/styles/globals.css";
 
 import { GeistSans } from "geist/font/sans";
-
 import { TRPCReactProvider } from "~/trpc/react";
-import { ScriptProvider } from "./context";
 
 export const metadata = {
   title: "LineRunner T3",
@@ -19,9 +17,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${GeistSans.variable}`}>
       <body>
-        <TRPCReactProvider>
-          <ScriptProvider>{children}</ScriptProvider>
-        </TRPCReactProvider>
+        <TRPCReactProvider>{children}</TRPCReactProvider>
       </body>
     </html>
   );

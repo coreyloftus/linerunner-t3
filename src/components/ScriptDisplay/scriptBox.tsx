@@ -1,16 +1,27 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
+import { ScriptContext } from "~/app/context";
+import NewScriptSelect from "../newScriptSelect";
+import { type ProjectJSON } from "../../server/api/routers/scriptData";
 
-export default function ScriptBox(props: {
-  // script: SceneData;
-  // userCharacter: string;
-}) {
-  // const { script, userCharacter } = props;
-  // const [currentLineIndex, setCurrentLineIndex] = useState(0);
-  // const [playScene, setPlayScene] = useState(false);
-  // const [awaitingInput, setAwaitingInput] = useState(false);
+interface ScriptBoxProps {
+  data: {
+    projects: string[];
+    allData: ProjectJSON[];
+  };
+}
+
+export default function ScriptBox({ data }: { data: ScriptBoxProps }) {
+  const {
+    selectedProject,
+    setSelectedProject,
+    selectedScene,
+    setSelectedScene,
+    selectedCharacter,
+    setSelectedCharacter,
+  } = useContext(ScriptContext);
   const [userInput, setUserInput] = useState("");
 
   // const proceedWithScene = useCallback(() => {
@@ -62,6 +73,8 @@ export default function ScriptBox(props: {
 
   return (
     <>
+      {/* <NewScriptSelect projects={data.projects} /> */}
+
       <div>
         <p className="text-center text-xl">
           {/* {userCharacter} */}

@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-
+import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
 export interface ProjectJSON {
@@ -35,10 +35,36 @@ export const scriptData = createTRPCRouter({
   getAll: publicProcedure.query(() => {
     console.log(allData);
     const projects = allData.map((file) => file.project);
-
     return {
       projects,
       allData,
     };
   }),
+  getScenes: publicProcedure
+    .input(z.object({ project: z.string() }))
+    .query(({ input }) => {
+      const scenes = allData.find(
+        (file) => file.project === input.project,
+      )?.scenes;
+      const sceneTitles = scenes?.map((scene) => scene.title);
+      return sceneTitles;
+    }),
+  getCharacters: publicProcedure
+    .input(z.object({ project: z.string(), scene: z.string() }))
+    .query(({ input }) => {
+      const characters = allData
+        .find((file) => file.project === input.project)
+        ?.scenes.find((scene) => scene.title === input.scene)
+        ?.lines.map((line) => line.character);
+      return characters;
+    }),
+  getLines: publicProcedure
+    .input(z.object({ project: z.string(), scene: z.string() }))
+    .query(({ input }) => {
+      const lines = allData
+        .find((file) => file.project === input.project)
+        ?.scenes.find((scene) => scene.title === input.scene)
+        ?.lines.map((line) => line.text);
+      return lines;
+    }),
 });
