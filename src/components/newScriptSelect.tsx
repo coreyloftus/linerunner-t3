@@ -42,10 +42,14 @@ export default function NewScriptSelect({
     : [];
 
   const characterList = selectedScene
-    ? allData
-        .find((project) => project.project === selectedProject)
-        ?.scenes.find((scene) => scene.title === selectedScene)
-        ?.lines.map((line) => line.character)
+    ? Array.from(
+        new Set(
+          allData
+            .find((project) => project.project === selectedProject)
+            ?.scenes.find((scene) => scene.title === selectedScene)
+            ?.lines.map((line) => line.character),
+        ),
+      )
     : [];
 
   return (
