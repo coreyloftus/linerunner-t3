@@ -42,6 +42,7 @@ export default function ControlBar({
     <div className="flex justify-center gap-2">
       <div>
         <Button
+          variant={"secondary"}
           onClick={() => {
             handleClick({ title: "PLAY", desc: "play button clicked" });
             if (!playScene) {
@@ -49,29 +50,25 @@ export default function ControlBar({
             }
           }}
         >
-          play
-          {/* {playScene === false ? (
-            <PlayCircleFilledWhite />
-          ) : (
-            <PauseCircleOutlineIcon />
-          )} */}
+          <p className="text-xl">{playScene === false ? "▶︎" : "⏸︎"}</p>
         </Button>
         {/* <IconButton onClick={() => setPlayScene(!playScene)}>{playScene === false ? <PlayCircleFilledWhite /> : <PauseCircleOutlineIcon />}</IconButton> */}
       </div>
       <div>
         <Button
+          variant={"secondary"}
           onClick={() => {
             handleClick({ title: "STOP IT", desc: "stop playback clicked" });
             setCurrentLineIndex(0);
             if (playScene) setPlayScene(false);
           }}
         >
-          stop
-          {/* <StopCircleIcon /> */}
+          <p className="text-2xl">⏹︎</p>
         </Button>
       </div>
       <div>
         <Button
+          variant={"secondary"}
           onClick={() => {
             handleClick({
               title: "SKIP BACK",
@@ -80,12 +77,13 @@ export default function ControlBar({
             setCurrentLineIndex(currentLineIndex - 1);
           }}
         >
-          skip back
-          {/* <SkipPreviousIcon /> */}
+          <p className="text-2xl">⏮</p>
         </Button>
       </div>
       <div>
         <Button
+          // className="border-2 border-white"
+          variant={"secondary"}
           onClick={() => {
             handleClick({
               title: "SKIP FWD",
@@ -94,8 +92,7 @@ export default function ControlBar({
             setCurrentLineIndex(currentLineIndex + 1);
           }}
         >
-          skip fwd
-          {/* <SkipNextIcon /> */}
+          <p className="text-2xl">⏭</p>
         </Button>
       </div>
     </div>
