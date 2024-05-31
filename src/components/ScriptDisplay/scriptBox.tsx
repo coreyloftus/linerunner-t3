@@ -3,10 +3,9 @@ import { useCallback, useContext, useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
 import { ScriptContext } from "~/app/context";
-import NewScriptSelect from "../newScriptSelect";
+
 import { type ProjectJSON } from "../../server/api/routers/scriptData";
-import { getAllProjects } from "~/app/actions";
-import { api } from "~/trpc/server";
+
 import ControlBar from "../ControlBar";
 
 interface ScriptBoxProps {
@@ -18,10 +17,11 @@ interface ScriptBoxProps {
 export default function ScriptBox({ data }: ScriptBoxProps) {
   const { selectedProject, selectedScene, selectedCharacter } =
     useContext(ScriptContext);
+  const [playScene, setPlayScene] = useState(false);
   const [userInput, setUserInput] = useState("");
   const [currentLineIndex, setCurrentLineIndex] = useState(0);
   const [awaitingInput, setAwaitingInput] = useState(false);
-  const [playScene, setPlayScene] = useState(false);
+  const [currentUserLine, setCurrentUserLine] = useState<string[]>([]);
 
   const script = data.allData
     .find((project) => project.project === selectedProject)
@@ -30,10 +30,20 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
   const proceedWithScene = useCallback(() => {
     const lines = script?.lines ?? [];
     const nextIndex = currentLineIndex + 1;
+    const currentLine = lines[currentLineIndex];
+
+    if (currentLine?.character == selectedCharacter) {
+      setAwaitingInput(true);
+      setCurrentUserLine(currentLine.line.split(" "));
+      return;
+    }
     if (nextIndex < lines.length) {
       const nextLine = lines[currentLineIndex + 1];
       if (nextLine?.character === selectedCharacter) {
         setAwaitingInput(true);
+        setCurrentUserLine(nextLine.line.split(" "));
+        console.log(`setting current user line to ${nextLine.line}`);
+        return;
       } else {
         setTimeout(
           () => setCurrentLineIndex((prevIndex) => prevIndex + 1),
@@ -46,13 +56,21 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
   }, [currentLineIndex, script, selectedCharacter]);
 
   useEffect(() => {
+    console.log({ currentUserLine });
     if (playScene && !awaitingInput) {
       proceedWithScene();
       console.log(
         `${currentLineIndex} | ${script?.lines?.[currentLineIndex]?.character}: ${script?.lines?.[currentLineIndex]?.line}`,
       );
     }
-  }, [playScene, awaitingInput, proceedWithScene, currentLineIndex, script]);
+  }, [
+    playScene,
+    awaitingInput,
+    proceedWithScene,
+    currentUserLine,
+    currentLineIndex,
+    script,
+  ]);
 
   const handleSubmit = () => {
     console.log("User input submitted", userInput);
