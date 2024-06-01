@@ -32,13 +32,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     const lines = script?.lines ?? [];
     const nextIndex = currentLineIndex + 1;
     const currentLine = lines[currentLineIndex];
-    // const nextLine = lines[currentLineIndex + 1];
 
-    // if (nextLine?.character === selectedCharacter && currentLine) {
-    //   setAwaitingInput(true);
-    //   setCurrentUserLine(currentLine.line.split(" "));
-    //   return;
-    // }
     if (nextIndex < lines.length) {
       if (currentLine?.character === selectedCharacter) {
         setCurrentUserLine(currentLine.line.split(" "));
@@ -73,7 +67,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     script,
   ]);
 
-  const handleSubmit = () => {
+  const handleSubmit = useCallback(() => {
     console.log("User input submitted", userInput);
     const lines = script?.lines;
     const currentLine = lines?.[currentLineIndex];
@@ -81,12 +75,12 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
       setAwaitingInput(false);
       setUserInput("");
       setCurrentLineIndex(currentLineIndex + 1);
-      setHelperIndex(-1);
+      setHelperIndex(0);
     } else {
       console.log("User input does not match line -- try again");
       console.log(currentLine?.line);
     }
-  };
+  }, [userInput, currentLineIndex, script]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -100,13 +94,22 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
         );
         setHelperIndex((prevIndex) => prevIndex + 1);
       }
+      if (event.key === "ArrowLeft" && helperIndex > -1) {
+        setUserInput((prevInput) =>
+          prevInput.split(" ").slice(0, -1).join(" "),
+        );
+        setHelperIndex((prevIndex) => prevIndex - 1);
+      }
+      if (event.key === "Enter") {
+        handleSubmit();
+      }
     };
     window.addEventListener("keydown", handleKeyDown);
     console.log({ helperIndex, currentUserLine, userInput });
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [currentUserLine, helperIndex, userInput]);
+  }, [currentUserLine, helperIndex, userInput, handleSubmit]);
 
   return (
     <>
