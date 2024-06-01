@@ -22,6 +22,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
   const [currentLineIndex, setCurrentLineIndex] = useState(0);
   const [awaitingInput, setAwaitingInput] = useState(false);
   const [currentUserLine, setCurrentUserLine] = useState<string[]>([]);
+  const [helperIndex, setHelperIndex] = useState(0);
 
   const script = data.allData
     .find((project) => project.project === selectedProject)
@@ -31,18 +32,18 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     const lines = script?.lines ?? [];
     const nextIndex = currentLineIndex + 1;
     const currentLine = lines[currentLineIndex];
+    // const nextLine = lines[currentLineIndex + 1];
 
-    if (currentLine?.character == selectedCharacter) {
-      setAwaitingInput(true);
-      setCurrentUserLine(currentLine.line.split(" "));
-      return;
-    }
+    // if (nextLine?.character === selectedCharacter && currentLine) {
+    //   setAwaitingInput(true);
+    //   setCurrentUserLine(currentLine.line.split(" "));
+    //   return;
+    // }
     if (nextIndex < lines.length) {
-      const nextLine = lines[currentLineIndex + 1];
-      if (nextLine?.character === selectedCharacter) {
+      if (currentLine?.character === selectedCharacter) {
+        setCurrentUserLine(currentLine.line.split(" "));
+        console.log(`setting current user line to ${currentLine.line}`);
         setAwaitingInput(true);
-        setCurrentUserLine(nextLine.line.split(" "));
-        console.log(`setting current user line to ${nextLine.line}`);
         return;
       } else {
         setTimeout(
@@ -75,16 +76,37 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
   const handleSubmit = () => {
     console.log("User input submitted", userInput);
     const lines = script?.lines;
-    const nextLine = lines?.[currentLineIndex + 1];
-    if (userInput.trim() === nextLine?.line) {
+    const currentLine = lines?.[currentLineIndex];
+    if (userInput.trim() === currentLine?.line) {
       setAwaitingInput(false);
       setUserInput("");
       setCurrentLineIndex(currentLineIndex + 1);
+      setHelperIndex(-1);
     } else {
       console.log("User input does not match line -- try again");
-      console.log(nextLine?.line);
+      console.log(currentLine?.line);
     }
   };
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "ArrowRight" && helperIndex < currentUserLine.length) {
+        setUserInput(
+          (prevInput) =>
+            prevInput +
+            (helperIndex > 0
+              ? " " + currentUserLine[helperIndex]
+              : currentUserLine[helperIndex]),
+        );
+        setHelperIndex((prevIndex) => prevIndex + 1);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    console.log({ helperIndex, currentUserLine, userInput });
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [currentUserLine, helperIndex, userInput]);
 
   return (
     <>
@@ -96,18 +118,36 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
           currentLineIndex={currentLineIndex}
         />
       </div>
-      <div className="mb-2 min-h-[30vh] overflow-y-scroll rounded-md border-2 border-zinc-400">
+      <div className="mb-2 min-h-[30vh] overflow-y-scroll rounded-md border-2 border-[#fefefe]">
         <ul className="">
           {playScene &&
-            script?.lines.slice(0, currentLineIndex + 1).map((lines, index) => (
+            script?.lines.slice(0, currentLineIndex).map((line, index) => (
               <li
                 key={index}
                 className="flex flex-col justify-center gap-2 p-2"
               >
-                <p className="font-bold">{lines.character.toUpperCase()}</p>
-                <p className="text-gray-600">{lines.line}</p>
+                <p className="text-xl font-bold">
+                  {line.character.toUpperCase()}
+                </p>
+                <p className="text-xl">{line.line}</p>
               </li>
             ))}
+          {playScene &&
+            script?.lines
+              .slice(currentLineIndex, currentLineIndex + 1)
+              .map((line, index) => (
+                <li
+                  key={index}
+                  className="flex flex-col justify-center gap-2 p-2"
+                >
+                  <p className="text-xl font-bold">
+                    {line.character.toUpperCase()}
+                  </p>
+                  {line.character !== selectedCharacter && (
+                    <p className="text-xl">{line.line}</p>
+                  )}
+                </li>
+              ))}
         </ul>
       </div>
       <div className="flex flex-col gap-2">

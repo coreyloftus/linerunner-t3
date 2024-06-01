@@ -7,7 +7,7 @@ import { ScriptProvider } from "./context";
 export default async function Home() {
   const projectData = await api.scriptData.getAll();
   return (
-    <div className="to[#555555] h-[100vh] bg-gradient-to-b from-[#1e1e1e] p-4 text-white">
+    <div className="to[#4e4e4e] h-[100vh] bg-gradient-to-b from-[#1e1e1e] p-4 text-white">
       <ScriptProvider>
         <div className="flex-grow-1 flex justify-center">
           {projectData ? (
