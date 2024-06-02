@@ -109,6 +109,5 @@
                 ]
             }
         ]
-    },
-    { "project": "Test Project", "scenes": [{ "title": "Test Scene", "lines": [{ "character": "Test Character", "line": "Test Line" }] }] }
+    }
 ]

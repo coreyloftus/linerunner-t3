@@ -1,16 +1,11 @@
-// import {
-//   Box,
-//   Card,
-//   IconButton,
-//   Paper,
-//   Snackbar,
-//   Typography,
-// } from "@mui/material";
-// import { PlayCircleFilledWhite, PauseCircleOutline as PauseCircleOutlineIcon, StopCircle as StopCircleIcon, SkipNext as SkipNextIcon, SkipPrevious as SkipPreviousIcon } from '@mui/icons-material'
-// import CloseIcon from '@mui/icons-material/Close'
-import { useState } from "react";
 import { Button } from "./ui/button";
 import { useToast } from "./ui/use-toast";
+import { FaPlay } from "react-icons/fa6";
+import { FaStop } from "react-icons/fa6";
+import { FaPause } from "react-icons/fa6";
+import { FaForwardStep } from "react-icons/fa6";
+import { FaBackwardStep } from "react-icons/fa6";
+
 interface ControlBarProps {
   playScene: boolean;
   setPlayScene: React.Dispatch<React.SetStateAction<boolean>>;
@@ -29,20 +24,20 @@ export default function ControlBar({
   const handleClick = ({ title, desc }: { title: string; desc: string }) => {
     toast({ title: title, description: desc });
   };
-  const handleClose = (
-    event: React.SyntheticEvent | Event,
-    reason?: string,
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-  };
+  // const handleClose = (
+  //   event: React.SyntheticEvent | Event,
+  //   reason?: string,
+  // ) => {
+  //   if (reason === "clickaway") {
+  //     return;
+  //   }
+  // };
 
   return (
     <div className="flex justify-center gap-2">
       <div>
         <Button
-          variant={"secondary"}
+          variant={"outline"}
           onClick={() => {
             handleClick({ title: "PLAY", desc: "play button clicked" });
             if (!playScene) {
@@ -50,25 +45,28 @@ export default function ControlBar({
             }
           }}
         >
-          <p className="text-xl">{playScene === false ? "▶︎" : "⏸︎"}</p>
+          <p className="text-xl">
+            {playScene === false ? <FaPlay /> : <FaPause />}
+          </p>
         </Button>
-        {/* <IconButton onClick={() => setPlayScene(!playScene)}>{playScene === false ? <PlayCircleFilledWhite /> : <PauseCircleOutlineIcon />}</IconButton> */}
       </div>
       <div>
         <Button
-          variant={"secondary"}
+          variant={"outline"}
           onClick={() => {
-            handleClick({ title: "STOP IT", desc: "stop playback clicked" });
+            handleClick({ title: "STOP", desc: "stop playback clicked" });
             setCurrentLineIndex(0);
             if (playScene) setPlayScene(false);
           }}
         >
-          <p className="text-2xl">⏹︎</p>
+          <p className="text-2xl">
+            <FaStop />
+          </p>
         </Button>
       </div>
       <div>
         <Button
-          variant={"secondary"}
+          variant={"outline"}
           onClick={() => {
             handleClick({
               title: "SKIP BACK",
@@ -77,13 +75,15 @@ export default function ControlBar({
             setCurrentLineIndex(currentLineIndex - 1);
           }}
         >
-          <p className="text-2xl">⏮</p>
+          <p className="text-2xl">
+            <FaBackwardStep />
+          </p>
         </Button>
       </div>
       <div>
         <Button
           // className="border-2 border-white"
-          variant={"secondary"}
+          variant={"outline"}
           onClick={() => {
             handleClick({
               title: "SKIP FWD",
@@ -92,7 +92,9 @@ export default function ControlBar({
             setCurrentLineIndex(currentLineIndex + 1);
           }}
         >
-          <p className="text-2xl">⏭</p>
+          <p className="text-2xl">
+            <FaForwardStep />
+          </p>
         </Button>
       </div>
     </div>
