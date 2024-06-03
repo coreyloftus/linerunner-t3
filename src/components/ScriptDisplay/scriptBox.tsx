@@ -7,6 +7,7 @@ import { ScriptContext } from "~/app/context";
 import { type ProjectJSON } from "../../server/api/routers/scriptData";
 
 import ControlBar from "../ControlBar";
+import { Input } from "../ui/input";
 
 interface ScriptBoxProps {
   data: {
@@ -152,22 +153,28 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
                 </li>
               ))}
         </ul>
-      </div>
-      <div className="flex flex-col gap-2">
-        <Textarea
-          value={userInput}
-          onChange={(e) => setUserInput(e.target.value)}
-          placeholder="Your line..."
-          className="text-white placeholder-white"
-        />
-        <div className="">
-          <Button
-            variant="outline"
-            onClick={handleSubmit}
-            className="text-[#010101]"
-          >
-            Submit
-          </Button>
+        <div className="flex flex-col gap-2">
+          {/* <Textarea
+            value={userInput}
+            onChange={(e) => setUserInput(e.target.value)}
+            placeholder="..."
+            className="text-white placeholder-white"
+          /> */}
+          {script && playScene && awaitingInput ? (
+            <div className="flex">
+              <Input
+                type="text"
+                value={userInput}
+                onChange={(e) => setUserInput(e.target.value)}
+                onClick={handleSubmit}
+                className="border-0 text-[#fefefe] active:border-0"
+                placeholder="..."
+              />
+              <Button variant={"outline"} type="submit" onClick={handleSubmit}>
+                {">"}
+              </Button>
+            </div>
+          ) : null}
         </div>
       </div>
     </>
