@@ -1,6 +1,6 @@
 [
   {
-    "project": "Starcatcher A2S3",
+    "project": "Starcatcher A2",
     "scenes": [
       {
         "title": "Act 2, Scene 3",
@@ -324,6 +324,100 @@
           {
             "character": "Fighting Prawn",
             "line": "Nice try. But, the law is the law! All English must die! CALAMARI!"
+          }
+        ]
+      },
+      {
+        "title": "Act 2, Scene 4",
+        "lines": [
+          {
+            "character": "Peter",
+            "line": "So basically I’m thinking… Let’s —"
+          },
+          {
+            "character": "Ted",
+            "line": "— get outta —"
+          },
+          {
+            "character": "Prentiss",
+            "line": "— HERE!!!"
+          },
+          {
+            "character": "Fighting Prawn",
+            "line": "Those dirty, filthy, rotten, stinking English!"
+          },
+          {
+            "character": "Hawking Clam",
+            "line": "They ruin bedtime story!"
+          },
+          {
+            "character": "Fighting Prawn",
+            "line": "English ruin everything! Why they make Mister Grin so big?"
+          },
+          {
+            "character": "Hawking Clam",
+            "line": "We catch and kill them, Mighty Father!"
+          },
+          {
+            "character": "Fighting Prawn",
+            "line": "But leave Peter Boy and Little Miss Squid Poop for me. Them, Fighting Prawn will butterfly and deep fat fry! SCAMPI!"
+          },
+          {
+            "character": "Mollusks",
+            "line": "Butterfly and deep fat fry! Butterfly and deep fat fry!! Butterfly and deep fat fry!!!"
+          }
+        ]
+      },
+      {
+        "title": "Act 2, Scene 7",
+        "lines": [
+          {
+            "character": "Narrator Fighting Prawn",
+            "line": "Bounding through the jungle and up the mountain, Peter’s thoughts are only of outrunning the natives."
+          },
+          {
+            "character": "Peter",
+            "line": "Try’n catch me, Fighting Prawn!"
+          },
+          {
+            "character": "Narrator Stache",
+            "line": "And the faster he runs, the further he gets —"
+          },
+          {
+            "character": "Narrator Aster",
+            "line": "— from the terrible beating —"
+          },
+          {
+            "character": "Narrator Prentiss",
+            "line": "— the boarded-up garrets —"
+          },
+          {
+            "character": "Narrator Peter",
+            "line": "— the smell and the filth and the dark of the cave!"
+          },
+          {
+            "character": "Narrator Smee",
+            "line": "And the further he runs, the more that he smiles —"
+          },
+          {
+            "character": "Narrator Fighting Prawn",
+            "line": "— from saving the others —"
+          },
+          {
+            "character": "Narrator Stache",
+            "line": "— and being a leader —"
+          },
+          {
+            "character": "Narrator Molly",
+            "line": "— ‘til, panting and jumping and practically flying, Peter feels something entirely new!"
+          },
+          {
+            "character": "Peter",
+            "line": "Alive!"
+          },
+          {
+            "character": "Narrator Aster",
+            "line": "And all of a sudden, surrounding his head —"
           }
         ]
       }
