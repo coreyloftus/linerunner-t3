@@ -85,7 +85,11 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "ArrowRight" && helperIndex < currentUserLine.length) {
+      if (
+        event.shiftKey &&
+        event.key === " " &&
+        helperIndex < currentUserLine.length
+      ) {
         setUserInput(
           (prevInput) =>
             prevInput +
@@ -95,7 +99,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
         );
         setHelperIndex((prevIndex) => prevIndex + 1);
       }
-      if (event.key === "ArrowLeft" && helperIndex > -1) {
+      if (event.shiftKey && event.key === "ArrowLeft" && helperIndex > -1) {
         setUserInput((prevInput) =>
           prevInput.split(" ").slice(0, -1).join(" "),
         );
@@ -167,7 +171,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
                 onClick={handleSubmit}
-                className="border-0 text-[#fefefe] active:border-0"
+                className="border-0 text-[#fefefe] focus:border-0"
                 placeholder="..."
               />
               <Button variant={"outline"} type="submit" onClick={handleSubmit}>
