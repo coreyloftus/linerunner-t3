@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { Button } from "../ui/button";
-import { Textarea } from "../ui/textarea";
+
 import { ScriptContext } from "~/app/context";
 
 import { type ProjectJSON } from "../../server/api/routers/scriptData";
@@ -16,8 +16,13 @@ interface ScriptBoxProps {
   };
 }
 export default function ScriptBox({ data }: ScriptBoxProps) {
-  const { selectedProject, selectedScene, selectedCharacter } =
-    useContext(ScriptContext);
+  const {
+    selectedProject,
+    selectedScene,
+    selectedCharacter,
+    userConfig,
+    gameMode,
+  } = useContext(ScriptContext);
   const [playScene, setPlayScene] = useState(false);
   const [userInput, setUserInput] = useState("");
   const [currentLineIndex, setCurrentLineIndex] = useState(0);
@@ -29,18 +34,27 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     .find((project) => project.project === selectedProject)
     ?.scenes.find((scene) => scene.title === selectedScene);
 
+  // event loop
   const proceedWithScene = useCallback(() => {
     const lines = script?.lines ?? [];
     const nextIndex = currentLineIndex + 1;
     const currentLine = lines[currentLineIndex];
+    console.log(`gameMode: ${gameMode}`);
 
+    // if there are more lines to display
     if (nextIndex < lines.length) {
-      if (currentLine?.character === selectedCharacter) {
-        setCurrentUserLine(currentLine.line.split(" "));
-        console.log(`setting current user line to ${currentLine.line}`);
-        setAwaitingInput(true);
-        return;
-      } else {
+      if (gameMode === "navigate") {
+        console.log(`in navigate mode`);
+      }
+      if (userConfig.stopOnCharacter && gameMode === "linerun") {
+        if (currentLine?.character === selectedCharacter) {
+          setCurrentUserLine(currentLine.line.split(""));
+          console.log(`setting current user line to ${currentLine.line}`);
+          setAwaitingInput(true);
+          return;
+        }
+      }
+      if (userConfig.autoAdvanceScript) {
         setTimeout(
           () => setCurrentLineIndex((prevIndex) => prevIndex + 1),
           1000,
@@ -49,10 +63,16 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     } else {
       setPlayScene(false);
     }
-  }, [currentLineIndex, script, selectedCharacter]);
+  }, [
+    currentLineIndex,
+    script,
+    selectedCharacter,
+    userConfig.autoAdvanceScript,
+    userConfig.stopOnCharacter,
+    gameMode,
+  ]);
 
   useEffect(() => {
-    console.log({ currentUserLine });
     if (playScene && !awaitingInput) {
       proceedWithScene();
       console.log(
@@ -68,8 +88,8 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     script,
   ]);
 
+  // "linerun" mode -- handle user input
   const handleSubmit = useCallback(() => {
-    console.log("User input submitted", userInput);
     const lines = script?.lines;
     const currentLine = lines?.[currentLineIndex];
     if (userInput.trim() === currentLine?.line) {
@@ -77,44 +97,61 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
       setUserInput("");
       setCurrentLineIndex(currentLineIndex + 1);
       setHelperIndex(0);
-    } else {
-      console.log("User input does not match line -- try again");
-      console.log(currentLine?.line);
     }
   }, [userInput, currentLineIndex, script]);
 
+  // keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (
-        event.shiftKey &&
-        event.key === " " &&
-        helperIndex < currentUserLine.length
-      ) {
-        setUserInput(
-          (prevInput) =>
-            prevInput +
-            (helperIndex > 0
-              ? " " + currentUserLine[helperIndex]
-              : currentUserLine[helperIndex]),
-        );
-        setHelperIndex((prevIndex) => prevIndex + 1);
-      }
-      if (event.shiftKey && event.key === "ArrowLeft" && helperIndex > -1) {
-        setUserInput((prevInput) =>
-          prevInput.split(" ").slice(0, -1).join(" "),
-        );
-        setHelperIndex((prevIndex) => prevIndex - 1);
-      }
-      if (event.key === "Enter") {
-        handleSubmit();
+      const activeElement = document.activeElement;
+      const inputElement = document.getElementById("script-input-box");
+      if (activeElement === inputElement) {
+        if (
+          helperIndex < currentUserLine.length &&
+          event.key === currentUserLine[helperIndex]
+        ) {
+          setUserInput((prevInput) => prevInput + currentUserLine[helperIndex]);
+          setHelperIndex((prevIndex) => prevIndex + 1);
+        }
+        if (event.key === "Backspace" && helperIndex > 0) {
+          setUserInput((prevInput) => prevInput.slice(0, -1));
+          setHelperIndex((prevIndex) => prevIndex - 1);
+        }
+        if (event.key === "Enter") {
+          handleSubmit();
+        }
+        console.log({ helperIndex, currentUserLine, userInput });
+      } else {
+        if (event.key === " " && !playScene) {
+          setPlayScene(true);
+        }
+        if (event.key === "ArrowDown" && playScene) {
+          setCurrentLineIndex(currentLineIndex + 1);
+        }
+        if (event.key === "ArrowUp" && playScene) {
+          setCurrentLineIndex(currentLineIndex - 1);
+        }
       }
     };
     window.addEventListener("keydown", handleKeyDown);
-    console.log({ helperIndex, currentUserLine, userInput });
+
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [currentUserLine, helperIndex, userInput, handleSubmit]);
+  }, [
+    currentUserLine,
+    helperIndex,
+    userInput,
+    handleSubmit,
+    playScene,
+    currentLineIndex,
+  ]);
+
+  useEffect(() => {
+    if (userInput === currentUserLine.join("")) {
+      handleSubmit();
+    }
+  });
 
   return (
     <>
@@ -126,8 +163,9 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
           currentLineIndex={currentLineIndex}
         />
       </div>
-      <div className="mb-2 min-h-[30vh] overflow-y-scroll rounded-md border-2 border-[#fefefe]">
+      <div className="mb-2 min-h-[80vh] overflow-y-scroll rounded-md border-2 border-[#fefefe]">
         <ul className="">
+          {/* user char + lines */}
           {playScene &&
             script?.lines.slice(0, currentLineIndex).map((line, index) => (
               <li
@@ -140,6 +178,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
                 <p className="text-xl">{line.line}</p>
               </li>
             ))}
+          {/* NPC lines */}
           {playScene &&
             script?.lines
               .slice(currentLineIndex, currentLineIndex + 1)
@@ -151,35 +190,32 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
                   <p className="text-xl font-bold">
                     {line.character.toUpperCase()}
                   </p>
-                  {line.character !== selectedCharacter && (
-                    <p className="text-xl">{line.line}</p>
-                  )}
+                  {line.character !== selectedCharacter &&
+                    gameMode === "navigate" && (
+                      <p className="text-xl">{line.line}</p>
+                    )}
                 </li>
               ))}
         </ul>
-        <div className="flex flex-col gap-2">
-          {/* <Textarea
-            value={userInput}
-            onChange={(e) => setUserInput(e.target.value)}
-            placeholder="..."
-            className="text-white placeholder-white"
-          /> */}
-          {script && playScene && awaitingInput ? (
+        {/* only display input box when "linerun" gameMode */}
+        {script && playScene && awaitingInput && gameMode === "linerun" ? (
+          <div className="flex flex-col gap-2">
             <div className="flex">
               <Input
+                id="script-input-box"
                 type="text"
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
                 onClick={handleSubmit}
-                className="border-0 text-[#fefefe] focus:border-0"
+                className="h-10 w-full border-0 bg-transparent text-xl text-[#fefefe] focus:border-0 focus:border-transparent focus:shadow-none focus:shadow-transparent focus:outline-none focus:outline-transparent focus:ring-0 focus:ring-transparent focus:ring-offset-0 focus:ring-offset-transparent"
                 placeholder="..."
               />
               <Button variant={"outline"} type="submit" onClick={handleSubmit}>
                 {">"}
               </Button>
             </div>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
       </div>
     </>
   );
