@@ -26,7 +26,7 @@ export default function NewScriptSelect({
     selectedCharacter,
     setSelectedCharacter,
   } = useContext(ScriptContext);
-  console.log({ allData });
+  // console.log({ allData });
   const handleProjectChange = (value: string) => {
     setSelectedProject(value);
   };
