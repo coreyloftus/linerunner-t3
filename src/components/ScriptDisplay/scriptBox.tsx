@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState, useRef } from "react";
 import { Button } from "../ui/button";
 
 import { ScriptContext } from "~/app/context";
@@ -16,6 +16,7 @@ interface ScriptBoxProps {
   };
 }
 export default function ScriptBox({ data }: ScriptBoxProps) {
+  const scrollRef = useRef<HTMLDivElement | null>(null);
   const {
     selectedProject,
     selectedScene,
@@ -45,6 +46,12 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     if (nextIndex < lines.length) {
       if (gameMode === "navigate") {
         console.log(`in navigate mode`);
+        if (currentLine?.character) {
+          setCurrentUserLine(currentLine.line.split(""));
+          console.log(`setting current user line to ${currentLine.line}`);
+          setAwaitingInput(true);
+          return;
+        }
       }
       if (userConfig.stopOnCharacter && gameMode === "linerun") {
         if (currentLine?.character === selectedCharacter) {
@@ -88,6 +95,12 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     script,
   ]);
 
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  }, [script?.lines, currentLineIndex]);
+
   // "linerun" mode -- handle user input
   const handleSubmit = useCallback(() => {
     const lines = script?.lines;
@@ -129,7 +142,9 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
           setCurrentLineIndex(currentLineIndex + 1);
         }
         if (event.key === "ArrowUp" && playScene) {
-          setCurrentLineIndex(currentLineIndex - 1);
+          if (currentLineIndex > 0) setCurrentLineIndex(currentLineIndex - 1);
+        }
+        if (event.key === "ArrowRight" && playScene) {
         }
       }
     };
@@ -163,8 +178,8 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
           currentLineIndex={currentLineIndex}
         />
       </div>
-      <div className="mb-2 min-h-[80vh] overflow-y-scroll rounded-md border-2 border-[#fefefe]">
-        <ul className="">
+      <div className="mb-2 h-[80vh] max-h-[80vh] rounded-md border-2 border-[#fefefe]">
+        <ul className="scrollbar-custom h-full max-h-full overflow-y-auto">
           {/* user char + lines */}
           {playScene &&
             script?.lines.slice(0, currentLineIndex).map((line, index) => (
@@ -190,13 +205,19 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
                   <p className="text-xl font-bold">
                     {line.character.toUpperCase()}
                   </p>
-                  {line.character !== selectedCharacter &&
-                    gameMode === "navigate" && (
+                  {gameMode === "linerun" &&
+                    line.character !== selectedCharacter && (
                       <p className="text-xl">{line.line}</p>
                     )}
+                  {gameMode === "navigate" && (
+                    <p className="text-xl">{line.line}</p>
+                  )}
                 </li>
               ))}
+          {/* for scrolling to bottom */}
+          <div ref={scrollRef}></div>
         </ul>
+
         {/* only display input box when "linerun" gameMode */}
         {script && playScene && awaitingInput && gameMode === "linerun" ? (
           <div className="flex flex-col gap-2">
