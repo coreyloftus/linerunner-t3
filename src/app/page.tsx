@@ -3,7 +3,6 @@ import { api } from "~/trpc/server";
 import ScriptBox from "~/components/ScriptDisplay/scriptBox";
 import NewScriptSelect from "~/components/newScriptSelect";
 import { ScriptProvider } from "./context";
-// import { ConvertScriptBox } from "~/components/ConvertScriptBox";
 
 export default async function Home() {
   const projectData = await api.scriptData.getAll();

@@ -7,9 +7,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 
 import { type ProjectJSON } from "../server/api/routers/scriptData";
+import { useSearchParams } from "next/navigation";
 
 export default function NewScriptSelect({
   projects,
@@ -18,6 +19,13 @@ export default function NewScriptSelect({
   projects: string[];
   allData: ProjectJSON[];
 }) {
+  // add query params to select the project, scene, and character
+
+  const searchParams = useSearchParams();
+  const project = searchParams.get("project");
+  const scene = searchParams.get("scene");
+  const character = searchParams.get("character");
+
   const {
     selectedProject,
     setSelectedProject,
@@ -26,7 +34,7 @@ export default function NewScriptSelect({
     selectedCharacter,
     setSelectedCharacter,
   } = useContext(ScriptContext);
-  // console.log({ allData });
+
   const handleProjectChange = (value: string) => {
     setSelectedProject(value);
   };
@@ -51,6 +59,25 @@ export default function NewScriptSelect({
         ),
       )
     : [];
+
+  useEffect(() => {
+    if (project) {
+      setSelectedProject(project.toString());
+      if (scene) {
+        setSelectedScene(scene.toString());
+        if (character) {
+          setSelectedCharacter(character.toString());
+        }
+      }
+    }
+  }, [
+    project,
+    scene,
+    character,
+    setSelectedProject,
+    setSelectedScene,
+    setSelectedCharacter,
+  ]);
 
   return (
     <div className="m-2 flex gap-4">
