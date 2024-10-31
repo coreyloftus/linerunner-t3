@@ -26,18 +26,23 @@ interface CharacterLineDisplayProps {
     | null
     | undefined;
   currentLineIndex: number;
+  currentLineSplitIndex: number;
 }
 
 const CharacterLineDisplay = ({
   script,
   currentLineIndex,
+  currentLineSplitIndex,
 }: CharacterLineDisplayProps) => {
   return (
     <div>
       {script?.lines.slice(0, currentLineIndex).map((line, index) => (
         <li key={index} className="flex flex-col justify-center gap-2 p-2">
           <p className="text-xl font-bold">{line.character.toUpperCase()}</p>
-          <p className="text-xl">{line.line}</p>
+          <p className="text-xl">
+            {line.line}
+            {/* {line.line.split(" ").slice(0, currentLineSplitIndex)}{" "} */}
+          </p>
         </li>
       ))}
     </div>
@@ -59,6 +64,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
   const [awaitingInput, setAwaitingInput] = useState(false);
   const [currentLine, setCurrentLine] = useState<string[]>([]);
   const [currentLineSplit, setCurrentLineSplit] = useState<string[]>([]);
+  const [currentLineSplitIndex, setCurrentLineSplitIndex] = useState(0);
   const [helperIndex, setHelperIndex] = useState(0);
 
   const script = data.allData
@@ -172,13 +178,33 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
         }
         if (event.key === "ArrowDown" && playScene) {
           setAwaitingInput(false);
+          setCurrentLineSplitIndex(0);
           setCurrentLineIndex((prev) => prev + 1);
         }
         if (event.key === "ArrowUp" && playScene) {
           setAwaitingInput(false);
+          setCurrentLineSplitIndex(0);
           if (currentLineIndex > 0) setCurrentLineIndex(currentLineIndex - 1);
         }
-        if (event.key === "ArrowRight" && playScene) {
+        if (
+          event.key === "ArrowRight" &&
+          currentLineSplitIndex <= currentLineSplit.length - 1 &&
+          playScene
+        ) {
+          setCurrentLineSplitIndex((prev) => prev + 1);
+          console.log(
+            `currentLineSplit Index incremented: ${currentLineSplitIndex}`,
+          );
+        }
+        if (
+          event.key === "ArrowLeft" &&
+          currentLineSplitIndex > 0 &&
+          playScene
+        ) {
+          setCurrentLineSplitIndex((prev) => prev - 1);
+          console.log(
+            `currentLineSplit Index decremented: ${currentLineSplitIndex}`,
+          );
         }
       }
     };
@@ -194,6 +220,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     handleSubmit,
     playScene,
     currentLineIndex,
+    currentLineSplitIndex,
   ]);
 
   useEffect(() => {
@@ -218,6 +245,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
             <CharacterLineDisplay
               script={script}
               currentLineIndex={currentLineIndex}
+              currentLineSplitIndex={currentLineSplitIndex}
             />
           )}
           {/* for scrolling to bottom */}
