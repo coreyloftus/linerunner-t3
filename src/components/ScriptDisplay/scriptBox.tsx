@@ -36,15 +36,27 @@ const CharacterLineDisplay = ({
 }: CharacterLineDisplayProps) => {
   return (
     <div>
+      {/* revealed lines */}
       {script?.lines.slice(0, currentLineIndex).map((line, index) => (
         <li key={index} className="flex flex-col justify-center gap-2 p-2">
           <p className="text-xl font-bold">{line.character.toUpperCase()}</p>
-          <p className="text-xl">
-            {line.line}
-            {/* {line.line.split(" ").slice(0, currentLineSplitIndex)}{" "} */}
-          </p>
+          <p className="text-xl">{line.line}</p>
         </li>
       ))}
+      <div>
+        {/* current line display */}
+        <li className="flex flex-col justify-center gap-2 p-2">
+          <p className="text-xl font-bold">
+            {script?.lines[currentLineIndex]?.character.toUpperCase()}
+          </p>
+          <p className="text-xl">
+            {script?.lines[currentLineIndex]?.line
+              .split(" ")
+              .slice(0, currentLineSplitIndex)
+              .join(" ")}
+          </p>
+        </li>
+      </div>
     </div>
   );
 };
@@ -193,7 +205,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
         ) {
           setCurrentLineSplitIndex((prev) => prev + 1);
           console.log(
-            `currentLineSplit Index incremented: ${currentLineSplitIndex}`,
+            `currentLineSplit Index incremented to ${currentLineSplitIndex}`,
           );
         }
         if (
@@ -203,7 +215,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
         ) {
           setCurrentLineSplitIndex((prev) => prev - 1);
           console.log(
-            `currentLineSplit Index decremented: ${currentLineSplitIndex}`,
+            `currentLineSplit Index decremented to ${currentLineSplitIndex}`,
           );
         }
       }
@@ -221,6 +233,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     playScene,
     currentLineIndex,
     currentLineSplitIndex,
+    currentLineSplit.length,
   ]);
 
   useEffect(() => {
