@@ -3,14 +3,20 @@ import { useToast } from "./ui/use-toast";
 import { FaPlay } from "react-icons/fa6";
 import { FaStop } from "react-icons/fa6";
 import { FaPause } from "react-icons/fa6";
-import { FaForwardStep } from "react-icons/fa6";
-import { FaBackwardStep } from "react-icons/fa6";
+import {
+  FaAngleLeft,
+  FaAngleRight,
+  FaArrowDown,
+  FaArrowUp,
+} from "react-icons/fa6";
 
 interface ControlBarProps {
   playScene: boolean;
   setPlayScene: React.Dispatch<React.SetStateAction<boolean>>;
   currentLineIndex: number;
   setCurrentLineIndex: React.Dispatch<React.SetStateAction<number>>;
+  wordDisplayIndex: number;
+  setWordDisplayIndex: React.Dispatch<React.SetStateAction<number>>;
 }
 
 export default function ControlBar({
@@ -18,24 +24,18 @@ export default function ControlBar({
   setPlayScene,
   currentLineIndex,
   setCurrentLineIndex,
+  wordDisplayIndex,
+  setWordDisplayIndex,
 }: ControlBarProps) {
   const { toast } = useToast();
 
   const handleClick = ({ title, desc }: { title: string; desc: string }) => {
     toast({ title: title, description: desc });
   };
-  // const handleClose = (
-  //   event: React.SyntheticEvent | Event,
-  //   reason?: string,
-  // ) => {
-  //   if (reason === "clickaway") {
-  //     return;
-  //   }
-  // };
 
   return (
-    <div className="flex justify-center gap-2">
-      <div>
+    <div className="flex w-[100%] gap-2">
+      <div className="flex gap-2">
         <Button
           variant={"outline"}
           onClick={() => {
@@ -49,53 +49,87 @@ export default function ControlBar({
             {playScene === false ? <FaPlay /> : <FaPause />}
           </p>
         </Button>
-      </div>
-      <div>
         <Button
           variant={"outline"}
           onClick={() => {
             handleClick({ title: "STOP", desc: "stop playback clicked" });
             setCurrentLineIndex(0);
+            setWordDisplayIndex(0);
             if (playScene) setPlayScene(false);
           }}
         >
-          <p className="text-2xl">
+          <p className="text-xl">
             <FaStop />
           </p>
         </Button>
       </div>
-      <div>
-        <Button
-          variant={"outline"}
-          onClick={() => {
-            handleClick({
-              title: "SKIP BACK",
-              desc: "skip to prev line clicked",
-            });
-            setCurrentLineIndex(currentLineIndex - 1);
-          }}
-        >
-          <p className="text-2xl">
-            <FaBackwardStep />
-          </p>
-        </Button>
-      </div>
-      <div>
-        <Button
-          // className="border-2 border-white"
-          variant={"outline"}
-          onClick={() => {
-            handleClick({
-              title: "SKIP FWD",
-              desc: "skip to next line clicked",
-            });
-            setCurrentLineIndex(currentLineIndex + 1);
-          }}
-        >
-          <p className="text-2xl">
-            <FaForwardStep />
-          </p>
-        </Button>
+      <div className="flex">
+        <div className="flex-1">
+          <Button
+            variant={"outline"}
+            onClick={() => {
+              handleClick({
+                title: "PREV LINE",
+                desc: "prev line clicked",
+              });
+              setWordDisplayIndex(0);
+              setCurrentLineIndex(currentLineIndex - 1);
+            }}
+          >
+            <p className="text-2xl">
+              <FaArrowUp />
+            </p>
+          </Button>
+        </div>
+        <div className="flex-1">
+          <Button
+            variant={"outline"}
+            onClick={() => {
+              handleClick({
+                title: "NEXT LINE",
+                desc: "next line clicked",
+              });
+              setWordDisplayIndex(0);
+              setCurrentLineIndex(currentLineIndex + 1);
+            }}
+          >
+            <p className="text-2xl">
+              <FaArrowDown />
+            </p>
+          </Button>
+        </div>
+        <div>
+          <Button
+            variant={"outline"}
+            onClick={() => {
+              handleClick({
+                title: "PREV WORD",
+                desc: "prev word clicked",
+              });
+              setWordDisplayIndex(wordDisplayIndex - 1);
+            }}
+          >
+            <p className="text-2xl">
+              <FaAngleLeft />
+            </p>
+          </Button>
+        </div>
+        <div>
+          <Button
+            variant={"outline"}
+            onClick={() => {
+              handleClick({
+                title: "NEXT WORD",
+                desc: "next word clicked",
+              });
+              setWordDisplayIndex(wordDisplayIndex + 1);
+            }}
+          >
+            <p className="text-2xl">
+              <FaAngleRight />
+            </p>
+          </Button>
+        </div>
       </div>
     </div>
   );
