@@ -1,13 +1,11 @@
 "use client";
 import { useCallback, useContext, useEffect, useState, useRef } from "react";
 import { Button } from "../ui/button";
-
 import { ScriptContext } from "~/app/context";
-
 import { type ProjectJSON } from "../../server/api/routers/scriptData";
-
-import ControlBar from "../ControlBar";
 import { Input } from "../ui/input";
+import ControlBar from "../ControlBar";
+import { CharacterLineDisplay } from "./characterLineDisplay";
 
 interface ScriptBoxProps {
   data: {
@@ -15,51 +13,6 @@ interface ScriptBoxProps {
     allData: ProjectJSON[];
   };
 }
-interface CharacterLineDisplayProps {
-  script:
-    | {
-        lines: {
-          character: string;
-          line: string;
-        }[];
-      }
-    | null
-    | undefined;
-  currentLineIndex: number;
-  currentLineSplitIndex: number;
-}
-
-const CharacterLineDisplay = ({
-  script,
-  currentLineIndex,
-  currentLineSplitIndex,
-}: CharacterLineDisplayProps) => {
-  return (
-    <div>
-      {/* revealed lines */}
-      {script?.lines.slice(0, currentLineIndex).map((line, index) => (
-        <li key={index} className="flex flex-col justify-center gap-2 p-2">
-          <p className="text-xl font-bold">{line.character.toUpperCase()}</p>
-          <p className="text-xl">{line.line}</p>
-        </li>
-      ))}
-      <div>
-        {/* current line display */}
-        <li className="flex flex-col justify-center gap-2 p-2">
-          <p className="text-xl font-bold">
-            {script?.lines[currentLineIndex]?.character.toUpperCase()}
-          </p>
-          <p className="text-xl">
-            {script?.lines[currentLineIndex]?.line
-              .split(" ")
-              .slice(0, currentLineSplitIndex)
-              .join(" ")}
-          </p>
-        </li>
-      </div>
-    </div>
-  );
-};
 
 export default function ScriptBox({ data }: ScriptBoxProps) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -88,12 +41,11 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     const lines = script?.lines ?? [];
     const nextIndex = currentLineIndex + 1;
     const currentLine = lines[currentLineIndex];
-    console.log(`gameMode: ${gameMode}`);
+    // console.log(`gameMode: ${gameMode}`);
 
     // if there are more lines to display
     if (nextIndex < lines.length) {
       if (gameMode === "navigate") {
-        console.log(`in navigate mode`);
         if (currentLine) {
           const split = currentLine.line.split(" ");
           setCurrentLineSplit(split);
@@ -259,10 +211,11 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
               script={script}
               currentLineIndex={currentLineIndex}
               currentLineSplitIndex={currentLineSplitIndex}
+              scrollRef={scrollRef}
             />
           )}
           {/* for scrolling to bottom */}
-          <div ref={scrollRef}></div>
+          {/* <div ref={scrollRef}></div> */}
         </ul>
 
         {/* only display input box when "linerun" gameMode */}
