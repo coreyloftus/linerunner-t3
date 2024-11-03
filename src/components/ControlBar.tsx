@@ -28,15 +28,16 @@ export default function ControlBar({
   setWordDisplayIndex,
 }: ControlBarProps) {
   const { toast } = useToast();
-
+  const buttonStyle = "h-full w-full";
   const handleClick = ({ title, desc }: { title: string; desc: string }) => {
     toast({ title: title, description: desc });
   };
 
   return (
-    <div className="flex w-[100%] gap-2">
+    <div className="flex h-full w-[100%] gap-2">
       <div className="flex gap-2">
         <Button
+          className="h-full"
           variant={"outline"}
           onClick={() => {
             handleClick({ title: "PLAY", desc: "play button clicked" });
@@ -50,6 +51,7 @@ export default function ControlBar({
           </p>
         </Button>
         <Button
+          className="h-full"
           variant={"outline"}
           onClick={() => {
             handleClick({ title: "STOP", desc: "stop playback clicked" });
@@ -63,9 +65,10 @@ export default function ControlBar({
           </p>
         </Button>
       </div>
-      <div className="flex">
+      <div className="flex flex-1 gap-2">
         <div className="flex-1">
           <Button
+            className={buttonStyle}
             variant={"outline"}
             onClick={() => {
               handleClick({
@@ -83,6 +86,7 @@ export default function ControlBar({
         </div>
         <div className="flex-1">
           <Button
+            className={buttonStyle}
             variant={"outline"}
             onClick={() => {
               handleClick({
@@ -98,8 +102,9 @@ export default function ControlBar({
             </p>
           </Button>
         </div>
-        <div>
+        <div className="flex-1">
           <Button
+            className={buttonStyle}
             variant={"outline"}
             onClick={() => {
               handleClick({
@@ -114,8 +119,9 @@ export default function ControlBar({
             </p>
           </Button>
         </div>
-        <div>
+        <div className="flex-1">
           <Button
+            className={buttonStyle}
             variant={"outline"}
             onClick={() => {
               handleClick({
