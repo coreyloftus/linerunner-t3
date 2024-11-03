@@ -5,7 +5,7 @@ import { ScriptContext } from "~/app/context";
 import { type ProjectJSON } from "../../server/api/routers/scriptData";
 import { Input } from "../ui/input";
 import ControlBar from "../ControlBar";
-import { CharacterLineDisplay } from "./characterLineDisplay";
+import { CharacterLineDisplay } from "./CharacterLineDisplay";
 
 interface ScriptBoxProps {
   data: {
@@ -29,8 +29,8 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
   const [awaitingInput, setAwaitingInput] = useState(false);
   const [currentLine, setCurrentLine] = useState<string[]>([]);
   const [currentLineSplit, setCurrentLineSplit] = useState<string[]>([]);
-  const [currentLineSplitIndex, setCurrentLineSplitIndex] = useState(0);
   const [helperIndex, setHelperIndex] = useState(0);
+  const [wordIndex, setWordIndex] = useState(0);
 
   const script = data.allData
     .find((project) => project.project === selectedProject)
@@ -41,15 +41,14 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     const lines = script?.lines ?? [];
     const nextIndex = currentLineIndex + 1;
     const currentLine = lines[currentLineIndex];
-    // console.log(`gameMode: ${gameMode}`);
 
     // if there are more lines to display
     if (nextIndex < lines.length) {
+      // setCurrentLineIndex(nextIndex);
       if (gameMode === "navigate") {
         if (currentLine) {
           const split = currentLine.line.split(" ");
           setCurrentLineSplit(split);
-          console.log({ currentLineSplit });
           setAwaitingInput(true);
           return;
         }
@@ -78,15 +77,11 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     userConfig.autoAdvanceScript,
     userConfig.stopOnCharacter,
     gameMode,
-    currentLineSplit,
   ]);
 
   useEffect(() => {
     if (playScene && !awaitingInput) {
       proceedWithScene();
-      console.log(
-        `${currentLineIndex} | ${script?.lines?.[currentLineIndex]?.character}: ${script?.lines?.[currentLineIndex]?.line}`,
-      );
     }
   }, [
     playScene,
@@ -96,6 +91,11 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     currentLineIndex,
     script,
   ]);
+  useEffect(() => {
+    setWordIndex(
+      Math.min(0, script?.lines?.length ? script.lines.length - 1 : 0),
+    );
+  }, [currentLineIndex, script]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -115,61 +115,93 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     }
   }, [userInput, currentLineIndex, script]);
 
+  const handleLineNavigation = useCallback(
+    (direction: "up" | "down") => {
+      if (!playScene || !script?.lines) return;
+      setAwaitingInput(false);
+      const totalLines = script.lines.length;
+      switch (direction) {
+        case "up":
+          if (currentLineIndex > 0) {
+            setCurrentLineIndex((prev) => prev - 1);
+            setWordIndex(0);
+          }
+          break;
+        case "down":
+          if (currentLineIndex < totalLines - 1) {
+            setCurrentLineIndex((prev) => prev + 1);
+            setWordIndex(0);
+          } else if (currentLineIndex === totalLines - 1) {
+            setCurrentLineIndex(0);
+            setWordIndex(0);
+          }
+          break;
+      }
+    },
+    [currentLineIndex, playScene, script?.lines],
+  );
+
+  const handleWordNavigation = useCallback(
+    (direction: "left" | "right") => {
+      if (!playScene) return;
+      if (direction === "right" && wordIndex <= currentLineSplit.length - 1) {
+        setWordIndex((prev) => prev + 1);
+      } else if (direction === "left" && wordIndex > 0) {
+        setWordIndex((prev) => prev - 1);
+      }
+    },
+    [playScene, wordIndex, currentLineSplit.length],
+  );
+  const handleTextInput = useCallback(
+    (key: string) => {
+      const inputElement = document.getElementById("script-input-box");
+      if (document.activeElement !== inputElement) return;
+
+      if (
+        helperIndex < currentLine.length &&
+        key === currentLine[helperIndex]
+      ) {
+        setUserInput((prev) => prev + key);
+        setHelperIndex((prev) => prev + 1);
+      } else if (key === "Backspace" && helperIndex > 0) {
+        setUserInput((prev) => prev.slice(0, -1));
+        setHelperIndex((prev) => prev - 1);
+      }
+    },
+    [currentLine, helperIndex],
+  );
+
   // keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      const activeElement = document.activeElement;
-      const inputElement = document.getElementById("script-input-box");
-      if (activeElement === inputElement) {
-        if (
-          helperIndex < currentLine.length &&
-          event.key === currentLine[helperIndex]
-        ) {
-          setUserInput((prevInput) => prevInput + currentLine[helperIndex]);
-          setHelperIndex((prevIndex) => prevIndex + 1);
-        }
-        if (event.key === "Backspace" && helperIndex > 0) {
-          setUserInput((prevInput) => prevInput.slice(0, -1));
-          setHelperIndex((prevIndex) => prevIndex - 1);
-        }
-        if (event.key === "Enter") {
-          handleSubmit();
-        }
-        console.log({ helperIndex, currentLine, userInput });
-      } else {
-        if (event.key === " " && !playScene) {
-          setPlayScene(true);
-        }
-        if (event.key === "ArrowDown" && playScene) {
-          setAwaitingInput(false);
-          setCurrentLineSplitIndex(0);
-          setCurrentLineIndex((prev) => prev + 1);
-        }
-        if (event.key === "ArrowUp" && playScene) {
-          setAwaitingInput(false);
-          setCurrentLineSplitIndex(0);
-          if (currentLineIndex > 0) setCurrentLineIndex(currentLineIndex - 1);
-        }
-        if (
-          event.key === "ArrowRight" &&
-          currentLineSplitIndex <= currentLineSplit.length - 1 &&
-          playScene
-        ) {
-          setCurrentLineSplitIndex((prev) => prev + 1);
-          console.log(
-            `currentLineSplit Index incremented to ${currentLineSplitIndex}`,
-          );
-        }
-        if (
-          event.key === "ArrowLeft" &&
-          currentLineSplitIndex > 0 &&
-          playScene
-        ) {
-          setCurrentLineSplitIndex((prev) => prev - 1);
-          console.log(
-            `currentLineSplit Index decremented to ${currentLineSplitIndex}`,
-          );
-        }
+      if (
+        ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key)
+      ) {
+        event.preventDefault();
+      }
+      switch (event.key) {
+        case " ":
+          if (!playScene) setPlayScene(true);
+          break;
+        case "ArrowDown":
+          handleLineNavigation("down");
+          break;
+        case "ArrowUp":
+          handleLineNavigation("up");
+          break;
+        case "ArrowRight":
+          handleWordNavigation("right");
+          break;
+        case "ArrowLeft":
+          handleWordNavigation("left");
+          break;
+        case "Enter":
+          if (document.activeElement?.id === "script-input-box") {
+            handleSubmit();
+          }
+          break;
+        default:
+          handleTextInput(event.key);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -178,14 +210,11 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [
-    currentLine,
-    helperIndex,
-    userInput,
     handleSubmit,
+    handleLineNavigation,
+    handleWordNavigation,
+    handleTextInput,
     playScene,
-    currentLineIndex,
-    currentLineSplitIndex,
-    currentLineSplit.length,
   ]);
 
   useEffect(() => {
@@ -194,24 +223,26 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     }
   });
 
+  useEffect(() => {
+    console.log(`wordIndex: ${wordIndex}`);
+  }, [wordIndex]);
+  useEffect(() => {
+    console.log(
+      `${currentLineIndex} | ${script?.lines?.[currentLineIndex]?.character}: ${script?.lines?.[currentLineIndex]?.line}`,
+    );
+  }, [currentLineIndex, script]);
+
   return (
     <>
-      <div className="m-2">
-        <ControlBar
-          playScene={playScene}
-          setPlayScene={setPlayScene}
-          setCurrentLineIndex={setCurrentLineIndex}
-          currentLineIndex={currentLineIndex}
-        />
-      </div>
       <div className="mb-2 h-[80vh] max-h-[80vh] rounded-md border-2 border-[#fefefe]">
         <ul className="scrollbar-custom h-full max-h-full overflow-y-auto">
           {playScene && (
             <CharacterLineDisplay
               script={script}
               currentLineIndex={currentLineIndex}
-              currentLineSplitIndex={currentLineSplitIndex}
+              // currentLineSplitIndex={currentLineSplitIndex}
               scrollRef={scrollRef}
+              wordIndex={wordIndex}
             />
           )}
           {/* for scrolling to bottom */}
@@ -237,6 +268,16 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
             </div>
           </div>
         ) : null}
+      </div>
+      <div className="mt-6">
+        <ControlBar
+          playScene={playScene}
+          setPlayScene={setPlayScene}
+          setCurrentLineIndex={setCurrentLineIndex}
+          currentLineIndex={currentLineIndex}
+          setWordDisplayIndex={setWordIndex}
+          wordDisplayIndex={wordIndex}
+        />
       </div>
     </>
   );

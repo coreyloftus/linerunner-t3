@@ -11,17 +11,18 @@ interface CharacterLineDisplayProps {
     | null
     | undefined;
   currentLineIndex: number;
-  currentLineSplitIndex: number;
+  // currentLineSplitIndex: number;
+  wordIndex: number;
   scrollRef: React.MutableRefObject<HTMLDivElement | null>;
 }
 export const CharacterLineDisplay = ({
   script,
   currentLineIndex,
-  currentLineSplitIndex,
+  // currentLineSplitIndex,
   scrollRef,
+  wordIndex: wordDisplayIndex,
 }: CharacterLineDisplayProps) => {
   const lines = script?.lines ?? [];
-  const displayIndex = Math.min(currentLineIndex, lines.length - 1);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -30,11 +31,11 @@ export const CharacterLineDisplay = ({
         block: "nearest",
       });
     }
-  }, [currentLineIndex, currentLineSplitIndex, scrollRef]);
+  }, [currentLineIndex, wordDisplayIndex, scrollRef]);
   return (
     <div>
       {/* revealed lines */}
-      {script?.lines.slice(0, displayIndex).map((line, index) => (
+      {script?.lines.slice(0, currentLineIndex).map((line, index) => (
         <li key={index} className="flex flex-col justify-center gap-2 p-2">
           <p className="text-xl font-bold">{line.character.toUpperCase()}</p>
           <p className="text-xl">{line.line}</p>
@@ -44,13 +45,13 @@ export const CharacterLineDisplay = ({
         {/* current line display */}
         <li className="flex flex-col justify-center gap-2 p-2">
           <p className="text-xl font-bold">
-            {lines[displayIndex]?.character.toUpperCase()}
+            {lines[currentLineIndex]?.character.toUpperCase()}
           </p>
           <p className="text-xl">
-            {lines[displayIndex]?.line
+            {lines[currentLineIndex]?.line
               .split(" ")
-              .slice(0, currentLineSplitIndex)
-              .join(" ") ?? "a"}
+              .slice(0, wordDisplayIndex)
+              .join(" ") ?? ""}
           </p>
         </li>
       </div>
