@@ -234,7 +234,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
 
   return (
     <>
-      <div className="mb-2 h-[80vh] max-h-[80vh] rounded-md border-2 border-[#fefefe]">
+      <div className="mb-2 h-[78vh] max-h-[80vh] rounded-md border-2 border-[#fefefe]">
         <ul className="scrollbar-custom h-full max-h-full overflow-y-auto">
           {playScene && (
             <CharacterLineDisplay
@@ -275,8 +275,8 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
           setPlayScene={setPlayScene}
           setCurrentLineIndex={setCurrentLineIndex}
           currentLineIndex={currentLineIndex}
-          setWordDisplayIndex={setWordIndex}
-          wordDisplayIndex={wordIndex}
+          setWordIndex={setWordIndex}
+          wordIndex={wordIndex}
         />
       </div>
     </>

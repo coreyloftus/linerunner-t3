@@ -8,11 +8,11 @@ import { ScriptProvider } from "./context";
 export default async function Home() {
   const projectData = await api.scriptData.getAll();
   return (
-    <div className=" min-h-[100vh] bg-[#1e1e1e] p-4 text-white">
+    <div className="min-h-[100vh] bg-[#1e1e1e] px-3 py-1 text-white">
       <ScriptProvider>
         <div className="flex-grow-1 flex justify-center">
           {projectData ? (
-            <div>
+            <div className="m-2">
               <NewScriptSelect
                 projects={projectData.projects}
                 allData={projectData.allData}

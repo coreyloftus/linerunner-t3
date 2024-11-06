@@ -80,7 +80,7 @@ export default function NewScriptSelect({
   ]);
 
   return (
-    <div className="m-2 flex gap-4">
+    <div className="flex gap-4">
       <Select onValueChange={handleProjectChange} value={selectedProject}>
         <SelectTrigger>
           <SelectValue placeholder="Project">{selectedProject}</SelectValue>

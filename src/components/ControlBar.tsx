@@ -15,8 +15,9 @@ interface ControlBarProps {
   setPlayScene: React.Dispatch<React.SetStateAction<boolean>>;
   currentLineIndex: number;
   setCurrentLineIndex: React.Dispatch<React.SetStateAction<number>>;
-  wordDisplayIndex: number;
-  setWordDisplayIndex: React.Dispatch<React.SetStateAction<number>>;
+  currentLineSplit: string[];
+  wordIndex: number;
+  setWordIndex: React.Dispatch<React.SetStateAction<number>>;
 }
 
 export default function ControlBar({
@@ -24,13 +25,15 @@ export default function ControlBar({
   setPlayScene,
   currentLineIndex,
   setCurrentLineIndex,
-  wordDisplayIndex,
-  setWordDisplayIndex,
+  currentLineSplit,
+  wordIndex,
+  setWordIndex,
 }: ControlBarProps) {
   const { toast } = useToast();
   const buttonStyle = "h-full w-full";
   const handleClick = ({ title, desc }: { title: string; desc: string }) => {
-    toast({ title: title, description: desc });
+    // toast({ title: title, description: desc });
+    console.log({ title: title, description: desc });
   };
 
   return (
@@ -56,7 +59,7 @@ export default function ControlBar({
           onClick={() => {
             handleClick({ title: "STOP", desc: "stop playback clicked" });
             setCurrentLineIndex(0);
-            setWordDisplayIndex(0);
+            setWordIndex(0);
             if (playScene) setPlayScene(false);
           }}
         >
@@ -75,7 +78,7 @@ export default function ControlBar({
                 title: "PREV LINE",
                 desc: "prev line clicked",
               });
-              setWordDisplayIndex(0);
+              setWordIndex(0);
               setCurrentLineIndex(currentLineIndex - 1);
             }}
           >
@@ -93,7 +96,7 @@ export default function ControlBar({
                 title: "NEXT LINE",
                 desc: "next line clicked",
               });
-              setWordDisplayIndex(0);
+              setWordIndex(0);
               setCurrentLineIndex(currentLineIndex + 1);
             }}
           >
@@ -111,7 +114,9 @@ export default function ControlBar({
                 title: "PREV WORD",
                 desc: "prev word clicked",
               });
-              setWordDisplayIndex(wordDisplayIndex - 1);
+              if (wordIndex > 0) {
+                setWordIndex(wordIndex - 1);
+              }
             }}
           >
             <p className="text-2xl">
@@ -128,7 +133,9 @@ export default function ControlBar({
                 title: "NEXT WORD",
                 desc: "next word clicked",
               });
-              setWordDisplayIndex(wordDisplayIndex + 1);
+              if (wordIndex <= currentLineSplit.length - 1) {
+                setWordIndex(wordIndex + 1);
+              }
             }}
           >
             <p className="text-2xl">
