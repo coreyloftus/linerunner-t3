@@ -275,6 +275,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
           setPlayScene={setPlayScene}
           setCurrentLineIndex={setCurrentLineIndex}
           currentLineIndex={currentLineIndex}
+          currentLineSplit={currentLineSplit}
           setWordIndex={setWordIndex}
           wordIndex={wordIndex}
         />

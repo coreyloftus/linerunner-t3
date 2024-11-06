@@ -1,9 +1,46 @@
 [
   {
-    "project": "Starcatcher A2",
+    "project": "Starcatcher",
     "scenes": [
       {
-        "title": "Act 2, Scene 3",
+        "title": "Scene 0 (Prologue)",
+        "lines": [
+          {
+            "character": "Boy",
+            "line": "When I was a boy, I wished I could fly."
+          },
+          {
+            "character": "Prentiss",
+            "line": "Me too."
+          },
+          {
+            "character": "Scott",
+            "line": "So did I!"
+          },
+          {
+            "character": "Boy",
+            "line": "Out the window and over the trees --"
+          },
+          {
+            "character": "Smee",
+            "line": "-- high as a cloud and lighter than air --"
+          },
+          {
+            "character": "Molly",
+            "line": "-- then loop the loop and up to the stars! I dreamed about flying all the time. What? Girls dream."
+          },
+          {
+            "character": "Boy",
+            "line": "Up to the stars - I like that."
+          },
+          {
+            "character": "Molly",
+            "line": "Me too."
+          }
+        ]
+      },
+      {
+        "title": "A2S3",
         "lines": [
           {
             "character": "Fighting Prawn",
@@ -328,7 +365,7 @@
         ]
       },
       {
-        "title": "Act 2, Scene 4",
+        "title": "A2S4",
         "lines": [
           {
             "character": "Peter",
@@ -369,7 +406,7 @@
         ]
       },
       {
-        "title": "Act 2, Scene 7",
+        "title": "A2S7",
         "lines": [
           {
             "character": "Narrator Fighting Prawn",
