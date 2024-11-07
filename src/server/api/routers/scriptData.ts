@@ -14,7 +14,10 @@ export interface SceneJSON {
     line: string;
   }[];
 }
-
+export interface GetAllResponse {
+  projects: string[];
+  allData: ProjectJSON[];
+}
 // const importAllJSON = (directory: string): ProjectJSON[] => {
 //   const fullPath = path.join(process.cwd(), "public", "sceneData");
 //   const files = fs.readdirSync(fullPath);
@@ -40,8 +43,8 @@ const getJSONData = (): ProjectJSON[] => {
 // );
 
 export const scriptData = createTRPCRouter({
-  getAll: publicProcedure.query(async () => {
-    const allData = getJSONData();
+  getAll: publicProcedure.query(async (): Promise<GetAllResponse> => {
+    const allData: ProjectJSON[] = getJSONData();
     const projects = allData.map((file) => file.project);
     return {
       projects,
