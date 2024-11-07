@@ -1,5 +1,5 @@
 import { Button } from "./ui/button";
-import { useToast } from "./ui/use-toast";
+// import { useToast } from "./ui/use-toast";
 import { FaPlay } from "react-icons/fa6";
 import { FaStop } from "react-icons/fa6";
 import { FaPause } from "react-icons/fa6";
@@ -29,7 +29,7 @@ export default function ControlBar({
   wordIndex,
   setWordIndex,
 }: ControlBarProps) {
-  const { toast } = useToast();
+  // const { toast } = useToast();
   const buttonStyle = "h-full w-full";
   const handleClick = ({ title, desc }: { title: string; desc: string }) => {
     // toast({ title: title, description: desc });

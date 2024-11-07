@@ -15,6 +15,7 @@ interface ScriptContextProps {
   selectedCharacter: string;
   setSelectedCharacter: Dispatch<SetStateAction<string>>;
   userConfig: UserConfig;
+  setUserConfig: Dispatch<SetStateAction<UserConfig>>;
   gameMode: "navigate" | "linerun";
   setGameMode: Dispatch<SetStateAction<"navigate" | "linerun">>;
 }
@@ -34,6 +35,7 @@ export const ScriptContext = createContext<ScriptContextProps>({
   setSelectedCharacter: () => "",
   userConfig: { stopOnCharacter: false, autoAdvanceScript: false },
   gameMode: "navigate",
+  setUserConfig: () => ({ stopOnCharacter: false, autoAdvanceScript: false }),
   setGameMode: () => "navigate",
 });
 
@@ -56,6 +58,7 @@ export const ScriptProvider = ({ children }: { children: ReactNode }) => {
         setSelectedScene,
         selectedCharacter,
         setSelectedCharacter,
+        setUserConfig,
         userConfig,
         gameMode,
         setGameMode,

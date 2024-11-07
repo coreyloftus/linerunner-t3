@@ -15,24 +15,33 @@ export interface SceneJSON {
   }[];
 }
 
-const importAllJSON = (directory: string): ProjectJSON[] => {
+// const importAllJSON = (directory: string): ProjectJSON[] => {
+//   const fullPath = path.join(process.cwd(), "public", "sceneData");
+//   const files = fs.readdirSync(fullPath);
+//   const jsonData = files.map((file) => {
+//     const data = fs.readFileSync(path.join(directory, file), "utf8");
+//     return JSON.parse(data) as ProjectJSON;
+//   });
+//   return jsonData.flat();
+// };
+const getJSONData = (): ProjectJSON[] => {
+  const directory = path.join(process.cwd(), "public/sceneData");
   const files = fs.readdirSync(directory);
-  // console.log("files found");
-  const jsonData = files.map((file) => {
-    const data = fs.readFileSync(path.join(directory, file), "utf8");
-    return JSON.parse(data) as ProjectJSON;
-  });
-  const flattenedData = jsonData.flat();
-  // console.log({ flattenedData });
-  return flattenedData;
+  return files
+    .map((file) => {
+      const data = fs.readFileSync(path.join(directory, file), "utf8");
+      return JSON.parse(data) as ProjectJSON;
+    })
+    .flat();
 };
 
-const allData: ProjectJSON[] = importAllJSON(
-  path.resolve(__dirname, "../../../public/sceneData"),
-);
+// const allData: ProjectJSON[] = importAllJSON(
+//   path.resolve(__dirname, "~/../public/sceneData"),
+// );
 
 export const scriptData = createTRPCRouter({
   getAll: publicProcedure.query(async () => {
+    const allData = getJSONData();
     const projects = allData.map((file) => file.project);
     return {
       projects,
@@ -42,6 +51,7 @@ export const scriptData = createTRPCRouter({
   getScenes: publicProcedure
     .input(z.object({ project: z.string() }))
     .query(async ({ input }) => {
+      const allData = getJSONData();
       const scenes = allData.find(
         (file) => file.project === input.project,
       )?.scenes;
@@ -51,6 +61,7 @@ export const scriptData = createTRPCRouter({
   getCharacters: publicProcedure
     .input(z.object({ project: z.string(), scene: z.string() }))
     .query(async ({ input }) => {
+      const allData = getJSONData();
       const characters = allData
         .find((file) => file.project === input.project)
         ?.scenes.find((scene) => scene.title === input.scene)
@@ -60,6 +71,7 @@ export const scriptData = createTRPCRouter({
   getLines: publicProcedure
     .input(z.object({ project: z.string(), scene: z.string() }))
     .query(({ input }) => {
+      const allData = getJSONData();
       const lines = allData
         .find((file) => file.project === input.project)
         ?.scenes.find((scene) => scene.title === input.scene)
