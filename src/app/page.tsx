@@ -1,8 +1,8 @@
 import * as React from "react";
 import { api } from "~/trpc/server";
-import ScriptBox from "~/components/ScriptDisplay/ScriptBox";
-import NewScriptSelect from "~/components/NewScriptSelect";
 import { ScriptProvider } from "./context";
+import NewScriptSelect from "~/components/NewScriptSelect";
+import ScriptBox from "~/components/ScriptDisplay/ScriptBox";
 // import PlayStopControls from "~/components/PlayStopControls";
 
 export default async function Home() {
