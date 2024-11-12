@@ -8,24 +8,22 @@ import ScriptBox from "~/components/ScriptDisplay/ScriptBox";
 export default async function Home() {
   const projectData = await api.scriptData.getAll();
   return (
-    <div className="min-h-[100vh] bg-[#1e1e1e] px-3 py-1 text-white">
+    <div className="flex min-h-[100vh] min-w-[100vw] flex-col items-center justify-center bg-[#1e1e1e] px-4 py-2 text-white">
       <ScriptProvider>
-        <div className="flex-grow-1 flex justify-center">
-          {projectData ? (
-            <div className="m-2">
-              <NewScriptSelect
-                projects={projectData.projects}
-                allData={projectData.allData}
-              />
-            </div>
-          ) : (
-            "Loading..."
-          )}
-        </div>
+        {projectData ? (
+          <div className="mb-2 w-full">
+            <NewScriptSelect
+              projects={projectData.projects}
+              allData={projectData.allData}
+            />
+          </div>
+        ) : (
+          "Loading..."
+        )}
         {/* <div className="mx-2">
           <ConvertScriptBox />
         </div> */}
-        <div>
+        <div className="h-[80vh] w-full flex-1">
           <ScriptBox data={projectData} />
         </div>
       </ScriptProvider>

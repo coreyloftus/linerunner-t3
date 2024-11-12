@@ -49,7 +49,17 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
         if (currentLine) {
           const split = currentLine.line.split(" ");
           setCurrentLineSplit(split);
-          setAwaitingInput(true);
+          if (
+            currentLine?.character !== selectedCharacter &&
+            userConfig.autoAdvanceScript
+          ) {
+            setTimeout(
+              () => setCurrentLineIndex((prevIndex) => prevIndex + 1),
+              1000,
+            );
+          } else {
+            setAwaitingInput(true);
+          }
           return;
         }
       }
@@ -150,7 +160,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
         setWordIndex((prev) => prev - 1);
       }
     },
-    [playScene, wordIndex, currentLineSplit.length],
+    [playScene, wordIndex, currentLineSplit],
   );
   const handleTextInput = useCallback(
     (key: string) => {
@@ -234,7 +244,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
 
   return (
     <>
-      <div className="mb-2 h-[78vh] max-h-[80vh] rounded-md border-2 border-[#fefefe]">
+      <div className="h-full rounded-md border-2 border-stone-200">
         <ul className="scrollbar-custom h-full max-h-full overflow-y-auto">
           {playScene && (
             <CharacterLineDisplay
@@ -269,7 +279,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
           </div>
         ) : null}
       </div>
-      <div className="mt-6 h-[10vh]">
+      <div className="mt-2 h-[10vh]">
         <ControlBar
           playScene={playScene}
           setPlayScene={setPlayScene}

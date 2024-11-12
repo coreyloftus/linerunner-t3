@@ -115,7 +115,7 @@ export default function ControlBar({
                 desc: "prev word clicked",
               });
               if (wordIndex > 0) {
-                setWordIndex(wordIndex - 1);
+                setWordIndex((prev) => prev - 1);
               }
             }}
           >
@@ -134,7 +134,9 @@ export default function ControlBar({
                 desc: "next word clicked",
               });
               if (wordIndex <= currentLineSplit.length - 1) {
-                setWordIndex(wordIndex + 1);
+                console.log({ currentLineSplit });
+                wordIndex;
+                setWordIndex((prev) => prev + 1);
               }
             }}
           >
