@@ -35,7 +35,7 @@ export const ScriptContext = createContext<ScriptContextProps>({
   setSelectedCharacter: () => "",
   userConfig: { stopOnCharacter: false, autoAdvanceScript: false },
   gameMode: "navigate",
-  setUserConfig: () => ({ stopOnCharacter: false, autoAdvanceScript: false }),
+  setUserConfig: () => ({ stopOnCharacter: true, autoAdvanceScript: true }),
   setGameMode: () => "navigate",
 });
 
