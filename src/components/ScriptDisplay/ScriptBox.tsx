@@ -49,7 +49,22 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
         if (currentLine) {
           const split = currentLine.line.split(" ");
           setCurrentLineSplit(split);
-          setAwaitingInput(true);
+          // if not user's character, auto-advance
+          if (
+            currentLine?.character !== selectedCharacter &&
+            userConfig.autoAdvanceScript
+          ) {
+            if (wordIndex < split.length - 1) {
+              setTimeout(() => setWordIndex((prevIndex) => prevIndex + 1), 250);
+            } else {
+              setTimeout(() => {
+                setCurrentLineIndex((prevIndex) => prevIndex + 1);
+                setWordIndex(0);
+              });
+            }
+          } else {
+            setAwaitingInput(true);
+          }
           return;
         }
       }
@@ -77,6 +92,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     userConfig.autoAdvanceScript,
     userConfig.stopOnCharacter,
     gameMode,
+    wordIndex,
   ]);
 
   useEffect(() => {
@@ -91,11 +107,11 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     currentLineIndex,
     script,
   ]);
-  useEffect(() => {
-    setWordIndex(
-      Math.min(0, script?.lines?.length ? script.lines.length - 1 : 0),
-    );
-  }, [currentLineIndex, script]);
+  // useEffect(() => {
+  //   setWordIndex(
+  //     Math.min(0, script?.lines?.length ? script.lines.length - 1 : 0),
+  //   );
+  // }, [currentLineIndex, script]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -150,7 +166,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
         setWordIndex((prev) => prev - 1);
       }
     },
-    [playScene, wordIndex, currentLineSplit.length],
+    [playScene, wordIndex, currentLineSplit],
   );
   const handleTextInput = useCallback(
     (key: string) => {
@@ -225,7 +241,8 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
 
   useEffect(() => {
     console.log(`wordIndex: ${wordIndex}`);
-  }, [wordIndex]);
+    console.log({ userConfig });
+  }, [wordIndex, userConfig]);
   useEffect(() => {
     console.log(
       `${currentLineIndex} | ${script?.lines?.[currentLineIndex]?.character}: ${script?.lines?.[currentLineIndex]?.line}`,
@@ -234,7 +251,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
 
   return (
     <>
-      <div className="mb-2 h-[78vh] max-h-[80vh] rounded-md border-2 border-[#fefefe]">
+      <div className="flex flex-1 flex-col rounded-md border-2 border-stone-200">
         <ul className="scrollbar-custom h-full max-h-full overflow-y-auto">
           {playScene && (
             <CharacterLineDisplay
@@ -269,7 +286,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
           </div>
         ) : null}
       </div>
-      <div className="mt-6 h-[10vh]">
+      <div className="mt-2 h-[10vh]">
         <ControlBar
           playScene={playScene}
           setPlayScene={setPlayScene}
@@ -278,6 +295,8 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
           currentLineSplit={currentLineSplit}
           setWordIndex={setWordIndex}
           wordIndex={wordIndex}
+          handleLineNavigation={handleLineNavigation}
+          handleWordNavigation={handleWordNavigation}
         />
       </div>
     </>

@@ -18,6 +18,8 @@ interface ControlBarProps {
   currentLineSplit: string[];
   wordIndex: number;
   setWordIndex: React.Dispatch<React.SetStateAction<number>>;
+  handleLineNavigation: (direction: "up" | "down") => void;
+  handleWordNavigation: (direction: "left" | "right") => void;
 }
 
 export default function ControlBar({
@@ -28,6 +30,8 @@ export default function ControlBar({
   currentLineSplit,
   wordIndex,
   setWordIndex,
+  handleLineNavigation,
+  handleWordNavigation,
 }: ControlBarProps) {
   // const { toast } = useToast();
   const buttonStyle = "h-full w-full";
@@ -78,8 +82,7 @@ export default function ControlBar({
                 title: "PREV LINE",
                 desc: "prev line clicked",
               });
-              setWordIndex(0);
-              setCurrentLineIndex(currentLineIndex - 1);
+              handleLineNavigation("up");
             }}
           >
             <p className="text-2xl">
@@ -97,7 +100,7 @@ export default function ControlBar({
                 desc: "next line clicked",
               });
               setWordIndex(0);
-              setCurrentLineIndex(currentLineIndex + 1);
+              handleLineNavigation("down");
             }}
           >
             <p className="text-2xl">
@@ -114,9 +117,7 @@ export default function ControlBar({
                 title: "PREV WORD",
                 desc: "prev word clicked",
               });
-              if (wordIndex > 0) {
-                setWordIndex(wordIndex - 1);
-              }
+              handleWordNavigation("left");
             }}
           >
             <p className="text-2xl">
@@ -133,9 +134,7 @@ export default function ControlBar({
                 title: "NEXT WORD",
                 desc: "next word clicked",
               });
-              if (wordIndex <= currentLineSplit.length - 1) {
-                setWordIndex(wordIndex + 1);
-              }
+              handleWordNavigation("right");
             }}
           >
             <p className="text-2xl">
