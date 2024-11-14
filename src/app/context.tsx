@@ -33,7 +33,7 @@ export const ScriptContext = createContext<ScriptContextProps>({
   setSelectedScene: () => "",
   selectedCharacter: "",
   setSelectedCharacter: () => "",
-  userConfig: { stopOnCharacter: false, autoAdvanceScript: false },
+  userConfig: { stopOnCharacter: true, autoAdvanceScript: true },
   gameMode: "navigate",
   setUserConfig: () => ({ stopOnCharacter: true, autoAdvanceScript: true }),
   setGameMode: () => "navigate",
@@ -44,8 +44,8 @@ export const ScriptProvider = ({ children }: { children: ReactNode }) => {
   const [selectedScene, setSelectedScene] = useState<string>("");
   const [selectedCharacter, setSelectedCharacter] = useState<string>("");
   const [userConfig, setUserConfig] = useState<UserConfig>({
-    stopOnCharacter: false,
-    autoAdvanceScript: false,
+    stopOnCharacter: true,
+    autoAdvanceScript: true,
   });
   const [gameMode, setGameMode] = useState<"navigate" | "linerun">("navigate");
 
