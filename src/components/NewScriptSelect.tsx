@@ -8,7 +8,7 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { useContext, useEffect } from "react";
-
+import { useRouter } from "next/navigation";
 import { type ProjectJSON } from "../server/api/routers/scriptData";
 
 export default function NewScriptSelect({
@@ -18,10 +18,9 @@ export default function NewScriptSelect({
   projects: string[];
   allData: ProjectJSON[];
 }) {
+  const router = useRouter();
+  
   // add query params to select the project, scene, and character
-const {queryParams} = useContext(ScriptContext);
-const {project, scene, character}= queryParams;
-
   const {
     selectedProject,
     setSelectedProject,
@@ -29,16 +28,23 @@ const {project, scene, character}= queryParams;
     setSelectedScene,
     selectedCharacter,
     setSelectedCharacter,
+    queryParams
   } = useContext(ScriptContext);
-
-  const handleProjectChange = (value: string) => {
-    setSelectedProject(value);
+  const {project, scene, character}= queryParams;
+  const handleProjectChange = (newProject: string) => {
+    setSelectedProject(newProject);
+    const newQPs=`?project=${newProject}&scene=${selectedScene}&character=${selectedCharacter}`
+    router.push(newQPs)
   };
-  const handleSceneChange = (value: string) => {
-    setSelectedScene(value);
+  const handleSceneChange = (newScene: string) => {
+    setSelectedScene(newScene);
+    const newQPs=`?project=${selectedProject}&scene=${newScene}&character=${selectedCharacter}`
+    router.push(newQPs)
   };
-  const handleCharacterChange = (value: string) => {
-    setSelectedCharacter(value);
+  const handleCharacterChange = (newCharacter: string) => {
+    setSelectedCharacter(newCharacter);
+    const newQPs=`?project=${selectedProject}&scene=${selectedScene}&character=${newCharacter}`
+    router.push(newQPs)
   };
 
   const sceneList = selectedProject
