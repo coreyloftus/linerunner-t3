@@ -240,10 +240,6 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
   });
 
   useEffect(() => {
-    console.log(`wordIndex: ${wordIndex}`);
-    console.log({ userConfig });
-  }, [wordIndex, userConfig]);
-  useEffect(() => {
     console.log(
       `${currentLineIndex} | ${script?.lines?.[currentLineIndex]?.character}: ${script?.lines?.[currentLineIndex]?.line}`,
     );

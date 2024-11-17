@@ -10,7 +10,6 @@ import {
 import { useContext, useEffect } from "react";
 
 import { type ProjectJSON } from "../server/api/routers/scriptData";
-import { useSearchParams } from "next/navigation";
 
 export default function NewScriptSelect({
   projects,
@@ -20,11 +19,8 @@ export default function NewScriptSelect({
   allData: ProjectJSON[];
 }) {
   // add query params to select the project, scene, and character
-
-  const searchParams = useSearchParams();
-  const project = searchParams.get("project");
-  const scene = searchParams.get("scene");
-  const character = searchParams.get("character");
+const {queryParams} = useContext(ScriptContext);
+const {project, scene, character}= queryParams;
 
   const {
     selectedProject,
