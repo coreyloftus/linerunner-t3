@@ -42,55 +42,51 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     const nextIndex = currentLineIndex + 1;
     const currentLine = lines[currentLineIndex];
 
-    // if there are more lines to display
-    if (nextIndex < lines.length) {
-      // setCurrentLineIndex(nextIndex);
-      if (gameMode === "navigate") {
-        if (currentLine) {
-          const split = currentLine.line.split(" ");
-          setCurrentLineSplit(split);
-          // if not user's character, auto-advance
-          if (
-            currentLine?.character !== selectedCharacter &&
-            userConfig.autoAdvanceScript
-          ) {
-            if (wordIndex < split.length - 1) {
-              setTimeout(() => setWordIndex((prevIndex) => prevIndex + 1), 250);
-            } else {
-              setTimeout(() => {
-                setCurrentLineIndex((prevIndex) => prevIndex + 1);
-                setWordIndex(0);
-              });
-            }
+    // if there are no more lines to display
+    if (nextIndex >= lines.length) {
+      setAwaitingInput(true);
+      return;
+    }
+    if (gameMode === "linerun") {
+      if (currentLine) {
+        const split = currentLine.line.split(" ");
+        setCurrentLineSplit(split);
+        // if not user's character, auto-advance
+        if (
+          currentLine?.character !== selectedCharacter &&
+          userConfig.autoAdvanceScript
+        ) {
+          if (wordIndex < split.length - 1) {
+            setTimeout(() => setWordIndex((prevIndex) => prevIndex + 1), 500);
           } else {
-            setAwaitingInput(true);
+            // only advance if not last line
+            setTimeout(() => {
+              setCurrentLineIndex((prevIndex) => prevIndex + 1);
+              setWordIndex(0);
+            }, 500);
           }
-          return;
-        }
-      }
-      if (userConfig.stopOnCharacter && gameMode === "linerun") {
-        if (currentLine?.character === selectedCharacter) {
-          setCurrentLine(currentLine.line.split(""));
-          console.log(`setting current user line to ${currentLine.line}`);
+        } else {
           setAwaitingInput(true);
-          return;
         }
+        return;
       }
-      if (userConfig.autoAdvanceScript) {
-        setTimeout(
-          () => setCurrentLineIndex((prevIndex) => prevIndex + 1),
-          1000,
-        );
+    }
+    if (gameMode === "navigate") {
+      if (currentLine?.character === selectedCharacter) {
+        setCurrentLine(currentLine.line.split(""));
+        console.log(`setting current user line to ${currentLine.line}`);
+        setAwaitingInput(true);
+        return;
       }
-    } else {
-      setPlayScene(false);
+    }
+    if (userConfig.autoAdvanceScript) {
+      setTimeout(() => setCurrentLineIndex((prevIndex) => prevIndex + 1), 1000);
     }
   }, [
     currentLineIndex,
     script,
     selectedCharacter,
     userConfig.autoAdvanceScript,
-    userConfig.stopOnCharacter,
     gameMode,
     wordIndex,
   ]);
@@ -99,19 +95,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     if (playScene && !awaitingInput) {
       proceedWithScene();
     }
-  }, [
-    playScene,
-    awaitingInput,
-    proceedWithScene,
-    currentLine,
-    currentLineIndex,
-    script,
-  ]);
-  // useEffect(() => {
-  //   setWordIndex(
-  //     Math.min(0, script?.lines?.length ? script.lines.length - 1 : 0),
-  //   );
-  // }, [currentLineIndex, script]);
+  }, [playScene, awaitingInput, proceedWithScene]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -239,15 +223,14 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     }
   });
 
+  // debug console logs
   useEffect(() => {
     console.log(`wordIndex: ${wordIndex}`);
     console.log({ userConfig });
-  }, [wordIndex, userConfig]);
-  useEffect(() => {
     console.log(
       `${currentLineIndex} | ${script?.lines?.[currentLineIndex]?.character}: ${script?.lines?.[currentLineIndex]?.line}`,
     );
-  }, [currentLineIndex, script]);
+  }, [currentLineIndex, script, wordIndex, userConfig]);
 
   return (
     <>
@@ -257,13 +240,12 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
             <CharacterLineDisplay
               script={script}
               currentLineIndex={currentLineIndex}
-              // currentLineSplitIndex={currentLineSplitIndex}
               scrollRef={scrollRef}
               wordIndex={wordIndex}
             />
           )}
           {/* for scrolling to bottom */}
-          {/* <div ref={scrollRef}></div> */}
+          <div ref={scrollRef}></div>
         </ul>
 
         {/* only display input box when "linerun" gameMode */}
