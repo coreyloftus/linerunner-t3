@@ -40,7 +40,7 @@ export const ScriptContext = createContext<ScriptContextProps>({
   userConfig: { stopOnCharacter: true, autoAdvanceScript: true },
   gameMode: "linerun",
   setUserConfig: () => ({ stopOnCharacter: true, autoAdvanceScript: true }),
-  setGameMode: () => "navigate",
+  setGameMode: () => "linerun",
   queryParams:{},
   setQueryParams: () => ({})
 });
@@ -53,7 +53,7 @@ export const ScriptProvider = ({ children }: { children: ReactNode }) => {
     stopOnCharacter: true,
     autoAdvanceScript: true,
   });
-  const [gameMode, setGameMode] = useState<"navigate" | "linerun">("navigate");
+  const [gameMode, setGameMode] = useState<"navigate" | "linerun">("linerun");
   const [queryParams, setQueryParams] = useState({});
   const searchParams = useSearchParams();
   useEffect(()=> {
