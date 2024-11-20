@@ -1,9 +1,9 @@
 "use client";
 import { useCallback, useContext, useEffect, useState, useRef } from "react";
 import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 import { ScriptContext } from "~/app/context";
 import { type ProjectJSON } from "../../server/api/routers/scriptData";
-import { Input } from "../ui/input";
 import ControlBar from "../ControlBar";
 import { CharacterLineDisplay } from "./CharacterLineDisplay";
 
@@ -56,8 +56,8 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
           currentLine?.character !== selectedCharacter &&
           userConfig.autoAdvanceScript
         ) {
-          if (wordIndex < split.length - 1) {
-            setTimeout(() => setWordIndex((prevIndex) => prevIndex + 1), 500);
+          if (wordIndex <= split.length - 1) {
+            setTimeout(() => setWordIndex((prevIndex) => prevIndex + 1), 250);
           } else {
             // only advance if not last line
             setTimeout(() => {
@@ -132,8 +132,8 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
             setCurrentLineIndex((prev) => prev + 1);
             setWordIndex(0);
           } else if (currentLineIndex === totalLines - 1) {
-            setCurrentLineIndex(0);
-            setWordIndex(0);
+            // pause at end of script
+            setAwaitingInput(true);
           }
           break;
       }
@@ -231,7 +231,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
 
   return (
     <>
-      <div className="flex flex-col h-[78vh] rounded-md border-2 border-stone-200">
+      <div className="flex flex-col h-[78dvh] rounded-md border-2 border-stone-200">
         <div className="flex-grow overflow-hidden pt-safe-top pb-safe-bottom">
 
         <ul className="h-full overflow-y-auto overscroll-bounce">
@@ -250,7 +250,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
           </div>
 
         {/* only display input box when "linerun" gameMode */}
-        {script && playScene && awaitingInput && gameMode === "linerun" ? (
+        {/* {script && playScene && awaitingInput && gameMode === "linerun" ? (
           <div className="flex flex-col gap-2">
             <div className="flex">
               <Input
@@ -267,7 +267,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
               </Button>
             </div>
           </div>
-        ) : null}
+        ) : null} */}
       </div>
       <div className="mt-2 h-[10vh]">
         <ControlBar
