@@ -8,6 +8,7 @@ import React, {
   useEffect,
 } from "react";
 import { useSearchParams } from "next/navigation";
+import { type GetAllResponse } from "~/server/api/routers/scriptData";
 
 interface ScriptContextProps {
   selectedProject: string;
@@ -22,6 +23,8 @@ interface ScriptContextProps {
   setGameMode: Dispatch<SetStateAction<"navigate" | "linerun">>;
   queryParams: Record<string, string>;
   setQueryParams: Dispatch<SetStateAction<Record<string, string>>>;
+  allProjects: GetAllResponse;
+  setAllProjects: Dispatch<SetStateAction<GetAllResponse>>;
 }
 
 type UserConfig = {
@@ -41,8 +44,10 @@ export const ScriptContext = createContext<ScriptContextProps>({
   gameMode: "linerun",
   setUserConfig: () => ({ stopOnCharacter: true, autoAdvanceScript: true }),
   setGameMode: () => "linerun",
-  queryParams:{},
-  setQueryParams: () => ({})
+  queryParams: {},
+  setQueryParams: () => ({}),
+  allProjects: { projects: [], allData: [] },
+  setAllProjects: () => ({ projects: [], allData: [] }),
 });
 
 export const ScriptProvider = ({ children }: { children: ReactNode }) => {
@@ -56,13 +61,14 @@ export const ScriptProvider = ({ children }: { children: ReactNode }) => {
   const [gameMode, setGameMode] = useState<"navigate" | "linerun">("linerun");
   const [queryParams, setQueryParams] = useState({});
   const searchParams = useSearchParams();
-  useEffect(()=> {
+  const [allProjects, setAllProjects] = useState({
+    projects: [""],
+    allData: [],
+  });
+
+  useEffect(() => {
     setQueryParams(Object.fromEntries(searchParams));
   }, [searchParams]);
-
-  // useEffect(()=> {
-  //   console.log("queryParams", queryParams);
-  // })
 
   return (
     <ScriptContext.Provider
@@ -79,6 +85,8 @@ export const ScriptProvider = ({ children }: { children: ReactNode }) => {
         setGameMode,
         queryParams,
         setQueryParams,
+        allProjects,
+        setAllProjects,
       }}
     >
       {children}
