@@ -1,16 +1,12 @@
 import { getAllProjects } from "~/app/actions";
-import NewScriptSelect from "./NewScriptSelect";
+import { SidebarClient } from "./SidebarClient";
 
 export default async function Sidebar() {
   const projectData = await getAllProjects();
-
   return (
-    <div>
-      <h1>NavBar</h1>
-      <NewScriptSelect
-        projects={projectData.projects}
-        allData={projectData.allData}
-      />
-    </div>
+    <SidebarClient
+      projects={projectData.projects}
+      allData={projectData.allData}
+    />
   );
 }
