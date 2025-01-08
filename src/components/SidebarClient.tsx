@@ -19,11 +19,25 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
           <h1 className="text-2xl">{!navOpen ? "→" : "←"}</h1>
         </Button>
       </div>
+      {/* sidebar */}
       <div
-        className={`border-r-2 border-stone-200 duration-500 md:w-[100vw] lg:w-[33vw] ${navOpen && "opacity-1 h-[100dvh] slide-in-from-left-5"}${!navOpen && "z-0 opacity-0"}`}
+        className={`fixed left-0 top-4 h-full w-[33vw] transform rounded-md border-r-2 border-t-2 border-stone-200 bg-stone-400 transition-all duration-500 ease-in-out ${
+          navOpen ? "translate-x-0 opacity-100" : "-translate-x-full opacity-0"
+        }`}
+        style={{ zIndex: 15 }}
       >
-        <NewScriptSelect projects={projects} allData={allData} />
+        <div className="pt-12">
+          <NewScriptSelect projects={projects} allData={allData} />
+        </div>
       </div>
+      {/* overlay */}
+      {navOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-500"
+          style={{ zIndex: 10 }}
+          onClick={() => setNavOpen(false)} // Close sidebar when clicking outside
+        />
+      )}
     </>
   );
 }
