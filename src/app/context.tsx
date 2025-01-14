@@ -61,8 +61,8 @@ export const ScriptProvider = ({ children }: { children: ReactNode }) => {
   const [gameMode, setGameMode] = useState<"navigate" | "linerun">("linerun");
   const [queryParams, setQueryParams] = useState({});
   const searchParams = useSearchParams();
-  const [allProjects, setAllProjects] = useState({
-    projects: [""],
+  const [allProjects, setAllProjects] = useState<GetAllResponse>({
+    projects: [],
     allData: [],
   });
 
