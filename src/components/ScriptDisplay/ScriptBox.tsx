@@ -231,23 +231,22 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
 
   return (
     <>
-      <div className="flex flex-col h-[78dvh] rounded-md border-2 border-stone-200">
-        <div className="flex-grow overflow-hidden pt-safe-top pb-safe-bottom">
-
-        <ul className="h-full overflow-y-auto overscroll-bounce">
-          {playScene && (
-            <CharacterLineDisplay
-            script={script}
-            currentLineIndex={currentLineIndex}
-            // currentLineSplitIndex={currentLineSplitIndex}
-            scrollRef={scrollRef}
-            wordIndex={wordIndex}
-            />
-          )}
-          {/* for scrolling to bottom */}
-          <div ref={scrollRef}></div>
-        </ul>
-          </div>
+      <div className="flex h-[78dvh] flex-col rounded-md border-2 border-stone-200">
+        <div className="pt-safe-top pb-safe-bottom flex-grow overflow-hidden">
+          <ul className="overscroll-bounce h-full overflow-y-auto">
+            {playScene && (
+              <CharacterLineDisplay
+                script={script}
+                currentLineIndex={currentLineIndex}
+                // currentLineSplitIndex={currentLineSplitIndex}
+                scrollRef={scrollRef}
+                wordIndex={wordIndex}
+              />
+            )}
+            {/* for scrolling to bottom */}
+            <div ref={scrollRef}></div>
+          </ul>
+        </div>
 
         {/* only display input box when "linerun" gameMode */}
         {/* {script && playScene && awaitingInput && gameMode === "linerun" ? (

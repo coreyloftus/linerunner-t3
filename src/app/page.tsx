@@ -3,6 +3,7 @@ import { api } from "~/trpc/server";
 import { ScriptProvider } from "./context";
 import ScriptBox from "~/components/ScriptDisplay/ScriptBox";
 import Sidebar from "~/components/Sidebar";
+import { Titlebar } from "~/components/Titlebar";
 
 // import PlayStopControls from "~/components/PlayStopControls";
 
@@ -19,6 +20,7 @@ export default async function Home() {
           <ConvertScriptBox />
           </div> */}
           <div className="flex w-full flex-1 flex-col">
+            <Titlebar />
             <ScriptBox data={projectData} />
           </div>
         </div>
