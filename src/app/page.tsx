@@ -10,19 +10,19 @@ export default async function Home() {
   const projectData = await api.scriptData.getAll();
   return (
     <div>
-      <div className="fixed left-0 top-0 z-10">
-        <Sidebar />
-      </div>
-      <div className="flex min-h-[100dvh] flex-col items-center justify-center bg-[#1e1e1e] p-6 text-white">
-        <ScriptProvider>
+      <ScriptProvider>
+        <div className="fixed left-0 top-0 z-10">
+          <Sidebar />
+        </div>
+        <div className="flex min-h-[100dvh] flex-col items-center justify-center bg-[#1e1e1e] p-6 text-white">
           {/* <div className="mx-2">
           <ConvertScriptBox />
           </div> */}
           <div className="flex w-full flex-1 flex-col">
             <ScriptBox data={projectData} />
           </div>
-        </ScriptProvider>
-      </div>
+        </div>
+      </ScriptProvider>
     </div>
   );
 }
