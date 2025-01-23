@@ -3,6 +3,8 @@ import { type ProjectJSON } from "~/server/api/routers/scriptData";
 import NewScriptSelect from "./NewScriptSelect";
 import { Button } from "./ui/button";
 import { useState } from "react";
+import { GiHamburgerMenu } from "react-icons/gi";
+
 type SidebarClientProps = {
   projects: string[];
   allData: ProjectJSON[];
@@ -16,7 +18,7 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
           onClick={() => setNavOpen(!navOpen)}
           className={`bg-stone-500 text-white`}
         >
-          <h1 className="text-2xl">{!navOpen ? "→" : "X"}</h1>
+          <h1 className="text-2xl">{!navOpen ? <GiHamburgerMenu /> : "X"}</h1>
         </Button>
       </div>
       {/* sidebar */}
