@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useContext, useEffect, useState, useRef } from "react";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
+// import { Button } from "../ui/button";
+// import { Input } from "../ui/input";
 import { ScriptContext } from "~/app/context";
 import { type ProjectJSON } from "../../server/api/routers/scriptData";
 import ControlBar from "../ControlBar";
