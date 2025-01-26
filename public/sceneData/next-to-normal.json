@@ -116,82 +116,84 @@
       {
         "title": "A1S11",
         "lines": [
-          { "character": "Doctor Madden", "line": "Diana? This way, please." },
-          { "character": "Doctor Madden", "line": "YEAH..." },
-          { "character": "Diana", "line": "What did you just say?" },
+          { "character": "Doctor Madden", "line": "Diana? this way, please.", "sung":false },
+          { "character": "Doctor Madden", "line": "Yeah...", "sung":true },
+          { "character": "Diana", "line": "What did you just say?", "sung":false },
           {
             "character": "Doctor Madden",
-            "line": "I said welcome. Have a seart. It's nice to meet you."
+            "line": "I said welcome. have a seat. it's nice to meet you.", "sung":false
           },
           {
             "character": "Doctor Madden",
-            "line": "LET'S GET IT ON NOW, BABY..."
+            "line": "Let's get it on now, baby...", "sung":true
           },
-          { "character": "Diana", "line": "Excuse me, what?" },
+          { "character": "Diana", "line": "Excuse me, what?", "sung":false },
           {
             "character": "Doctor Madden",
-            "line": "I said, let's get started. Are you... nervous, Diana?"
+            "line": "I said, let's get started. are you... nervous, Diana?", "sung":false
           },
           {
             "character": "Diana",
-            "line": "I am, a little. A bit out of breath. Tingly, actually. Now you go."
+            "line": "I am, a little. a bit out of breath. tingly, actually. now you go.", "sung":false
           },
           {
             "character": "Doctor Madden",
-            "line": "Well, let's start by getting to know each other a bit. Psychotherapy and medication work best in tandem, but we can try the first alone, and see how far we get. Why don't you tell me -- "
+            "line": "Well, let's start by getting to know each other a bit. psychotherapy and medication work best in tandem, but we can try the first alone, and see how far we get. why don't you tell me -- ", "sung":false
           },
           {
             "character": "Doctor Madden",
-            "line": "BAY-BEE... WHAT'S YOUR HISTORY? // WHERE'D YOU GO AND WHO'D YOU SEE? YEAH..."
+            "line": "Bay-bee... what's your history? Where'd you go and who'd you see? Yeah...", "sung":true
           },
           {
             "character": "Diana",
-            "line": "Um. My histry? Well -- I was diagnosed bipolar, um wow, sixteen years ago? But it turned out bipolar didn't totally cover it."
+            "line": "Um. my history? well -- i was diagnosed bipolar, um wow, sixteen years ago? but it turned out bipolar didn't totally cover it.", "sung":false
           },
           {
             "character": "Doctor Madden",
-            "line": "Sometimes there's a predisposition to illness, but actual onset is only triggered by some... traumatic event."
+            "line": "Sometimes there's a predisposition to illness, but actual onset is only triggered by some... traumatic event.", "sung":false
           },
           {
             "character": "Diana",
-            "line": "I never know what to say when I have to go over all this. It starts to sound like some story I tell that's about some other person entirely."
+            "line": "I never know what to say when i have to go over all this. it starts to sound like some story i tell that's about some other person entirely.", "sung":false
           },
           {
             "character": "Doctor Madden",
-            "line": "Why don't you tell me about the last time you truly felt happy. (beat) Were you happy when you got married?"
+            "line": "Why don't you tell me about the last time you truly felt happy. (beat) were you happy when you got married?", "sung":false
           },
-          { "character": "Diana", "line": "I thought I was." },
+          { "character": "Diana", "line": "I thought i was.", "sung":false },
           {
             "character": "Doctor Madden",
-            "line": "There's a difference between being happy and just thinking you're happy?"
+            "line": "There's a difference between being happy and just thinking you're happy?", "sung":false
           },
           {
             "character": "Diana",
-            "line": "Most people who think they're happy just haven't thought about it enough. Most people who think they're happy are actually just stupid."
+            "line": "Most people who think they're happy just haven't thought about it enough. most people who think they're happy are actually just stupid.", "sung":false
           },
           {
             "character": "Doctor Madden",
-            "line": "I see. Were you happy when your son was born?"
+            "line": "I see. were you happy when your son was born?", "sung":false
           }
         ]
       },
       {
         "title": "A1S12",
         "lines": [
-          { "character": "Diana", "line": "My son?" },
-          { "character": "Doctor Madden", "line": "Tell me about him." },
-          { "character": "Diana", "line": "About my son?" },
+          { "character": "Diana", "line": "My son?", "sung":false },
+          { "character": "Doctor Madden", "line": "Tell me about him." , "sung":false},
+          { "character": "Diana", "line": "About my son?" , "sung":false},
           {
             "character": "Doctor Madden",
             "line": "Why is he still around? Who is he? What is he?"
+            , "sung":false
           },
           {
             "character": "Gabe",
-            "line": "I AM WHAT YOU WANT ME TO BE, / AND I'M YOUR WORST FEAR -- YOU'LL FIND IT IN ME. / COME CLOSER... / COME CLOSER..."
+            "line": "I AM WHAT YOU WANT ME TO BE, / AND I'M YOUR WORST FEAR -- YOU'LL FIND IT IN ME. / COME CLOSER... / COME CLOSER...", "sung":true
           },
           {
             "character": "Doctor Madden",
             "line": "Where does he come from, do you think?"
+            , "sung":false
           }
         ]
       },
@@ -200,108 +202,339 @@
         "lines": [
           {
             "character": "Doctor Madden",
-            "line": "It's been four weeks, and I'd like to try something new today. Sometimes, when these stories are hard to tell, hypnosis can be helpful."
+            "line": "It's been four weeks, and I'd like to try something new today. Sometimes, when these stories are hard to tell, hypnosis can be helpful.",
+            "sung": false
           },
-          {"character":"Diana","line":"Oh, I don't think I could be hypnotized. I mean, it's fine. I'm just not the type."},
-          {"character":"Doctor Madden","line":"Put your feet on the floor. Your hands in your lap. Breathe."},
-          {"character":"Doctor Madden","line":"WALK WITH ME... / WALK WITH ME."},
-          {"character":"Diana","line":"Okay. Walking."},
-          {"character":"Doctor Madden","line":"GO ALL THE WAY DOWN -- DOWN A LONG FLIGHT OF STAIRS..."},
-          {"character":"Diana","line":"Stairs!"},
-          {"character":"Doctor Madden","line":"GO STEP BY STEP INTO THE DARKNESS DOWN THERE."},
-          {"character":"Diana","line":"Should we turn on a light? You know, with the stairs?"},
-          {"character":"Doctor Madden","line":"WALK WITH ME... / DOWN A HALL, / A HALL THAT YOU KNOW -- AT THE END THERE'S A DOOR, / IT'S A DOOR THAT YOU'VE NEVER LAID EYES ON BEFORE... / OPEN THE DOOR... / OPEN THE DOOR."},
-          {"character":"Doctor Madden","line":"Can you hear me, Diana?"},
-          {"character":"Diana","line":"Yes."},
-          {"character":"Doctor Madden","line":"Are you nervous?"},
-          {"character":"Diana","line":"No."},
-          {"character":"Doctor Madden","line":"Good. Now."},
-          {"character":"Doctor Madden","line":"MAKE UP YOUR MIND TO EXPLORE YOURSELF. / MAKE UP YOUR MIND YOU HAVE STORIES TO TELL. / WE'LL SEARCH IN YOUR PAST / FOR WHAT SORROWS MAY LAST, / THEN MAKE UP YOUR MIND TO BE WELL."},
-          {"character":"Dan","line":"Di, you come home from these sessions in tears. Is this helping, or...? Di? Di?"},
-          {"character":"Diana","line":"We were both undergrads. Architecture. The baby wasn't planned. Neither was the marriage. I had always expected to be too busy. But when the baby came it all seemed to make sense. Until... until..."},
-          {"character":"Doctor Madden","line":"Until?"},
-          {"character":"Dan","line":"HE'S NOT HERE... / HE'S NOT HERE... / LOVE, I KNOW YOU KNOW."},
-          {"character":"Doctor Madden","line":"MAKE UP YOUR MIND THAT YOU'RE STRONG ENOUGH. / MAKE UP YOUR MIND - LET THE TRUTH BE REVEALED. / ADMIT WHAT YOU'VE LOST / AND LIVE WITH THE COST... / AT TIMES IT DOES HURT TO BE HEALED."},
-          {"character":"Gabe","line":"CATCH ME I'M FALLING..."},
-          {"character":"Doctor Madden","line":"In our first session you told me..."},
-          {"character":"Gabe","line":"CATCH ME I'M FALLING..."},
-          {"character":"Doctor Madden","line":"... that talking through your history..."},
-          {"character":"Gabe","line":"FASTER THAN ANYONE SHOULD."},
-          {"character":"Gabe","line":"CATCH ME I'M FALLING..."},
-          {"character":"Doctor Madden","line":"... it feels like it's about someone else."},
-          {"character":"Gabe","line":"PLEASE HEAR ME CALLING..."},
-          {"character":"Doctor Madden","line":"Make it about you."},
-          {"character":"Gabe","line":"CATCH ME I'M FALLING FOR GOOD."},
-          {"character":"Natalie","line":"Did you see my parents out there?"},
-          {"character":"Henry","line":"Um - are you okay?"},
-          {"character":"Natalie","line":"I'm fine. My dad said they'd both be here."},
-          {"character":"Henry","line":"Then I'm sure they will be."},
-          {"character":"Natalie","line":"Will they?"},
-          {"character":"Diana","line":"We had Natalie to... And I know she knows. I couldn't hold her, in the hospital?"},
-          {"character":"Natalie","line":"Where the hell are they?"},
-          {"character":"Diana","line":"I couldn't let myself hold her."},
-          {"character":"Doctor Madden","line":"That's the first time you've mentioned Natalie in weeks of therapy."},
-          {"character":"Natalie","line":"God damn it."},
-          {"character":"Natalie","line":"SHE'S NOT THERE... / SHE'S NOT THERE... / SHE'S NOT THERE..."},
-          {"character":"Doctor Madden","line":"MAKE UP YOUR MIND YOU WANT CLARITY: / TAKE WHAT YOU KNOW AND THEN MAKE IT MAKE SENSE. / JUST FACE WHAT YOU EFAR, / AND SOON IT COMES CLEAR / THE VISIONS ARE JUST YOUR DEFENSE."},
-          {"character":"Natalie","line":"Um. Thank you for coming. Natalie Goodman."},
-          {"character":"Doctor Madden","line":"Let's try to understand what all this is doing to you. And your family."},
-          {"character":"Natalie","line":"Fuck."},
-          {"character":"Doctor Madden","line":"Your grief for your son. Your distance from Natalie."},
-          {"character":"Natalie","line":"I'm sorry. I just - The thing is - I - You know what the problem with classical is? It's so rigid and structured. You have to play the notes on the page. There's no room for improvisation."},
-          {"character":"Henry","line":"Oh no."},
-          {"character":"Doctor Madden","line":"MAKE UP YOUR MIND YOU CAN LIVE AT LAST / MAKE UP YOUR MIND TO BE FULLY ALIVE. / EMBRACE WHAT'S INSIDE, REPLCACE WHAT HAS DIED / THEN MAKE UP YOUR MIND YOU'LL SURVIVE."},
-          {"character":"Diana","line":"CATCH ME I'M FALLING..."},
-          {"character":"Doctor Madden","line":"Fear of loss, to anxiety."},
-          {"character":"Diana","line":"FLYING HEADFIRST INTO FATE. / CATCH ME I'M FALLING..."},
-          {"character":"Doctor Madden","line":"The more you hold on to something you lost..."},
-          {"character":"Diana","line":"PLEASE HEAR ME CALLING..."},
-          {"character":"Doctor Madden","line":"... the more you fear losing it."},
-          {"character":"Diana","line":"CATCH ME BEFORE IT'S TOO LATE."},
-          {"character":"Doctor Madden","line":"Depression, anxiety, depression, anxiety... one gives rise to the other. It becomes a cycle."},
-          {"character":"Doctor Madden","line":"Wouldn't you like to be free from all that? Finally? Wouldn't you like to go home, clear our his room... maybe spend some time wiht your daughter? And let your son go, at last?"}
-        ]
-      },
+          {
+            "character": "Diana",
+            "line": "Oh, I don't think I could be hypnotized. I mean, it's fine. I'm just not the type.",
+            "sung": false
+          },
+          {
+            "character": "Doctor Madden",
+            "line": "Put your feet on the floor. Your hands in your lap. Breathe.",
+            "sung": false
+          },
+          {
+            "character": "Doctor Madden",
+            "line": "WALK WITH ME... / WALK WITH ME.",
+            "sung": true
+          },
+          {
+            "character": "Diana",
+            "line": "Okay. Walking.",
+            "sung": false
+          },
+          {
+            "character": "Doctor Madden",
+            "line": "GO ALL THE WAY DOWN -- DOWN A LONG FLIGHT OF STAIRS...",
+            "sung": true
+          },
+          {
+            "character": "Diana",
+            "line": "Stairs!",
+            "sung": false
+          },
+          {
+            "character": "Doctor Madden",
+            "line": "GO STEP BY STEP INTO THE DARKNESS DOWN THERE.",
+            "sung": true
+          },
+          {
+            "character": "Diana",
+            "line": "Should we turn on a light? You know, with the stairs?",
+            "sung": false
+          },
+          {
+            "character": "Doctor Madden",
+            "line": "WALK WITH ME... / DOWN A HALL, / A HALL THAT YOU KNOW -- AT THE END THERE'S A DOOR, / IT'S A DOOR THAT YOU'VE NEVER LAID EYES ON BEFORE... / OPEN THE DOOR... / OPEN THE DOOR.",
+            "sung": true
+          },
+          {
+            "character": "Doctor Madden",
+            "line": "Can you hear me, Diana?",
+            "sung": false
+          },
+          {
+            "character": "Diana",
+            "line": "Yes.",
+            "sung": false
+          },
+          {
+            "character": "Doctor Madden",
+            "line": "Are you nervous?",
+            "sung": false
+          },
+          {
+            "character": "Diana",
+            "line": "No.",
+            "sung": false
+          },
+          {
+            "character": "Doctor Madden",
+            "line": "Good. Now.",
+            "sung": false
+          },
+          {
+            "character": "Doctor Madden",
+            "line": "MAKE UP YOUR MIND TO EXPLORE YOURSELF. / MAKE UP YOUR MIND YOU HAVE STORIES TO TELL. / WE'LL SEARCH IN YOUR PAST / FOR WHAT SORROWS MAY LAST, / THEN MAKE UP YOUR MIND TO BE WELL.",
+            "sung": true
+          },
+          {
+            "character": "Dan",
+            "line": "Di, you come home from these sessions in tears. Is this helping, or...? Di? Di?",
+            "sung": false
+          },
+          {
+            "character": "Diana",
+            "line": "We were both undergrads. Architecture. The baby wasn't planned. Neither was the marriage. I had always expected to be too busy. But when the baby came it all seemed to make sense. Until... until...",
+            "sung": false
+          },
+          {
+            "character": "Doctor Madden",
+            "line": "Until?",
+            "sung": false
+          },
+          {
+            "character": "Dan",
+            "line": "HE'S NOT HERE... / HE'S NOT HERE... / LOVE, I KNOW YOU KNOW.",
+            "sung": true
+          },
+          {
+            "character": "Doctor Madden",
+            "line": "MAKE UP YOUR MIND THAT YOU'RE STRONG ENOUGH. / MAKE UP YOUR MIND - LET THE TRUTH BE REVEALED. / ADMIT WHAT YOU'VE LOST / AND LIVE WITH THE COST... / AT TIMES IT DOES HURT TO BE HEALED.",
+            "sung": true
+          },
+          {
+            "character": "Gabe",
+            "line": "CATCH ME I'M FALLING...",
+            "sung": true
+          },
+          {
+            "character": "Doctor Madden",
+            "line": "In our first session you told me...",
+            "sung": false
+          },
+          {
+            "character": "Gabe",
+            "line": "CATCH ME I'M FALLING...",
+            "sung": true
+          },
+          {
+            "character": "Doctor Madden",
+            "line": "... that talking through your history...",
+            "sung": false
+          },
+          {
+            "character": "Gabe",
+            "line": "FASTER THAN ANYONE SHOULD.",
+            "sung": true
+          },
+          {
+            "character": "Gabe",
+            "line": "CATCH ME I'M FALLING...",
+            "sung": true
+          },
+          {
+            "character": "Doctor Madden",
+            "line": "... it feels like it's about someone else.",
+            "sung": false
+          },
+          {
+            "character": "Gabe",
+            "line": "PLEASE HEAR ME CALLING...",
+            "sung": true
+          },
+          {
+            "character": "Doctor Madden",
+            "line": "Make it about you.",
+            "sung": false
+          },
+          {
+            "character": "Gabe",
+            "line": "CATCH ME I'M FALLING FOR GOOD.",
+            "sung": true
+          },
+          {
+            "character": "Natalie",
+            "line": "Did you see my parents out there?",
+            "sung": false
+          },
+          {
+            "character": "Henry",
+            "line": "Um - are you okay?",
+            "sung": false
+          },
+          {
+            "character": "Natalie",
+            "line": "I'm fine. My dad said they'd both be here.",
+            "sung": false
+          },
+          {
+            "character": "Henry",
+            "line": "Then I'm sure they will be.",
+            "sung": false
+          },
+          {
+            "character": "Natalie",
+            "line": "Will they?",
+            "sung": false
+          },
+          {
+            "character": "Diana",
+            "line": "We had Natalie to... And I know she knows. I couldn't hold her, in the hospital?",
+            "sung": false
+          },
+          {
+            "character": "Natalie",
+            "line": "Where the hell are they?",
+            "sung": false
+          },
+          {
+            "character": "Diana",
+            "line": "I couldn't let myself hold her.",
+            "sung": false
+          },
+          {
+            "character": "Doctor Madden",
+            "line": "That's the first time you've mentioned Natalie in weeks of therapy.",
+            "sung": false
+          },
+          {
+            "character": "Natalie",
+            "line": "God damn it.",
+            "sung": false
+          },
+          {
+            "character": "Natalie",
+            "line": "SHE'S NOT THERE... / SHE'S NOT THERE... / SHE'S NOT THERE...",
+            "sung": true
+          },
+          {
+            "character": "Doctor Madden",
+            "line": "MAKE UP YOUR MIND YOU WANT CLARITY: / TAKE WHAT YOU KNOW AND THEN MAKE IT MAKE SENSE. / JUST FACE WHAT YOU EFAR, / AND SOON IT COMES CLEAR / THE VISIONS ARE JUST YOUR DEFENSE.",
+            "sung": true
+          },
+          {
+            "character": "Natalie",
+            "line": "Um. Thank you for coming. Natalie Goodman.",
+            "sung": false
+          },
+          {
+            "character": "Doctor Madden",
+            "line": "Let's try to understand what all this is doing to you. And your family.",
+            "sung": false
+          },
+          {
+            "character": "Natalie",
+            "line": "Fuck.",
+            "sung": false
+          },
+          {
+            "character": "Doctor Madden",
+            "line": "Your grief for your son. Your distance from Natalie.",
+            "sung": false
+          },
+          {
+            "character": "Natalie",
+            "line": "I'm sorry. I just - The thing is - I - You know what the problem with classical is? It's so rigid and structured. You have to play the notes on the page. There's no room for improvisation.",
+            "sung": false
+          },
+          {
+            "character": "Henry",
+            "line": "Oh no.",
+            "sung": false
+          },
+          {
+            "character": "Doctor Madden",
+            "line": "MAKE UP YOUR MIND YOU CAN LIVE AT LAST / MAKE UP YOUR MIND TO BE FULLY ALIVE. / EMBRACE WHAT'S INSIDE, REPLCACE WHAT HAS DIED / THEN MAKE UP YOUR MIND YOU'LL SURVIVE.",
+            "sung": true
+          },
+          {
+            "character": "Diana",
+            "line": "CATCH ME I'M FALLING...",
+            "sung": true
+          },
+          {
+            "character": "Doctor Madden",
+            "line": "Fear of loss, to anxiety.",
+            "sung": false
+          },
+          {
+            "character": "Diana",
+            "line": "FLYING HEADFIRST INTO FATE. / CATCH ME I'M FALLING...",
+            "sung": true
+          },
+          {
+            "character": "Doctor Madden",
+            "line": "The more you hold on to something you lost...",
+            "sung": false
+          },
+          {
+            "character": "Diana",
+            "line": "PLEASE HEAR ME CALLING...",
+            "sung": true
+          },
+          {
+            "character": "Doctor Madden",
+            "line": "... the more you fear losing it.",
+            "sung": false
+          },
+          {
+            "character": "Diana",
+            "line": "CATCH ME BEFORE IT'S TOO LATE.",
+            "sung": true
+          },
+          {
+            "character": "Doctor Madden",
+            "line": "Depression, anxiety, depression, anxiety... one gives rise to the other. It becomes a cycle.",
+            "sung": false
+          },
+          {
+            "character": "Doctor Madden",
+            "line": "Wouldn't you like to be free from all that? Finally? Wouldn't you like to go home, clear our his room... maybe spend some time with your daughter? And let go of your son at last?", "sung":false
+        }]},
       {"title":"A1S15", 
     "lines":[
-      {"character":"Doctor Madden", "line":"Goodman, Diana."},
-      {"character":"Gabe","line":"COME WITH ME."},
-      {"character":"Doctor Madden","line":"Discovered unconscious at home."},
-      {"character":"Gabe","line":"THERE'S A WORLD WHERE WE CAN BE FREE..."},
-      {"character":"Doctor Madden","line":"Multiple razor wounds to wrists and forearms. Self-inflicted."},
-      {"character":"Gabe","line":"COME WITH ME."},
-      {"character":"Doctor Madden","line":"Saline rinse, sutures and gauze. I.V. antiobiotics. Isolated, sedated, and restrained. Damn it. ECT is indicated."},
-      {"character":"Dan","line":"Wow. I mean - they still do that?"},
-      {"character":"Doctor Madden","line":"We do, yes. It's the standard in cases like this. She's got a long hisory of drug therapy and resistance, she's acutely suicidal - it's really out best option."},
-      {"character":"Dan","line":"That's kind of terrifying."},
-      {"character":"Doctor Madden","line":"It's not. The electricity involved is barely enough to light a hundred-watt bulb."},
-      {"character":"Dan","line":"Oh, if it's just a hundred-watt bulb..."},
-      {"character":"Doctor Madden","line":"It's safer than crossing the street, and the short-term success rate is over eighty perfect."},
-      {"character":"Dan","line":"I thought she was better..."},
-      {"character":"Doctor Madden","line":"Sometimes patients recover just enough strength to follow through on suicidal impulses, but not enough strength to resist them."},
-      {"character":"Dan","line":"Well, that seems very... fucked."},
-      {"character":"Doctor Madden","line":"Yes. Legally, we need her consent. Hospital policy is we need yours, too."},
-      {"character":"Dan","line":"I don't think she's gonna go for this."},
-      {"character":"Doctor Madden","line":"Mister Goodman, we can administer the ECT and you can bring her home in ten days. Or we can keep her sedated for forty-eight hours, then discharge her and wait for her to try again. Look - god home. Take the night. We'll talk to her in the morning."}
+      {"character":"Doctor Madden", "line":"Goodman, Diana.", "sung":false},
+      {"character":"Gabe","line":"COME WITH ME.", "sung":true},
+      {"character":"Doctor Madden","line":"Discovered unconscious at home.", "sung":false},
+      {"character":"Gabe","line":"THERE'S A WORLD WHERE WE CAN BE FREE...", "sung":true},
+      {"character":"Doctor Madden","line":"Multiple razor wounds to wrists and forearms. Self-inflicted.", "sung":false},
+      {"character":"Gabe","line":"COME WITH ME.", "sung":true},
+      {"character":"Doctor Madden","line":"Saline rinse, sutures and gauze. I.V. antiobiotics. Isolated, sedated, and restrained. Damn it. ECT is indicated.", "sung":false},
+      {"character":"Dan","line":"Wow. I mean - they still do that?", "sung":false},
+      {"character":"Doctor Madden","line":"We do, yes. It's the standard in cases like this. She's got a long hisory of drug therapy and resistance, she's acutely suicidal - it's really out best option.", "sung":false},
+      {"character":"Dan","line":"That's kind of terrifying.", "sung":false},
+      {"character":"Doctor Madden","line":"It's not. The electricity involved is barely enough to light a hundred-watt bulb.", "sung":false},
+      {"character":"Dan","line":"Oh, if it's just a hundred-watt bulb...", "sung":false},
+      {"character":"Doctor Madden","line":"It's safer than crossing the street, and the short-term success rate is over eighty perfect.", "sung":false},
+      {"character":"Dan","line":"I thought she was better...", "sung":false},
+      {"character":"Doctor Madden","line":"Sometimes patients recover just enough strength to follow through on suicidal impulses, but not enough strength to resist them.", "sung":false},
+      {"character":"Dan","line":"Well, that seems very... fucked.", "sung":false},
+      {"character":"Doctor Madden","line":"Yes. Legally, we need her consent. Hospital policy is we need yours, too.", "sung":false},
+      {"character":"Dan","line":"I don't think she's gonna go for this.", "sung":false},
+      {"character":"Doctor Madden","line":"Mister Goodman, we can administer the ECT and you can bring her home in ten days. Or we can keep her sedated for forty-eight hours, then discharge her and wait for her to try again. Look - god home. Take the night. We'll talk to her in the morning.", "sung":false}
     ]},
     {"title":"A1S16A", "lines":[
-      {"character":"Dan", "line":"We don't see much of you these days. Is this Henry a good influence?"},
-      {"character":"Natalie","line":"Like, compared to what?"},
-      {"character":"Dan","line":"Okay, that's fair."},
-      {"character":"Doctor Madden","line":"The aftereffects are minimal. You'll feel a bit like you have a hangover."},
-      {"character":"Gabe","line":"Mom, don't let them do this. It causes brain damage."},
-      {"character":"Natalie","line":"Okay - L-M-N-O-P - what is that? - I don't know."},
-      {"character":"Dan","line":"Electroconvulsive therapy. Shock therapy."},
-      {"character":"Doctor Madden","line":"A minority of patients report some memory loss, but it's usually not much memory."},
-      {"character":"Gabe","line":"How do you know how much memory you've lost if you've lost it?"},
-      {"character":"Natalie","line":"You're kidding, right? Dad! That's bullshit."},
-      {"character":"Dan","line":"Language."},
-      {"character":"Doctor Madden","line":"Patients have said it's like becoming a new person."},
-      {"character":"Natalie","line":"It's bullshit. She trusts you."},
-      {"character":"Dan","line":"Natalie!"},
-      {"character":"Diana","line":"DIDN'T I SEE THIS MOVIE, / WITH MCMURPHY AND THE NURSE? / ..."},
-      {"character":"Doctor Madden","line":"The modern procedure's clean and simple. Hundreds of thousands of aptients receive it every year."}
-    ]}
+      {"character":"Dan", "line":"We don't see much of you these days. Is this Henry a good influence?", "sung":false},
+      {"character":"Natalie","line":"Like, compared to what?", "sung":false},
+      {"character":"Dan","line":"Okay, that's fair.", "sung":false},
+      {"character":"Doctor Madden","line":"The aftereffects are minimal. You'll feel a bit like you have a hangover.", "sung":false},
+      {"character":"Gabe","line":"Mom, don't let them do this. It causes brain damage.", "sung":false},
+      {"character":"Natalie","line":"Okay - L-M-N-O-P - what is that? - I don't know.", "sung":false},
+      {"character":"Dan","line":"Electroconvulsive therapy. Shock therapy.", "sung":false},
+      {"character":"Doctor Madden","line":"A minority of patients report some memory loss, but it's usually not much memory.", "sung":false},
+      {"character":"Gabe","line":"How do you know how much memory you've lost if you've lost it?", "sung":false},
+      {"character":"Natalie","line":"You're kidding, right? Dad! That's bullshit.", "sung":false},
+      {"character":"Dan","line":"Language.", "sung":false},
+      {"character":"Doctor Madden","line":"Patients have said it's like becoming a new person.", "sung":false},
+      {"character":"Natalie","line":"It's bullshit. She trusts you.", "sung":false},
+      {"character":"Dan","line":"Natalie!", "sung":false},
+      {"character":"Diana","line":"DIDN'T I SEE THIS MOVIE, / WITH MCMURPHY AND THE NURSE? / ...", "sung":true},
+      {"character":"Doctor Madden","line":"The modern procedure's clean and simple. Hundreds of thousands of patients receive it every year.", "sung":false}
+    ]
+  }
     ]
   }
 ]
