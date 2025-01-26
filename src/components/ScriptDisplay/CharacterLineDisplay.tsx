@@ -41,9 +41,14 @@ export const CharacterLineDisplay = ({
       {script?.lines.slice(0, currentLineIndex).map((line, index) => (
         <li key={index} className="flex flex-col justify-center gap-2 p-2">
           <p className="text-xl font-bold">{line.character.toUpperCase()}</p>
-          <p className={`text-xl ${line.sung && stylingSungLine}`}>
-            {line.line}
-          </p>
+          {/* sung & spoken lines have different styling */}
+          {line.sung && line.sung === true ? (
+            <p className={`text-xl ${line.sung && stylingSungLine}`}>
+              {line.line.toUpperCase()}
+            </p>
+          ) : (
+            <p className="text-xl">{line.line}</p>
+          )}
         </li>
       ))}
       <div>
@@ -52,15 +57,27 @@ export const CharacterLineDisplay = ({
           <p className="text-xl font-bold">
             {lines[currentLineIndex]?.character.toUpperCase()}
           </p>
-          <p
-            className={`text-xl ${lines[currentLineIndex]?.sung && stylingSungLine}`}
-          >
-            {lines[currentLineIndex]?.line
-              .split(" ")
-              .slice(0, wordDisplayIndex)
-              .join(" ")
-              .toUpperCase() ?? ""}
-          </p>
+          {/* spoken lines */}
+          {lines[currentLineIndex] &&
+          lines[currentLineIndex].sung &&
+          lines[currentLineIndex].sung === true ? (
+            <p
+              className={`text-xl ${lines[currentLineIndex]?.sung && stylingSungLine}`}
+            >
+              {lines[currentLineIndex]?.line
+                .split(" ")
+                .slice(0, wordDisplayIndex)
+                .join(" ")
+                .toUpperCase() ?? ""}
+            </p>
+          ) : (
+            <p className={`text-xl`}>
+              {lines[currentLineIndex]?.line
+                .split(" ")
+                .slice(0, wordDisplayIndex)
+                .join(" ") ?? ""}
+            </p>
+          )}
         </li>
       </div>
       {/* for scrolling to bottom */}
