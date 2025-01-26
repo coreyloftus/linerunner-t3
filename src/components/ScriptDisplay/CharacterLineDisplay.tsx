@@ -12,16 +12,17 @@ interface CharacterLineDisplayProps {
     | null
     | undefined;
   currentLineIndex: number;
-  // currentLineSplitIndex: number;
+  selectedCharacter: string;
   wordIndex: number;
   scrollRef: React.MutableRefObject<HTMLDivElement | null>;
 }
 
 const stylingSungLine = "text-yellow-400";
+const npcLineStyling = "justify-end text-right";
 export const CharacterLineDisplay = ({
   script,
   currentLineIndex,
-  // currentLineSplitIndex,
+  selectedCharacter,
   scrollRef,
   wordIndex: wordDisplayIndex,
 }: CharacterLineDisplayProps) => {
@@ -40,15 +41,19 @@ export const CharacterLineDisplay = ({
       {/* revealed lines */}
       {script?.lines.slice(0, currentLineIndex).map((line, index) => (
         <li key={index} className="flex flex-col justify-center gap-2 p-2">
-          <p className="text-xl font-bold">{line.character.toUpperCase()}</p>
-          {/* sung & spoken lines have different styling */}
-          {line.sung && line.sung === true ? (
-            <p className={`text-xl ${line.sung && stylingSungLine}`}>
-              {line.line.toUpperCase()}
-            </p>
-          ) : (
-            <p className="text-xl">{line.line}</p>
-          )}
+          <div
+            className={`flex flex-col ${line.character !== selectedCharacter && npcLineStyling}`}
+          >
+            <p className="text-xl font-bold">{line.character.toUpperCase()}</p>
+            {/* sung & spoken lines have different styling */}
+            {line.sung && line.sung === true ? (
+              <p className={`text-xl ${line.sung && stylingSungLine}`}>
+                {line.line.toUpperCase()}
+              </p>
+            ) : (
+              <p className="text-xl">{line.line}</p>
+            )}
+          </div>
         </li>
       ))}
       <div>
