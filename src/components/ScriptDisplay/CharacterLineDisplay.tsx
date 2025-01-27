@@ -64,8 +64,8 @@ export const CharacterLineDisplay = ({
           </p>
           {/* spoken lines */}
           {lines[currentLineIndex] &&
-          lines[currentLineIndex].sung &&
-          lines[currentLineIndex].sung === true ? (
+          lines[currentLineIndex]?.sung &&
+          lines[currentLineIndex]?.sung === true ? (
             <p
               className={`text-xl ${lines[currentLineIndex]?.sung && stylingSungLine}`}
             >
