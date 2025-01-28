@@ -67,6 +67,7 @@ export const CharacterLineDisplay = ({
       <div>
         {/* current line display */}
         <li className="flex flex-col justify-center gap-2 p-2">
+
           <div
             className={`flex flex-col ${lines[currentLineIndex]?.character !== selectedCharacter && npcLineStyling}`}
           >
@@ -103,6 +104,7 @@ export const CharacterLineDisplay = ({
               </p>
             )}
           </div>
+
         </li>
       </div>
       {/* for scrolling to bottom */}

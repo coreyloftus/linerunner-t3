@@ -118,7 +118,9 @@
         "lines": [
           {
             "character": "Doctor Madden",
+
             "line": "Diana? This way, please.",
+
             "sung": false
           },
           { "character": "Doctor Madden", "line": "Yeah...", "sung": true },
@@ -129,6 +131,7 @@
           },
           {
             "character": "Doctor Madden",
+
             "line": "I said welcome. Have a seat. It's nice to meet you.",
             "sung": false
           },
@@ -140,17 +143,23 @@
           { "character": "Diana", "line": "Excuse me, what?", "sung": false },
           {
             "character": "Doctor Madden",
+
             "line": "I said, let's get started. Are you... nervous, Diana?",
+
             "sung": false
           },
           {
             "character": "Diana",
+
             "line": "I am, a little. A bit out of breath. Tingly, actually. now you go.",
+
             "sung": false
           },
           {
             "character": "Doctor Madden",
+
             "line": "Well, let's start by getting to know each other a bit. Psychotherapy and medication work best in tandem, but we can try the first alone, and see how far we get. Why don't you tell me -- ",
+
             "sung": false
           },
           {
@@ -160,7 +169,9 @@
           },
           {
             "character": "Diana",
+
             "line": "Um. my history? well -- I was diagnosed bipolar, um wow, sixteen years ago? But it turned out bipolar didn't totally cover it.",
+
             "sung": false
           },
           {
@@ -170,11 +181,14 @@
           },
           {
             "character": "Diana",
+
             "line": "I never know what to say when I have to go over all this. It starts to sound like some story I tell that's about some other person entirely.",
+
             "sung": false
           },
           {
             "character": "Doctor Madden",
+
             "line": "Why don't you tell me about the last time you truly felt happy. (beat) Were you happy when you got married?",
             "sung": false
           },
