@@ -237,33 +237,6 @@
         ]
       },
       {
-        "title": "A1S12",
-        "lines": [
-          { "character": "Diana", "line": "My son?", "sung": false },
-          {
-            "character": "Doctor Madden",
-            "line": "Tell me about him.",
-            "sung": false
-          },
-          { "character": "Diana", "line": "About my son?", "sung": false },
-          {
-            "character": "Doctor Madden",
-            "line": "Why is he still around? Who is he? What is he?",
-            "sung": false
-          },
-          {
-            "character": "Gabe",
-            "line": "I AM WHAT YOU WANT ME TO BE, / AND I'M YOUR WORST FEAR -- YOU'LL FIND IT IN ME. / COME CLOSER... / COME CLOSER...",
-            "sung": true
-          },
-          {
-            "character": "Doctor Madden",
-            "line": "Where does he come from, do you think?",
-            "sung": false
-          }
-        ]
-      },
-      {
         "title": "A1S13",
         "lines": [
           {
@@ -515,6 +488,16 @@
             "character": "Doctor Madden",
             "line": "MAKE UP YOUR MIND YOU CAN LIVE AT LAST / MAKE UP YOUR MIND TO BE FULLY ALIVE. / EMBRACE WHAT'S INSIDE, REPLCACE WHAT HAS DIED / THEN MAKE UP YOUR MIND YOU'LL SURVIVE.",
             "sung": true
+          },
+          {
+            "character": "Diana",
+            "line": "CATCH ME I'M FALLING...",
+            "sung": true
+          },
+          {
+            "character": "Doctor Madden",
+            "line": "Unresolved loss can lead to depression.",
+            "sung": false
           },
           {
             "character": "Diana",
