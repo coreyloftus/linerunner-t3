@@ -95,7 +95,7 @@
           { "character": "Natalie", "line": "Mozart wrote poems about farts." },
           {
             "character": "Diana",
-            "line": "Fortunateyl, I have absolutely no desire for sex. Although whether that's the medicine or the marriage is anybody's guess."
+            "line": "Fortunately, I have absolutely no desire for sex. Although whether that's the medicine or the marriage is anybody's guess."
           },
           { "character": "Doctor Fine", "line": "I'm sure it's the medicine." },
           {
@@ -176,19 +176,29 @@
           },
           {
             "character": "Doctor Madden",
-            "line": "Sometimes there's a predisposition to illness, but actual onset is only triggered by some... traumatic event.",
+
+            "line": "Often the best we can do is put names on collections of symptoms. It's possible bipolar has more in common with schizophrenia than depression.",
             "sung": false
           },
           {
             "character": "Diana",
 
-            "line": "I never know what to say when I have to go over all this. It starts to sound like some story I tell that's about some other person entirely.",
+            "line": "When I was young, my mother called me \"high-spirited\". She would know. She was so high-spirited they banned her from the PTA.",
 
             "sung": false
           },
           {
             "character": "Doctor Madden",
-
+            "line": "Sometimes there's a predisposition to illness, but actual onset is only triggered by some... traumatic event.",
+            "sung": false
+          },
+          {
+            "character": "Diana",
+            "line": "I never know what to say when I have to go over all this. It starts to sound like some story I tell that's about some other person entirely.",
+            "sung": false
+          },
+          {
+            "character": "Doctor Madden",
             "line": "Why don't you tell me about the last time you truly felt happy. (beat) Were you happy when you got married?",
             "sung": false
           },
