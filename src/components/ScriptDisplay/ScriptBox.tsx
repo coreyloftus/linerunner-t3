@@ -238,6 +238,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
               <CharacterLineDisplay
                 script={script}
                 currentLineIndex={currentLineIndex}
+                selectedCharacter={selectedCharacter}
                 // currentLineSplitIndex={currentLineSplitIndex}
                 scrollRef={scrollRef}
                 wordIndex={wordIndex}
