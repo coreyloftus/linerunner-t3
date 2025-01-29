@@ -150,16 +150,12 @@
           },
           {
             "character": "Diana",
-
             "line": "I am, a little. A bit out of breath. Tingly, actually. now you go.",
-
             "sung": false
           },
           {
             "character": "Doctor Madden",
-
             "line": "Well, let's start by getting to know each other a bit. Psychotherapy and medication work best in tandem, but we can try the first alone, and see how far we get. Why don't you tell me -- ",
-
             "sung": false
           },
           {
@@ -170,7 +166,7 @@
           {
             "character": "Diana",
 
-            "line": "Um. my history? well -- I was diagnosed bipolar, um wow, sixteen years ago? But it turned out bipolar didn't totally cover it.",
+            "line": "Um. my history? Well -- I was diagnosed bipolar, um wow, sixteen years ago? But it turned out bipolar didn't totally cover it.",
 
             "sung": false
           },
@@ -202,7 +198,7 @@
             "line": "Why don't you tell me about the last time you truly felt happy. (beat) Were you happy when you got married?",
             "sung": false
           },
-          { "character": "Diana", "line": "I thought i was.", "sung": false },
+          { "character": "Diana", "line": "I thought I was.", "sung": false },
           {
             "character": "Doctor Madden",
             "line": "There's a difference between being happy and just thinking you're happy?",
@@ -210,12 +206,32 @@
           },
           {
             "character": "Diana",
-            "line": "Most people who think they're happy just haven't thought about it enough. most people who think they're happy are actually just stupid.",
+            "line": "Most people who think they're happy just haven't thought about it enough. Most people who think they're happy are actually just stupid.",
             "sung": false
           },
           {
             "character": "Doctor Madden",
             "line": "I see. Were you happy when your son was born?",
+            "sung": false
+          },
+          {
+            "character": "Diana",
+            "line": "My son?",
+            "sung": false
+          },
+          {
+            "character": "Doctor Madden",
+            "line": "Tell me about him.",
+            "sung": false
+          },
+          {
+            "character": "Diana",
+            "line": "About my son?",
+            "sung": false
+          },
+          {
+            "character": "Doctor Madden",
+            "line": "Why is he still around? Who is he? What is he?",
             "sung": false
           }
         ]
