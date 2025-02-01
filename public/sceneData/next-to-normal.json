@@ -69,7 +69,7 @@
           },
           {
             "character": "VOICES",
-            "line": "MAY CAUSE THE FOLLOWING SIDE EFFECTS, ONE OR MORE: / DIZZINESS DROWSINESS, SEXUAL DYSFUNCTION / HEADACHES AND TREMORS AND NIGHTMARE AND SEIZURES, / ANXIOUSNESS, ANGER, INSOMNIA, / IRRITABILITY, / NAUSEA, VOMITING, /"
+            "line": "MAY CAUSE THE FOLLOWING SIDE EFFECTS, ONE OR MORE: / DIZZINESS, DROWSINESS, SEXUAL DYSFUNCTION / HEADACHES, AND TREMORS, AND NIGHTMARES, AND SEIZURES, / ANXIOUSNESS, ANGER, EXHAUSTION, INSOMNIA, / IRRITABILITY, NAUSEA, VOMITING, /"
           },
           { "character": "Diana", "line": "ODD AND ALARMING SEXUAL FEELINGS" },
           { "character": "VOICES", "line": "OH, AND ONE LAST THING -- " },
@@ -95,7 +95,7 @@
           { "character": "Natalie", "line": "Mozart wrote poems about farts." },
           {
             "character": "Diana",
-            "line": "Fortunateyl, I have absolutely no desire for sex. Although whether that's the medicine or the marriage is anybody's guess."
+            "line": "Fortunately, I have absolutely no desire for sex. Although whether that's the medicine or the marriage is anybody's guess."
           },
           { "character": "Doctor Fine", "line": "I'm sure it's the medicine." },
           {
@@ -118,7 +118,10 @@
         "lines": [
           {
             "character": "Doctor Madden",
-            "line": "Diana? this way, please.",
+
+
+            "line": "Diana? This way, please.",
+
             "sung": false
           },
           { "character": "Doctor Madden", "line": "Yeah...", "sung": true },
@@ -129,7 +132,9 @@
           },
           {
             "character": "Doctor Madden",
-            "line": "I said welcome. have a seat. it's nice to meet you.",
+
+            "line": "I said welcome. Have a seat. It's nice to meet you.",
+
             "sung": false
           },
           {
@@ -140,17 +145,25 @@
           { "character": "Diana", "line": "Excuse me, what?", "sung": false },
           {
             "character": "Doctor Madden",
-            "line": "I said, let's get started. are you... nervous, Diana?",
+
+
+            "line": "I said, let's get started. Are you... nervous, Diana?",
+
+
             "sung": false
           },
           {
             "character": "Diana",
-            "line": "I am, a little. a bit out of breath. tingly, actually. now you go.",
+
+            "line": "I am, a little. A bit out of breath. Tingly, actually. now you go.",
+
             "sung": false
           },
           {
             "character": "Doctor Madden",
-            "line": "Well, let's start by getting to know each other a bit. psychotherapy and medication work best in tandem, but we can try the first alone, and see how far we get. why don't you tell me -- ",
+
+            "line": "Well, let's start by getting to know each other a bit. Psychotherapy and medication work best in tandem, but we can try the first alone, and see how far we get. Why don't you tell me -- ",
+
             "sung": false
           },
           {
@@ -160,45 +173,65 @@
           },
           {
             "character": "Diana",
-            "line": "Um. my history? well -- i was diagnosed bipolar, um wow, sixteen years ago? but it turned out bipolar didn't totally cover it.",
+
+
+            "line": "Um. my history? Well -- I was diagnosed bipolar, um wow, sixteen years ago? But it turned out bipolar didn't totally cover it.",
+
+
             "sung": false
           },
           {
             "character": "Doctor Madden",
+
+
+            "line": "Often the best we can do is put names on collections of symptoms. It's possible bipolar has more in common with schizophrenia than depression.",
+
+            "sung": false
+          },
+          {
+            "character": "Diana",
+
+
+            "line": "When I was young, my mother called me \"high-spirited\". She would know. She was so high-spirited they banned her from the PTA.",
+
+
+            "sung": false
+          },
+          {
+            "character": "Doctor Madden",
+
             "line": "Sometimes there's a predisposition to illness, but actual onset is only triggered by some... traumatic event.",
             "sung": false
           },
           {
             "character": "Diana",
-            "line": "I never know what to say when i have to go over all this. it starts to sound like some story i tell that's about some other person entirely.",
+            "line": "I never know what to say when I have to go over all this. It starts to sound like some story I tell that's about some other person entirely.",
             "sung": false
           },
           {
             "character": "Doctor Madden",
-            "line": "Why don't you tell me about the last time you truly felt happy. (beat) were you happy when you got married?",
+            "line": "Why don't you tell me about the last time you truly felt happy. (beat) Were you happy when you got married?",
             "sung": false
           },
-          { "character": "Diana", "line": "I thought i was.", "sung": false },
+          { "character": "Diana", "line": "I thought I was.", "sung": false },
           {
             "character": "Doctor Madden",
+
             "line": "There's a difference between being happy and just thinking you're happy?",
             "sung": false
           },
           {
             "character": "Diana",
-            "line": "Most people who think they're happy just haven't thought about it enough. most people who think they're happy are actually just stupid.",
+
+            "line": "Most people who think they're happy just haven't thought about it enough. Most people who think they're happy are actually just stupid.",
+
             "sung": false
           },
           {
             "character": "Doctor Madden",
             "line": "I see. were you happy when your son was born?",
             "sung": false
-          }
-        ]
-      },
-      {
-        "title": "A1S12",
-        "lines": [
+          },
           { "character": "Diana", "line": "My son?", "sung": false },
           {
             "character": "Doctor Madden",
@@ -211,7 +244,8 @@
             "line": "Why is he still around? Who is he? What is he?",
             "sung": false
           },
-          {
+ 
+               {
             "character": "Gabe",
             "line": "I AM WHAT YOU WANT ME TO BE, / AND I'M YOUR WORST FEAR -- YOU'LL FIND IT IN ME. / COME CLOSER... / COME CLOSER...",
             "sung": true
@@ -219,6 +253,7 @@
           {
             "character": "Doctor Madden",
             "line": "Where does he come from, do you think?",
+
             "sung": false
           }
         ]
@@ -475,6 +510,16 @@
             "character": "Doctor Madden",
             "line": "MAKE UP YOUR MIND YOU CAN LIVE AT LAST / MAKE UP YOUR MIND TO BE FULLY ALIVE. / EMBRACE WHAT'S INSIDE, REPLCACE WHAT HAS DIED / THEN MAKE UP YOUR MIND YOU'LL SURVIVE.",
             "sung": true
+          },
+          {
+            "character": "Diana",
+            "line": "CATCH ME I'M FALLING...",
+            "sung": true
+          },
+          {
+            "character": "Doctor Madden",
+            "line": "Unresolved loss can lead to depression.",
+            "sung": false
           },
           {
             "character": "Diana",
@@ -1196,6 +1241,7 @@
             "sung": false
           }
         ]
+
       }
     ]
   }
