@@ -67,6 +67,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
           } else {
             setTimeout(() => {
               setCurrentLineIndex((prevIndex) => prevIndex + 1);
+              setWordIndex(0);
             }, 50);
           }
         } else if (currentLine?.character === selectedCharacter) {
@@ -131,6 +132,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
       }
 
       setCurrentLineIndex(newIndex);
+      setCurrentLineSplit(script.lines[newIndex]?.line.split(" ") ?? []);
       setWordIndex(0);
 
       // Check if the new line is for the player character
@@ -142,11 +144,13 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     },
     [currentLineIndex, playScene, script?.lines, selectedCharacter],
   );
-
+  useEffect(() => {
+    console.log({ wordIndex, currentLineSplit });
+  }, [wordIndex, currentLineSplit]);
   const handleWordNavigation = useCallback(
     (direction: "left" | "right") => {
       if (!playScene) return;
-      if (direction === "right" && wordIndex <= currentLineSplit.length - 1) {
+      if (direction === "right" && wordIndex < currentLineSplit.length) {
         setWordIndex((prev) => prev + 1);
       } else if (direction === "left" && wordIndex > 0) {
         setWordIndex((prev) => prev - 1);
