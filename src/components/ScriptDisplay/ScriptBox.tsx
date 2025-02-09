@@ -127,8 +127,14 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
       const totalLines = script.lines.length;
       if (direction === "up" && currentLineIndex > 0) {
         newIndex = currentLineIndex - 1;
-      } else if (direction === "down" && currentLineIndex < totalLines - 1) {
-        newIndex = currentLineIndex + 1;
+      } else if (direction === "down") {
+        // if not last line of scene, show next line
+        if (currentLineIndex < totalLines - 1) {
+          newIndex = currentLineIndex + 1;
+        } else {
+          // if last line of scene, show the entire line
+          setWordIndex(currentLineSplit.length);
+        }
       }
 
       setCurrentLineIndex(newIndex);
