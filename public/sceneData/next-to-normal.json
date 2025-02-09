@@ -1019,12 +1019,12 @@
           {
             "character": "Diana",
             "line": "What happens if the medicine / Wasn't really in control? / What happens if the cut, the burn, the break / was never in my brain or in my blood / but in my soul?",
-            "sung": false
+            "sung": true
           },
           {
             "character": "Diana",
             "line": "What happens if the cut, the burn, the break / was never in my brain or in my blood / but in my soul?",
-            "sung": false
+            "sung": true
           },
           {
             "character": "Doctor Madden",
@@ -1097,9 +1097,19 @@
             "sung": false
           },
           {
+            "character": "Diana",
+            "line": "Isn't so bad after all... / Isn't so bad after all...",
+            "sung": true
+          },
+          {
             "character": "Doctor Madden",
             "line": "There are other promising therapies. EMDR, for instance, or rTMS. Diana.",
             "sung": false
+          },
+          {
+            "character": "Diana",
+            "line": "Watch me I'm falling... / Watch me I'm flying... / Somehow surviving...",
+            "sung": true
           },
           {
             "character": "Doctor Madden",
