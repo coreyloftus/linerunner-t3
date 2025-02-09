@@ -42,7 +42,7 @@ export const ScriptContext = createContext<ScriptContextProps>({
   setSelectedCharacter: () => "",
   userConfig: { stopOnCharacter: true, autoAdvanceScript: true },
   gameMode: "linerun",
-  setUserConfig: () => ({ stopOnCharacter: true, autoAdvanceScript: true }),
+  setUserConfig: () => ({ stopOnCharacter: true, autoAdvanceScript: false }),
   setGameMode: () => "linerun",
   queryParams: {},
   setQueryParams: () => ({}),

@@ -52,20 +52,25 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
         const split = currentLine.line.split(" ");
         setCurrentLineSplit(split);
         // if not user's character, auto-advance
-        if (
-          currentLine?.character !== selectedCharacter &&
-          userConfig.autoAdvanceScript
-        ) {
-          if (wordIndex <= split.length - 1) {
-            setTimeout(() => setWordIndex((prevIndex) => prevIndex + 1), 250);
+        if (currentLine?.character !== selectedCharacter) {
+          if (userConfig.autoAdvanceScript) {
+            setAwaitingInput(false);
+            if (wordIndex <= split.length - 1) {
+              setTimeout(() => setWordIndex((prevIndex) => prevIndex + 1), 250);
+            } else {
+              // All words have been advanced, move to next line
+              setTimeout(() => {
+                setCurrentLineIndex((prevIndex) => prevIndex + 1);
+                setWordIndex(0);
+              }, 50);
+            }
           } else {
-            // only advance if not last line
             setTimeout(() => {
               setCurrentLineIndex((prevIndex) => prevIndex + 1);
               setWordIndex(0);
-            }, 500);
+            }, 50);
           }
-        } else {
+        } else if (currentLine?.character === selectedCharacter) {
           setAwaitingInput(true);
         }
         return;
@@ -118,33 +123,34 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
   const handleLineNavigation = useCallback(
     (direction: "up" | "down") => {
       if (!playScene || !script?.lines) return;
-      setAwaitingInput(false);
+      let newIndex = currentLineIndex;
       const totalLines = script.lines.length;
-      switch (direction) {
-        case "up":
-          if (currentLineIndex > 0) {
-            setCurrentLineIndex((prev) => prev - 1);
-            setWordIndex(0);
-          }
-          break;
-        case "down":
-          if (currentLineIndex < totalLines - 1) {
-            setCurrentLineIndex((prev) => prev + 1);
-            setWordIndex(0);
-          } else if (currentLineIndex === totalLines - 1) {
-            // pause at end of script
-            setAwaitingInput(true);
-          }
-          break;
+      if (direction === "up" && currentLineIndex > 0) {
+        newIndex = currentLineIndex - 1;
+      } else if (direction === "down" && currentLineIndex < totalLines - 1) {
+        newIndex = currentLineIndex + 1;
+      }
+
+      setCurrentLineIndex(newIndex);
+      setCurrentLineSplit(script.lines[newIndex]?.line.split(" ") ?? []);
+      setWordIndex(0);
+
+      // Check if the new line is for the player character
+      if (script.lines?.[newIndex]?.character ?? "" === selectedCharacter) {
+        setAwaitingInput(true);
+      } else {
+        setAwaitingInput(false);
       }
     },
-    [currentLineIndex, playScene, script?.lines],
+    [currentLineIndex, playScene, script?.lines, selectedCharacter],
   );
-
+  useEffect(() => {
+    console.log({ wordIndex, currentLineSplit });
+  }, [wordIndex, currentLineSplit]);
   const handleWordNavigation = useCallback(
     (direction: "left" | "right") => {
       if (!playScene) return;
-      if (direction === "right" && wordIndex <= currentLineSplit.length - 1) {
+      if (direction === "right" && wordIndex < currentLineSplit.length) {
         setWordIndex((prev) => prev + 1);
       } else if (direction === "left" && wordIndex > 0) {
         setWordIndex((prev) => prev - 1);
@@ -233,7 +239,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     <>
       <div className="flex h-[78dvh] flex-col rounded-md border-2 border-stone-200">
         <div className="pt-safe-top pb-safe-bottom flex-grow overflow-hidden">
-          <ul className="overscroll-bounce h-full overflow-y-auto">
+          <ul className="overscroll-bounce h-full overflow-y-auto px-2">
             {playScene && (
               <CharacterLineDisplay
                 script={script}
