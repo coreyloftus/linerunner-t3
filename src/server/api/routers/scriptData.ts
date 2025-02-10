@@ -12,6 +12,7 @@ export interface SceneJSON {
   lines: {
     character: string;
     line: string;
+    sung?: boolean;
   }[];
 }
 export interface GetAllResponse {

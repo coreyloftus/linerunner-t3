@@ -10,6 +10,7 @@ import {
 import { useContext, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { type ProjectJSON } from "../server/api/routers/scriptData";
+import { Label } from "./ui/label";
 
 export default function NewScriptSelect({
   projects,
@@ -19,7 +20,7 @@ export default function NewScriptSelect({
   allData: ProjectJSON[];
 }) {
   const router = useRouter();
-  
+
   // add query params to select the project, scene, and character
   const {
     selectedProject,
@@ -28,23 +29,23 @@ export default function NewScriptSelect({
     setSelectedScene,
     selectedCharacter,
     setSelectedCharacter,
-    queryParams
+    queryParams,
   } = useContext(ScriptContext);
-  const {project, scene, character}= queryParams;
+  const { project, scene, character } = queryParams;
   const handleProjectChange = (newProject: string) => {
     setSelectedProject(newProject);
-    const newQPs=`?project=${newProject}&scene=${selectedScene}&character=${selectedCharacter}`
-    router.push(newQPs)
+    const newQPs = `?project=${newProject}&scene=${selectedScene}&character=${selectedCharacter}`;
+    router.push(newQPs);
   };
   const handleSceneChange = (newScene: string) => {
     setSelectedScene(newScene);
-    const newQPs=`?project=${selectedProject}&scene=${newScene}&character=${selectedCharacter}`
-    router.push(newQPs)
+    const newQPs = `?project=${selectedProject}&scene=${newScene}&character=${selectedCharacter}`;
+    router.push(newQPs);
   };
   const handleCharacterChange = (newCharacter: string) => {
     setSelectedCharacter(newCharacter);
-    const newQPs=`?project=${selectedProject}&scene=${selectedScene}&character=${newCharacter}`
-    router.push(newQPs)
+    const newQPs = `?project=${selectedProject}&scene=${selectedScene}&character=${newCharacter}`;
+    router.push(newQPs);
   };
 
   const sceneList = selectedProject
@@ -82,11 +83,13 @@ export default function NewScriptSelect({
   ]);
 
   return (
-    <div className="flex gap-4">
+    <div className="flex flex-col gap-4 px-4">
       <Select onValueChange={handleProjectChange} value={selectedProject}>
+        <Label>Project</Label>
         <SelectTrigger>
           <SelectValue placeholder="Project">{selectedProject}</SelectValue>
         </SelectTrigger>
+        <Label>Scene</Label>
         <SelectContent>
           {projects?.map((project, index) => (
             <SelectItem value={project.toString()} key={index}>
@@ -107,6 +110,7 @@ export default function NewScriptSelect({
           ))}
         </SelectContent>
       </Select>
+      <Label>Character</Label>
       <Select onValueChange={handleCharacterChange} value={selectedCharacter}>
         <SelectTrigger>
           <SelectValue placeholder="Character">{selectedCharacter}</SelectValue>
