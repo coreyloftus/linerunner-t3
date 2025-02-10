@@ -3,7 +3,7 @@
     "project": "Next to Normal",
     "scenes": [
       {
-        "title": "A1S4",
+        "title": "#4 - My Psychopharmacologist and I",
         "lines": [
           {
             "character": "Doctor Fine",
@@ -114,11 +114,10 @@
         ]
       },
       {
-        "title": "A1S11",
+        "title": "#11A - Doctor Rock",
         "lines": [
           {
             "character": "Doctor Madden",
-
 
             "line": "Diana? This way, please.",
 
@@ -146,9 +145,7 @@
           {
             "character": "Doctor Madden",
 
-
             "line": "I said, let's get started. Are you... nervous, Diana?",
-
 
             "sung": false
           },
@@ -174,15 +171,12 @@
           {
             "character": "Diana",
 
-
             "line": "Um. my history? Well -- I was diagnosed bipolar, um wow, sixteen years ago? But it turned out bipolar didn't totally cover it.",
-
 
             "sung": false
           },
           {
             "character": "Doctor Madden",
-
 
             "line": "Often the best we can do is put names on collections of symptoms. It's possible bipolar has more in common with schizophrenia than depression.",
 
@@ -191,9 +185,7 @@
           {
             "character": "Diana",
 
-
             "line": "When I was young, my mother called me \"high-spirited\". She would know. She was so high-spirited they banned her from the PTA.",
-
 
             "sung": false
           },
@@ -244,8 +236,8 @@
             "line": "Why is he still around? Who is he? What is he?",
             "sung": false
           },
- 
-               {
+
+          {
             "character": "Gabe",
             "line": "I AM WHAT YOU WANT ME TO BE, / AND I'M YOUR WORST FEAR -- YOU'LL FIND IT IN ME. / COME CLOSER... / COME CLOSER...",
             "sung": true
@@ -259,7 +251,134 @@
         ]
       },
       {
-        "title": "A1S13",
+        "title": "#12 - I'm Alive",
+        "lines": [
+          { "character": "Diana", "line": "My son?", "sung": false },
+          {
+            "character": "Doctor Madden",
+            "line": "Tell me about him.",
+            "sung": false
+          },
+          { "character": "Diana", "line": "About my son?", "sung": false },
+          {
+            "character": "Doctor Madden",
+            "line": "Why is he still around? Who is he? What is he?",
+            "sung": false
+          },
+          {
+            "character": "Gabe",
+            "line": "I am what you want me to be, / And I'm your worst fear -- You'll find it in me. / Come closer... / Come closer...",
+            "sung": true
+          },
+          {
+            "character": "Doctor Madden",
+            "line": "Where does he come from, do you think?",
+            "sung": false
+          },
+          {
+            "character": "Gabe",
+            "line": "I am more than memory -- / I am what might be, I am myster. / You know me -- / So show me. / When I appear it's / not so clear if / I'm a simple spirit or I'm flesh and blood.. / But I'm alive / I'm alive / I am so alive, / and I feed on the fear that's behing your eyes. / And I need you / to need me / it's no surprise -- / I'm alive... so alive... I'm alive.",
+            "sung": true
+          },
+          {
+            "character": "Natalie",
+            "line": "Four times a week? That's a lot, isn't it?",
+            "sung": false
+          },
+          {
+            "character": "Dan",
+            "line": "That's what the doctor recommended.",
+            "sung": false
+          },
+          {
+            "character": "Natalie",
+            "line": "This is never going to get better, is it? He's never going away.",
+            "sung": false
+          },
+          {
+            "character": "Dan",
+            "line": "I don't know, Natalie.",
+            "sung": false
+          },
+          {
+            "character": "Natalie",
+            "line": "This is one of those moments when you could just be a typical parent and lie and say yes.",
+            "sung": false
+          },
+          { "character": "Dan", "line": "Yes.", "sung": false },
+          {
+            "character": "Natalie",
+            "line": "Thanks. That's comforting.",
+            "sung": false
+          },
+          {
+            "character": "Gabe",
+            "line": "I am flame and I am fire, / I am destricution, decay, and desire -- / I'll hurt you...",
+            "sung": true
+          },
+          { "character": "Dan", "line": "You know, Natalie...", "sung": false },
+          { "character": "Gabe", "line": "I'll heal you...", "sung": true },
+          {
+            "character": "Dan",
+            "line": "It's not all about your comfort.",
+            "sung": false
+          },
+          {
+            "character": "Gabe",
+            "line": "I'm your wish, your dream come true, / and I am you darkest nightmare too -- / I've shown you...",
+            "sung": false
+          },
+          {
+            "character": "Dan",
+            "line": "It's about helping your mother.",
+            "sung": false
+          },
+          { "character": "Gabe", "line": "I own you", "sung": true },
+          { "character": "Natalie", "line": "As always.", "sung": false },
+          {
+            "character": "Gabe",
+            "line": "And though you made me, / You can't change me -- / I'm the perfect strange who knows you too well.",
+            "sung": true
+          },
+          {
+            "character": "Gabe",
+            "line": "And I'm alive / I'm alive / I am so alive, / And I'll tell you the truth if you let me try.",
+            "sung": true
+          },
+          {
+            "character": "Gabe",
+            "line": "You're alive / I'm alive / And I'll show you why / I'm alive... / So alive... / I'm alive.",
+            "sung": true
+          },
+          { "character": "Natalie", "line": "Risperdal?", "sung": false },
+          { "character": "Gabe", "line": "I'm alive...", "sung": true },
+          { "character": "Natalie", "line": "Valium? Xanax?", "sung": false },
+          { "character": "Gabe", "line": "I'm alive...", "sung": true },
+          { "character": "Natalie", "line": "What the hell.", "sung": false },
+          {
+            "character": "Gabe",
+            "line": "I'm alive -- I'm right behind you. / You say forget, but I remind you. / You can try to hide, you know that I will find you. / Cause if you won't grieve me / You won't leave me behind...",
+            "sung": true
+          },
+          {
+            "character": "Doctor Madden",
+            "line": "Let's say he's eighteen now -- isn't that when kids move out? Isn't it time to let him go?",
+            "sung": false
+          },
+          {
+            "character": "Gabe",
+            "line": "No, no, no -- / I'm alive / I'm alive / I am so alive, / If you climb on my back, then we both can fly",
+            "sung": true
+          },
+          {
+            "character": "Gabe",
+            "line": "If you try / to deny me / I'll never die / I'm alive... / so alive... / I'm alive / Yeah, yeah... / I'm alive... / I'm alive... / I'm alive... / I'm alive!",
+            "sung": true
+          }
+        ]
+      },
+      {
+        "title": "#13 - Make Up Your Mind",
         "lines": [
           {
             "character": "Doctor Madden",
@@ -569,7 +688,7 @@
         ]
       },
       {
-        "title": "A1S15",
+        "title": "#15 - There's a World",
         "lines": [
           {
             "character": "Doctor Madden",
@@ -661,7 +780,7 @@
         ]
       },
       {
-        "title": "A1S16A",
+        "title": "#16A - Dad, That's Bullshit!",
         "lines": [
           {
             "character": "Dan",
@@ -734,7 +853,7 @@
         ]
       },
       {
-        "title": "A2S1 #19 Wish I Were Here",
+        "title": "#19 - Wish I Were Here",
         "lines": [
           {
             "character": "Natalie",
@@ -799,7 +918,7 @@
         ]
       },
       {
-        "title": "A2S2 #22 Seconds and Years",
+        "title": "#22 - Seconds and Years",
         "lines": [
           {
             "character": "Doctor Madden",
@@ -894,7 +1013,7 @@
         ]
       },
       {
-        "title": "A2S3 #24 Aftershocks",
+        "title": "#24 - Aftershocks",
         "lines": [
           {
             "character": "no data",
@@ -904,7 +1023,7 @@
         ]
       },
       {
-        "title": "A2S4 #25 Hey #2",
+        "title": "#25 - Hey #2",
         "lines": [
           {
             "character": "no data",
@@ -914,7 +1033,7 @@
         ]
       },
       {
-        "title": "A2S5 #26 You Don't Know (reprise)",
+        "title": "#26 - You Don't Know (reprise)",
         "lines": [
           {
             "character": "Diana",
@@ -989,7 +1108,7 @@
         ]
       },
       {
-        "title": "A2S10 #32 The Break / #33 Make Up Your Mind (Reprise)",
+        "title": "#32 - The Break / #33 Make Up Your Mind (Reprise)",
         "lines": [
           {
             "character": "Diana",
@@ -1154,7 +1273,7 @@
         ]
       },
       {
-        "title": "A2S15 #38 Finale: Light",
+        "title": "#38 Finale: Light",
         "lines": [
           {
             "character": "Natalie",
@@ -1251,7 +1370,6 @@
             "sung": false
           }
         ]
-
       }
     ]
   }
