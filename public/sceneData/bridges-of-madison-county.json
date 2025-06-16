@@ -1,0 +1,107 @@
+[
+  {
+    "project": "Bridges of Madison County",
+    "scenes": [
+      {
+        "title": "A1S1",
+        "lines": [
+          {
+            "character": "Bud",
+            "line": "Carolyn! We are ready to go. Your steer is in his trailer and it's all hooked up. Yo'ure welcome. But we have to be at the fairgrounds in Indianapolis by 8, which means we have to leave NOW.",
+            "sung": false
+          },
+          {
+            "character": "Carolyn",
+            "line": "I'm not going!",
+            "sung": false
+          },
+          {
+            "character": "Francesca",
+            "line": "What is Carolyn upset about?",
+            "sung": false
+          },
+          {
+            "character": "Bud",
+            "line": "Fran, you know the drill.",
+            "sung": true
+          },
+          {
+            "character": "Bud",
+            "line": "Now, look, if anything goes wrong -- I know you think it never will,",
+            "sung": true
+          },
+          {
+            "character": "Bud",
+            "line": "But if it does, they know next door you're here alone.",
+            "sung": true
+          },
+          {
+            "character": "Francesca",
+            "line": "Did you and Carolyn have a fight?",
+            "sung": false
+          },
+          {
+            "character": "Bud",
+            "line": "Now Fran, you're free and clear,",
+            "sung": true
+          },
+          {
+            "character": "Bud",
+            "line": "We got the fencer fixed already, so while we're out with the steer,",
+            "sung": true
+          },
+          {
+            "character": "Bud",
+            "line": "Youshould be fine. And if you're not, pick up the phone.",
+            "sung": true
+          },
+          {
+            "character": "Michael",
+            "line": "Oh, I want that shirt!",
+            "sung": false
+          },
+          {
+            "character": "Francesca",
+            "line": "That's Carolyn's!",
+            "sung": false
+          },
+          {
+            "character": "Bud",
+            "line": "You know there's room for you come, although I take it back there's not.",
+            "sung": true
+          },
+          {
+            "character": "Bud",
+            "line": "We got the cow, we got the kids and there's the tent which I forgot.",
+            "sung": true
+          },
+          {
+            "character": "Bud",
+            "line": "We better get out on the road before the trailer gets too hot,",
+            "sung": true
+          },
+          {
+            "character": "Bud",
+            "line": "But we'll be home before you know it.",
+            "sung": true
+          },
+          {
+            "character": "Bud",
+            "line": "We'll be home before you notice that we're gone.",
+            "sung": true
+          },
+          {
+            "character": "Bud",
+            "line": "Three days isn't very long, and so if anything goes wrong,",
+            "sung": true
+          },
+          {
+            "character": "Bud",
+            "line": "Just hold on tight -- the end's in sight -- and we'll be home.",
+            "sung": true
+          }
+        ]
+      }
+    ]
+  }
+]
