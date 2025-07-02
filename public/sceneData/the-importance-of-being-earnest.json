@@ -1,0 +1,126 @@
+{
+  "project": "The Importance of Being Earnest",
+  "scenes": [
+    {
+      "title": "Morning-room in Algernon’s Flat",
+      "lines": [
+        {
+          "character": "Algernon",
+          "line": "Did you hear what I was playing, Lane?"
+        },
+        {
+          "character": "Lane",
+          "line": "I didn’t think it polite to listen, sir."
+        },
+        {
+          "character": "Algernon",
+          "line": "I’m sorry for that, for your sake. I don’t play accurately—any one can play accurately—but I play with wonderful expression. As far as the piano is concerned, sentiment is my forte. I keep science for Life."
+        },
+        {
+          "character": "Lane",
+          "line": "Yes, sir."
+        },
+        {
+          "character": "Algernon",
+          "line": "And, speaking of the science of Life, have you got the cucumber sandwiches cut for Lady Bracknell?"
+        },
+        {
+          "character": "Lane",
+          "line": "Yes, sir."
+        },
+        {
+          "character": "Algernon",
+          "line": "Oh! . . . by the way, Lane, I see from your book that on Thursday night, when Lord Shoreman and Mr. Worthing were dining with me, eight bottles of champagne are entered as having been consumed."
+        },
+        {
+          "character": "Lane",
+          "line": "Yes, sir; eight bottles and a pint."
+        },
+        {
+          "character": "Algernon",
+          "line": "Why is it that at a bachelor’s establishment the servants invariably drink the champagne? I ask merely for information."
+        },
+        {
+          "character": "Lane",
+          "line": "I attribute it to the superior quality of the wine, sir. I have often observed that in married households the champagne is rarely of a first-rate brand."
+        },
+        {
+          "character": "Algernon",
+          "line": "Good heavens! Is marriage so demoralising as that?"
+        },
+        {
+          "character": "Lane",
+          "line": "I believe it is a very pleasant state, sir. I have had very little experience of it myself up to the present. I have only been married once. That was in consequence of a misunderstanding between myself and a young person."
+        },
+        {
+          "character": "Algernon",
+          "line": "I don’t know that I am much interested in your family life, Lane."
+        },
+        {
+          "character": "Lane",
+          "line": "No, sir; it is not a very interesting subject. I never think of it myself."
+        },
+        {
+          "character": "Algernon",
+          "line": "Very natural, I am sure. That will do, Lane, thank you."
+        },
+        {
+          "character": "Lane",
+          "line": "Thank you, sir."
+        },
+        {
+          "character": "Algernon",
+          "line": "Lane’s views on marriage seem somewhat lax. Really, if the lower orders don’t set us a good example, what on earth is the use of them? They seem, as a class, to have absolutely no sense of moral responsibility."
+        },
+        {
+          "character": "Lane",
+          "line": "Mr. Ernest Worthing."
+        },
+        {
+          "character": "Algernon",
+          "line": "How are you, my dear Ernest? What brings you up to town?"
+        },
+        {
+          "character": "Jack",
+          "line": "Oh, pleasure, pleasure! What else should bring one anywhere? Eating as usual, I see, Algy!"
+        },
+        {
+          "character": "Algernon",
+          "line": "I believe it is customary in good society to take some slight refreshment at five o’clock. Where have you been since last Thursday?"
+        },
+        {
+          "character": "Jack",
+          "line": "In the country."
+        },
+        {
+          "character": "Algernon",
+          "line": "What on earth do you do there?"
+        },
+        {
+          "character": "Jack",
+          "line": "When one is in town one amuses oneself. When one is in the country one amuses other people. It is excessively boring."
+        },
+        {
+          "character": "Algernon",
+          "line": "And who are the people you amuse?"
+        },
+        {
+          "character": "Jack",
+          "line": "Oh, neighbours, neighbours."
+        },
+        {
+          "character": "Algernon",
+          "line": "Got nice neighbours in your part of Shropshire?"
+        },
+        {
+          "character": "Jack",
+          "line": "Perfectly horrid! Never speak to one of them."
+        },
+        {
+          "character": "Algernon",
+          "line": "How immensely you must amuse them!"
+        }
+      ]
+    }
+  ]
+}

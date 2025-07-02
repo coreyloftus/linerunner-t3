@@ -1,4 +1,4 @@
-import { Button } from "./ui/button";
+import { ControlButton } from "./ui/control-button";
 // import { useToast } from "./ui/use-toast";
 import { FaPlay } from "react-icons/fa6";
 import { FaStop } from "react-icons/fa6";
@@ -25,27 +25,26 @@ interface ControlBarProps {
 export default function ControlBar({
   playScene,
   setPlayScene,
-  currentLineIndex,
+
   setCurrentLineIndex,
-  currentLineSplit,
-  wordIndex,
+
   setWordIndex,
   handleLineNavigation,
   handleWordNavigation,
 }: ControlBarProps) {
   // const { toast } = useToast();
-  const buttonStyle = "h-full w-full";
   const handleClick = ({ title, desc }: { title: string; desc: string }) => {
     // toast({ title: title, description: desc });
     console.log({ title: title, description: desc });
   };
 
   return (
-    <div className="flex h-full w-[100%] gap-2">
-      <div className="flex gap-2">
-        <Button
-          className="h-full"
-          variant={"outline"}
+    <div className="flex h-full w-full items-center justify-between rounded-xl bg-gray-50/50 px-4 py-3 shadow-sm backdrop-blur-sm sm:px-6">
+      {/* Playback Controls */}
+      <div className="flex items-center gap-2 sm:gap-3">
+        <ControlButton
+          size="small"
+          variant="playback"
           onClick={() => {
             handleClick({ title: "PLAY", desc: "play button clicked" });
             if (!playScene) {
@@ -53,13 +52,11 @@ export default function ControlBar({
             }
           }}
         >
-          <p className="text-xl">
-            {playScene === false ? <FaPlay /> : <FaPause />}
-          </p>
-        </Button>
-        <Button
-          className="h-full"
-          variant={"outline"}
+          {playScene === false ? <FaPlay /> : <FaPause />}
+        </ControlButton>
+        <ControlButton
+          size="small"
+          variant="playback"
           onClick={() => {
             handleClick({ title: "STOP", desc: "stop playback clicked" });
             setCurrentLineIndex(0);
@@ -67,16 +64,14 @@ export default function ControlBar({
             if (playScene) setPlayScene(false);
           }}
         >
-          <p className="text-xl">
-            <FaStop />
-          </p>
-        </Button>
+          <FaStop />
+        </ControlButton>
       </div>
-      <div className="flex flex-1 gap-2">
-        <div className="flex-1">
-          <Button
-            className={buttonStyle}
-            variant={"outline"}
+
+      {/* Navigation Controls */}
+      <div className="flex items-center gap-3 sm:gap-4">
+        <div className="flex flex-col gap-2">
+          <ControlButton
             onClick={() => {
               handleClick({
                 title: "PREV LINE",
@@ -85,15 +80,9 @@ export default function ControlBar({
               handleLineNavigation("up");
             }}
           >
-            <p className="text-2xl">
-              <FaArrowUp />
-            </p>
-          </Button>
-        </div>
-        <div className="flex-1">
-          <Button
-            className={buttonStyle}
-            variant={"outline"}
+            <FaArrowUp />
+          </ControlButton>
+          <ControlButton
             onClick={() => {
               handleClick({
                 title: "NEXT LINE",
@@ -103,15 +92,12 @@ export default function ControlBar({
               handleLineNavigation("down");
             }}
           >
-            <p className="text-2xl">
-              <FaArrowDown />
-            </p>
-          </Button>
+            <FaArrowDown />
+          </ControlButton>
         </div>
-        <div className="flex-1">
-          <Button
-            className={buttonStyle}
-            variant={"outline"}
+
+        <div className="flex flex-col gap-2">
+          <ControlButton
             onClick={() => {
               handleClick({
                 title: "PREV WORD",
@@ -120,15 +106,9 @@ export default function ControlBar({
               handleWordNavigation("left");
             }}
           >
-            <p className="text-2xl">
-              <FaAngleLeft />
-            </p>
-          </Button>
-        </div>
-        <div className="flex-1">
-          <Button
-            className={buttonStyle}
-            variant={"outline"}
+            <FaAngleLeft />
+          </ControlButton>
+          <ControlButton
             onClick={() => {
               handleClick({
                 title: "NEXT WORD",
@@ -137,10 +117,8 @@ export default function ControlBar({
               handleWordNavigation("right");
             }}
           >
-            <p className="text-2xl">
-              <FaAngleRight />
-            </p>
-          </Button>
+            <FaAngleRight />
+          </ControlButton>
         </div>
       </div>
     </div>

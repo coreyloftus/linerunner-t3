@@ -1,29 +1,37 @@
-# Create T3 App
+# LineRunner T3
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+an app by Corey Loftus
 
-## What's next? How do I make an app with this?
+## Purpose
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+## Functionality
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+## To Dos
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+### AI connection to translate raw text into JSON format
 
-## Learn More
+Page with a text input that allows users to paste in a script in a raw text format, and the AI call will transform it into the JSON format the app consumes.
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+### User Logins
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+Build out login page.
+Enable SSO for Apple, Google.
+NextAuth?
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+### Shared records & separate Database for each user
 
-## How do I deploy this?
+Connect a database solution to allow users to upload and save their own scripts to the platform.
+Users can have access to all shared public scripts (Shakespeare, etc).
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+### Allow users to live edit a scene
+
+Add a tab to the top of the ScriptBox which allows a user to view the live JSON for the current scene.
+If a user does edit the scene JSON, the ScriptBox will read from this live edited scene JSON.
+
+### User Inputted Scenes
+
+A new component that will work in this way:
+
+- a user can input new text
+- a user will have an input box for character names separated by commas (this field is used to more easily be able to parse the character names out of the input script)
+- transform the new text into the correct schema to be read by the ScriptBox as a new script.

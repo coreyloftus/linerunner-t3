@@ -22,15 +22,23 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     selectedCharacter,
     userConfig,
     gameMode,
+    // Script playback state from context
+    currentLineIndex,
+    setCurrentLineIndex,
+    wordIndex,
+    setWordIndex,
+    playScene,
+    setPlayScene,
+    awaitingInput,
+    setAwaitingInput,
+    currentLineSplit,
+    setCurrentLineSplit,
   } = useContext(ScriptContext);
-  const [playScene, setPlayScene] = useState(false);
+
+  // Local state that doesn't need to persist across tabs
   const [userInput, setUserInput] = useState("");
-  const [currentLineIndex, setCurrentLineIndex] = useState(0);
-  const [awaitingInput, setAwaitingInput] = useState(false);
   const [currentLine, setCurrentLine] = useState<string[]>([]);
-  const [currentLineSplit, setCurrentLineSplit] = useState<string[]>([]);
   const [helperIndex, setHelperIndex] = useState(0);
-  const [wordIndex, setWordIndex] = useState(0);
 
   const script = data.allData
     .find((project) => project.project === selectedProject)
@@ -44,6 +52,11 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
 
     // if there are no more lines to display
     if (nextIndex >= lines.length) {
+      // Make sure the last line is properly set up for display
+      if (currentLine) {
+        const split = currentLine.line.split(" ");
+        setCurrentLineSplit(split);
+      }
       setAwaitingInput(true);
       return;
     }
@@ -94,6 +107,10 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     userConfig.autoAdvanceScript,
     gameMode,
     wordIndex,
+    setCurrentLineIndex,
+    setWordIndex,
+    setAwaitingInput,
+    setCurrentLineSplit,
   ]);
 
   useEffect(() => {
@@ -118,7 +135,13 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
       setCurrentLineIndex(currentLineIndex + 1);
       setHelperIndex(0);
     }
-  }, [userInput, currentLineIndex, script]);
+  }, [
+    userInput,
+    currentLineIndex,
+    script,
+    setAwaitingInput,
+    setCurrentLineIndex,
+  ]);
 
   const handleLineNavigation = useCallback(
     (direction: "up" | "down") => {
@@ -133,7 +156,13 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
           newIndex = currentLineIndex + 1;
         } else {
           // if last line of scene, show the entire line
-          setWordIndex(currentLineSplit.length);
+          const lastLine = script.lines[currentLineIndex];
+          if (lastLine) {
+            const split = lastLine.line.split(" ");
+            setCurrentLineSplit(split);
+            setWordIndex(split.length);
+          }
+          return; // Don't continue with the rest of the function
         }
       }
 
@@ -148,7 +177,17 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
         setAwaitingInput(false);
       }
     },
-    [currentLineIndex, playScene, script?.lines, selectedCharacter],
+    [
+      currentLineIndex,
+      playScene,
+      script?.lines,
+      selectedCharacter,
+      currentLineSplit,
+      setCurrentLineIndex,
+      setCurrentLineSplit,
+      setWordIndex,
+      setAwaitingInput,
+    ],
   );
   useEffect(() => {
     console.log({ wordIndex, currentLineSplit });
@@ -162,7 +201,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
         setWordIndex((prev) => prev - 1);
       }
     },
-    [playScene, wordIndex, currentLineSplit],
+    [playScene, wordIndex, currentLineSplit, setWordIndex],
   );
   const handleTextInput = useCallback(
     (key: string) => {
@@ -227,6 +266,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     handleWordNavigation,
     handleTextInput,
     playScene,
+    setPlayScene,
   ]);
 
   useEffect(() => {
@@ -242,11 +282,11 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
   }, [currentLineIndex, script, wordIndex, userConfig]);
 
   return (
-    <>
-      <div className="flex h-[78dvh] flex-col rounded-md border-2 border-stone-200">
+    <div className="flex h-[90dvh] w-[80dvw] flex-col rounded-md border-2 border-stone-200">
+      <div className="flex h-[90%] flex-col rounded-md ">
         <div className="pt-safe-top pb-safe-bottom flex-grow overflow-hidden">
           <ul className="overscroll-bounce h-full overflow-y-auto px-2">
-            {playScene && (
+            {playScene ? (
               <CharacterLineDisplay
                 script={script}
                 currentLineIndex={currentLineIndex}
@@ -255,6 +295,17 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
                 scrollRef={scrollRef}
                 wordIndex={wordIndex}
               />
+            ) : (
+              <div className="flex h-full items-center justify-center">
+                <div className="text-center">
+                  <h1 className="mb-4 text-4xl font-bold text-stone-700">
+                    Welcome to Line Runner
+                  </h1>
+                  <p className="text-lg text-stone-600">
+                    Select a project, scene, and character to begin
+                  </p>
+                </div>
+              </div>
             )}
             {/* for scrolling to bottom */}
             <div ref={scrollRef}></div>
@@ -281,7 +332,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
           </div>
         ) : null} */}
       </div>
-      <div className="mt-2 h-[10vh]">
+      <div className="mt-2 h-[10%]">
         <ControlBar
           playScene={playScene}
           setPlayScene={setPlayScene}
@@ -294,6 +345,6 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
           handleWordNavigation={handleWordNavigation}
         />
       </div>
-    </>
+    </div>
   );
 }
