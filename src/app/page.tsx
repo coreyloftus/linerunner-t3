@@ -2,8 +2,10 @@ import * as React from "react";
 import { api } from "~/trpc/server";
 import { ScriptProvider } from "./context";
 import ScriptBox from "~/components/ScriptDisplay/ScriptBox";
+import ScriptViewer from "~/components/ScriptViewer";
 import Sidebar from "~/components/Sidebar";
 import { Titlebar } from "~/components/Titlebar";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "~/components/ui/tabs";
 
 // import PlayStopControls from "~/components/PlayStopControls";
 
@@ -21,7 +23,18 @@ export default async function Home() {
           </div> */}
           <div className="flex w-full flex-1 flex-col items-center justify-center">
             <Titlebar />
-            <ScriptBox data={projectData} />
+            <Tabs defaultValue="runner" className="w-full">
+              <TabsList className="mb-4 grid w-full max-w-md grid-cols-2">
+                <TabsTrigger value="runner">Line Runner</TabsTrigger>
+                <TabsTrigger value="viewer">Script Viewer</TabsTrigger>
+              </TabsList>
+              <TabsContent value="runner" className="mt-0">
+                <ScriptBox data={projectData} />
+              </TabsContent>
+              <TabsContent value="viewer" className="mt-0">
+                <ScriptViewer data={projectData} />
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
       </ScriptProvider>
