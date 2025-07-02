@@ -22,15 +22,23 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     selectedCharacter,
     userConfig,
     gameMode,
+    // Script playback state from context
+    currentLineIndex,
+    setCurrentLineIndex,
+    wordIndex,
+    setWordIndex,
+    playScene,
+    setPlayScene,
+    awaitingInput,
+    setAwaitingInput,
+    currentLineSplit,
+    setCurrentLineSplit,
   } = useContext(ScriptContext);
-  const [playScene, setPlayScene] = useState(false);
+
+  // Local state that doesn't need to persist across tabs
   const [userInput, setUserInput] = useState("");
-  const [currentLineIndex, setCurrentLineIndex] = useState(0);
-  const [awaitingInput, setAwaitingInput] = useState(false);
   const [currentLine, setCurrentLine] = useState<string[]>([]);
-  const [currentLineSplit, setCurrentLineSplit] = useState<string[]>([]);
   const [helperIndex, setHelperIndex] = useState(0);
-  const [wordIndex, setWordIndex] = useState(0);
 
   const script = data.allData
     .find((project) => project.project === selectedProject)
@@ -94,6 +102,10 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     userConfig.autoAdvanceScript,
     gameMode,
     wordIndex,
+    setCurrentLineIndex,
+    setWordIndex,
+    setAwaitingInput,
+    setCurrentLineSplit,
   ]);
 
   useEffect(() => {
@@ -118,7 +130,13 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
       setCurrentLineIndex(currentLineIndex + 1);
       setHelperIndex(0);
     }
-  }, [userInput, currentLineIndex, script]);
+  }, [
+    userInput,
+    currentLineIndex,
+    script,
+    setAwaitingInput,
+    setCurrentLineIndex,
+  ]);
 
   const handleLineNavigation = useCallback(
     (direction: "up" | "down") => {
@@ -154,6 +172,10 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
       script?.lines,
       selectedCharacter,
       currentLineSplit,
+      setCurrentLineIndex,
+      setCurrentLineSplit,
+      setWordIndex,
+      setAwaitingInput,
     ],
   );
   useEffect(() => {
@@ -168,7 +190,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
         setWordIndex((prev) => prev - 1);
       }
     },
-    [playScene, wordIndex, currentLineSplit],
+    [playScene, wordIndex, currentLineSplit, setWordIndex],
   );
   const handleTextInput = useCallback(
     (key: string) => {
@@ -233,6 +255,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     handleWordNavigation,
     handleTextInput,
     playScene,
+    setPlayScene,
   ]);
 
   useEffect(() => {

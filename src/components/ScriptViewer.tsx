@@ -12,7 +12,14 @@ interface ScriptViewerProps {
 }
 
 export default function ScriptViewer({ data }: ScriptViewerProps) {
-  const { selectedProject, selectedScene } = useContext(ScriptContext);
+  const {
+    selectedProject,
+    selectedScene,
+    currentLineIndex,
+    wordIndex,
+    playScene,
+    currentLineSplit,
+  } = useContext(ScriptContext);
 
   const script = data.allData
     .find((project) => project.project === selectedProject)
@@ -26,9 +33,45 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
     return script.lines
       .map((line, index) => {
         const lineNumber = (index + 1).toString().padStart(3, " ");
-        return `${lineNumber} | ${line.character}: ${line.line}`;
+        const isCurrentLine = index === currentLineIndex;
+        const currentLineIndicator = isCurrentLine ? "▶ " : "   ";
+
+        let lineText = `${lineNumber} | ${line.character}: ${line.line}`;
+
+        // If this is the current line and we're in play mode, show word progress
+        if (isCurrentLine && playScene && currentLineSplit.length > 0) {
+          const words = line.line.split(" ");
+          const highlightedWords = words.map((word, wordIdx) => {
+            if (wordIdx < wordIndex) {
+              return `[${word}]`; // Completed words
+            } else if (wordIdx === wordIndex) {
+              return `**${word}**`; // Current word
+            } else {
+              return word; // Future words
+            }
+          });
+          lineText = `${lineNumber} | ${line.character}: ${highlightedWords.join(" ")}`;
+        }
+
+        return `${currentLineIndicator}${lineText}`;
       })
       .join("\n");
+  };
+
+  const getStatusText = () => {
+    if (!script?.lines) return "No script loaded";
+
+    const totalLines = script.lines.length;
+    const currentLine = script.lines[currentLineIndex];
+
+    if (!playScene)
+      return `Ready - Line ${currentLineIndex + 1} of ${totalLines}`;
+
+    if (currentLine && currentLineSplit.length > 0) {
+      return `Playing - Line ${currentLineIndex + 1} of ${totalLines} (Word ${wordIndex + 1} of ${currentLineSplit.length})`;
+    }
+
+    return `Playing - Line ${currentLineIndex + 1} of ${totalLines}`;
   };
 
   return (
@@ -38,13 +81,16 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
           <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">
             Script Viewer
           </h2>
+          <div className="text-sm text-stone-600 dark:text-stone-400">
+            {getStatusText()}
+          </div>
         </div>
 
         <div className="flex-1 p-4">
           <Textarea
             value={formatScriptForDisplay()}
             readOnly
-            className="h-full min-h-[60px] resize-none border-0 bg-transparent text-sm leading-relaxed text-stone-100 focus-visible:ring-0 dark:text-stone-100"
+            className="h-full min-h-[60px] resize-none border-0 bg-transparent font-mono text-sm leading-relaxed text-stone-100 focus-visible:ring-0 dark:text-stone-100"
             placeholder="No script selected..."
           />
         </div>

@@ -25,6 +25,17 @@ interface ScriptContextProps {
   setQueryParams: Dispatch<SetStateAction<Record<string, string>>>;
   allProjects: GetAllResponse;
   setAllProjects: Dispatch<SetStateAction<GetAllResponse>>;
+  // Script playback state
+  currentLineIndex: number;
+  setCurrentLineIndex: Dispatch<SetStateAction<number>>;
+  wordIndex: number;
+  setWordIndex: Dispatch<SetStateAction<number>>;
+  playScene: boolean;
+  setPlayScene: Dispatch<SetStateAction<boolean>>;
+  awaitingInput: boolean;
+  setAwaitingInput: Dispatch<SetStateAction<boolean>>;
+  currentLineSplit: string[];
+  setCurrentLineSplit: Dispatch<SetStateAction<string[]>>;
 }
 
 type UserConfig = {
@@ -48,6 +59,17 @@ export const ScriptContext = createContext<ScriptContextProps>({
   setQueryParams: () => ({}),
   allProjects: { projects: [], allData: [] },
   setAllProjects: () => ({ projects: [], allData: [] }),
+  // Script playback state defaults
+  currentLineIndex: 0,
+  setCurrentLineIndex: () => 0,
+  wordIndex: 0,
+  setWordIndex: () => 0,
+  playScene: false,
+  setPlayScene: () => false,
+  awaitingInput: false,
+  setAwaitingInput: () => false,
+  currentLineSplit: [],
+  setCurrentLineSplit: () => [],
 });
 
 export const ScriptProvider = ({ children }: { children: ReactNode }) => {
@@ -65,6 +87,13 @@ export const ScriptProvider = ({ children }: { children: ReactNode }) => {
     projects: [],
     allData: [],
   });
+
+  // Script playback state
+  const [currentLineIndex, setCurrentLineIndex] = useState<number>(0);
+  const [wordIndex, setWordIndex] = useState<number>(0);
+  const [playScene, setPlayScene] = useState<boolean>(false);
+  const [awaitingInput, setAwaitingInput] = useState<boolean>(false);
+  const [currentLineSplit, setCurrentLineSplit] = useState<string[]>([]);
 
   useEffect(() => {
     setQueryParams(Object.fromEntries(searchParams));
@@ -87,6 +116,17 @@ export const ScriptProvider = ({ children }: { children: ReactNode }) => {
         setQueryParams,
         allProjects,
         setAllProjects,
+        // Script playback state
+        currentLineIndex,
+        setCurrentLineIndex,
+        wordIndex,
+        setWordIndex,
+        playScene,
+        setPlayScene,
+        awaitingInput,
+        setAwaitingInput,
+        currentLineSplit,
+        setCurrentLineSplit,
       }}
     >
       {children}
