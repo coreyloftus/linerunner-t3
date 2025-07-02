@@ -38,13 +38,6 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
           <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">
             Script Viewer
           </h2>
-          <div className="text-sm text-stone-100">
-            {selectedProject && selectedScene && (
-              <>
-                {selectedProject} - {selectedScene}
-              </>
-            )}
-          </div>
         </div>
 
         <div className="flex-1 p-4">

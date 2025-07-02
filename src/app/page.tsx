@@ -6,6 +6,7 @@ import ScriptViewer from "~/components/ScriptViewer";
 import Sidebar from "~/components/Sidebar";
 import { Titlebar } from "~/components/Titlebar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "~/components/ui/tabs";
+import ScriptData from "~/components/ScriptData";
 
 // import PlayStopControls from "~/components/PlayStopControls";
 
@@ -27,15 +28,19 @@ export default async function Home() {
             defaultValue="runner"
             className="flex w-full flex-1 flex-col items-center justify-center"
           >
-            <TabsList className="mb-4 grid w-full max-w-md grid-cols-2">
+            <TabsList className="mb-4 grid w-full max-w-md grid-cols-3">
               <TabsTrigger value="runner">Line Runner</TabsTrigger>
-              <TabsTrigger value="viewer">Script Viewer</TabsTrigger>
+              <TabsTrigger value="viewer">Line Viewer</TabsTrigger>
+              <TabsTrigger value="scriptdata">Line Data</TabsTrigger>
             </TabsList>
             <TabsContent value="runner" className="mt-0">
               <ScriptBox data={projectData} />
             </TabsContent>
             <TabsContent value="viewer" className="mt-0">
               <ScriptViewer data={projectData} />
+            </TabsContent>
+            <TabsContent value="scriptdata" className="mt-0">
+              <ScriptData data={projectData} />
             </TabsContent>
           </Tabs>
         </div>
