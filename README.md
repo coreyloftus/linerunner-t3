@@ -27,3 +27,11 @@ Users can have access to all shared public scripts (Shakespeare, etc).
 
 Add a tab to the top of the ScriptBox which allows a user to view the live JSON for the current scene.
 If a user does edit the scene JSON, the ScriptBox will read from this live edited scene JSON.
+
+### User Inputted Scenes
+
+A new component that will work in this way:
+
+- a user can input new text
+- a user will have an input box for character names separated by commas (this field is used to more easily be able to parse the character names out of the input script)
+- transform the new text into the correct schema to be read by the ScriptBox as a new script.

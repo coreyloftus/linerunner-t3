@@ -21,21 +21,23 @@ export default async function Home() {
           {/* <div className="mx-2">
           <ConvertScriptBox />
           </div> */}
-          <div className="flex w-full flex-1 flex-col items-center justify-center">
-            <Titlebar />
-            <Tabs defaultValue="runner" className="w-full">
-              <TabsList className="mb-4 grid w-full max-w-md grid-cols-2">
-                <TabsTrigger value="runner">Line Runner</TabsTrigger>
-                <TabsTrigger value="viewer">Script Viewer</TabsTrigger>
-              </TabsList>
-              <TabsContent value="runner" className="mt-0">
-                <ScriptBox data={projectData} />
-              </TabsContent>
-              <TabsContent value="viewer" className="mt-0">
-                <ScriptViewer data={projectData} />
-              </TabsContent>
-            </Tabs>
-          </div>
+
+          {/* <Titlebar /> */}
+          <Tabs
+            defaultValue="runner"
+            className="flex w-full flex-1 flex-col items-center justify-center"
+          >
+            <TabsList className="mb-4 grid w-full max-w-md grid-cols-2">
+              <TabsTrigger value="runner">Line Runner</TabsTrigger>
+              <TabsTrigger value="viewer">Script Viewer</TabsTrigger>
+            </TabsList>
+            <TabsContent value="runner" className="mt-0">
+              <ScriptBox data={projectData} />
+            </TabsContent>
+            <TabsContent value="viewer" className="mt-0">
+              <ScriptViewer data={projectData} />
+            </TabsContent>
+          </Tabs>
         </div>
       </ScriptProvider>
     </div>

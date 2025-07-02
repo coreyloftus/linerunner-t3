@@ -38,7 +38,7 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
           <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">
             Script Viewer
           </h2>
-          <div className="text-sm text-stone-600 dark:text-stone-400">
+          <div className="text-sm text-stone-100">
             {selectedProject && selectedScene && (
               <>
                 {selectedProject} - {selectedScene}
@@ -51,7 +51,7 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
           <Textarea
             value={formatScriptForDisplay()}
             readOnly
-            className="h-full min-h-[60px] resize-none border-0 bg-transparent text-sm leading-relaxed text-stone-900 focus-visible:ring-0 dark:text-stone-100"
+            className="h-full min-h-[60px] resize-none border-0 bg-transparent text-sm leading-relaxed text-stone-100 focus-visible:ring-0 dark:text-stone-100"
             placeholder="No script selected..."
           />
         </div>
