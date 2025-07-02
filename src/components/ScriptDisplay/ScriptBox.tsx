@@ -52,6 +52,11 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
 
     // if there are no more lines to display
     if (nextIndex >= lines.length) {
+      // Make sure the last line is properly set up for display
+      if (currentLine) {
+        const split = currentLine.line.split(" ");
+        setCurrentLineSplit(split);
+      }
       setAwaitingInput(true);
       return;
     }
@@ -151,7 +156,13 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
           newIndex = currentLineIndex + 1;
         } else {
           // if last line of scene, show the entire line
-          setWordIndex(currentLineSplit.length);
+          const lastLine = script.lines[currentLineIndex];
+          if (lastLine) {
+            const split = lastLine.line.split(" ");
+            setCurrentLineSplit(split);
+            setWordIndex(split.length);
+          }
+          return; // Don't continue with the rest of the function
         }
       }
 
