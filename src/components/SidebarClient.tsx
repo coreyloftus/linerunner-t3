@@ -25,7 +25,7 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
         className={`fixed left-0 top-0 h-full transform border-r-2 border-t-2 border-stone-200 bg-stone-400 transition-all duration-500 ease-in-out ${
           navOpen
             ? "w-[75vw] translate-x-0 opacity-100 sm:w-[75vw] md:w-[33vw]"
-            : "w-8 -translate-x-0 opacity-100"
+            : "w-10 -translate-x-0 opacity-100"
         }`}
         style={{ zIndex: 50 }}
       >
@@ -54,16 +54,16 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
               </div>
             </div>
           </div>
-          <div className="fixed bottom-0 pb-2 pl-2 font-mono text-sm">
+          <div className="fixed bottom-0 pb-10 pl-2 font-mono text-sm">
             LineRunner by Corey -- ©2025
           </div>
         </div>
 
         {/* Arrow button - always visible */}
-        <div className="absolute bottom-4 left-0 flex h-8 w-8 items-center justify-center">
+        <div className="absolute bottom-1 left-1 flex h-8 w-8 items-center justify-center">
           <Button
             onClick={() => setNavOpen(!navOpen)}
-            className="h-8 w-8 rounded-full bg-stone-500 p-0 text-white hover:bg-stone-600"
+            className="h-8 w-8 rounded-md bg-stone-500 p-0 text-white hover:bg-stone-600"
           >
             <IoChevronForward
               className={`h-4 w-4 transition-transform duration-300 ${

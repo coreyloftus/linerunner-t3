@@ -19,7 +19,7 @@ export default async function Home() {
           {/* <div className="mx-2">
           <ConvertScriptBox />
           </div> */}
-          <div className="flex w-full flex-1 flex-col">
+          <div className="flex w-full flex-1 flex-col items-center justify-center">
             <Titlebar />
             <ScriptBox data={projectData} />
           </div>

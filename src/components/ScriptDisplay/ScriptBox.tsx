@@ -148,7 +148,13 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
         setAwaitingInput(false);
       }
     },
-    [currentLineIndex, playScene, script?.lines, selectedCharacter],
+    [
+      currentLineIndex,
+      playScene,
+      script?.lines,
+      selectedCharacter,
+      currentLineSplit,
+    ],
   );
   useEffect(() => {
     console.log({ wordIndex, currentLineSplit });
@@ -242,11 +248,11 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
   }, [currentLineIndex, script, wordIndex, userConfig]);
 
   return (
-    <>
-      <div className="flex h-[78dvh] flex-col rounded-md border-2 border-stone-200">
+    <div className="flex h-[90dvh] w-[80dvw] flex-col rounded-md border-2 border-stone-200">
+      <div className="flex h-[90%] flex-col rounded-md ">
         <div className="pt-safe-top pb-safe-bottom flex-grow overflow-hidden">
           <ul className="overscroll-bounce h-full overflow-y-auto px-2">
-            {playScene && (
+            {playScene ? (
               <CharacterLineDisplay
                 script={script}
                 currentLineIndex={currentLineIndex}
@@ -255,6 +261,17 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
                 scrollRef={scrollRef}
                 wordIndex={wordIndex}
               />
+            ) : (
+              <div className="flex h-full items-center justify-center">
+                <div className="text-center">
+                  <h1 className="mb-4 text-4xl font-bold text-stone-700">
+                    Welcome to Line Runner
+                  </h1>
+                  <p className="text-lg text-stone-600">
+                    Select a project, scene, and character to begin
+                  </p>
+                </div>
+              </div>
             )}
             {/* for scrolling to bottom */}
             <div ref={scrollRef}></div>
@@ -281,7 +298,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
           </div>
         ) : null} */}
       </div>
-      <div className="mt-2 h-[10vh]">
+      <div className="mt-2 h-[10%]">
         <ControlBar
           playScene={playScene}
           setPlayScene={setPlayScene}
@@ -294,6 +311,6 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
           handleWordNavigation={handleWordNavigation}
         />
       </div>
-    </>
+    </div>
   );
 }
