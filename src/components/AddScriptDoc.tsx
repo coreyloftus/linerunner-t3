@@ -2,10 +2,23 @@
 
 import { useState } from "react";
 import { Textarea } from "./ui/textarea";
+import { Input } from "./ui/input";
+import { Button } from "./ui/button";
 
 export const AddScriptDoc = () => {
   const [newScript, setNewScript] = useState("");
   const [newScriptBox, setNewScriptBox] = useState("");
+  const [characterNames, setCharacterNames] = useState<string[]>([]);
+
+  const handleAddCharacters = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const characterNames = e.target.value;
+    const characterNamesArray = characterNames
+      .split(",")
+      .map((name) => name.trim());
+    setCharacterNames(characterNamesArray);
+    console.log(characterNamesArray);
+  };
   return (
     <div>
       <>
@@ -16,13 +29,29 @@ export const AddScriptDoc = () => {
                 Add Lines
               </h2>
             </div>
-            <div className="flex-1 p-4">
-              <Textarea
-                value={newScriptBox}
-                onChange={(e) => setNewScriptBox(e.target.value)}
-                className="h-full min-h-[60px] resize-none border-0 bg-transparent text-sm leading-relaxed text-stone-100 focus-visible:ring-0 dark:text-stone-100"
-                placeholder="Copy/paste your raw script here..."
-              />
+            {/* inputs for character names */}
+            <div className="flex flex-col gap-2 p-2">
+              <form className="flex flex-col gap-2">
+                <p className="text-sm text-stone-100">
+                  Enter character names separated by commas:
+                </p>
+                <Input
+                  placeholder="Mulder, Scully, etc."
+                  value={characterNames.join(", ")}
+                  onChange={(e) => handleAddCharacters(e)}
+                />
+                <Button className="w-fit" variant="outline">
+                  Add
+                </Button>
+                <div className="flex-1">
+                  <Textarea
+                    value={newScriptBox}
+                    onChange={(e) => setNewScriptBox(e.target.value)}
+                    className="h-full min-h-[60px] resize-none border-0 bg-transparent text-sm leading-relaxed text-stone-100 focus-visible:ring-0 dark:text-stone-100"
+                    placeholder="Copy/paste your raw script here..."
+                  />
+                </div>
+              </form>
             </div>
           </div>
         </div>
