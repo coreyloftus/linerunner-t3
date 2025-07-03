@@ -182,7 +182,6 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
       playScene,
       script?.lines,
       selectedCharacter,
-      currentLineSplit,
       setCurrentLineIndex,
       setCurrentLineSplit,
       setWordIndex,

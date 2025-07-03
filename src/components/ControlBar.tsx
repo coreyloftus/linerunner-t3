@@ -39,7 +39,7 @@ export default function ControlBar({
   };
 
   return (
-    <div className="flex h-full w-full items-center justify-between rounded-xl bg-gray-50/50 px-4 py-3 shadow-sm backdrop-blur-sm sm:px-6">
+    <div className="flex h-full w-full items-center justify-between rounded-b-md bg-gray-50/50 px-4 py-3 shadow-sm backdrop-blur-sm sm:px-6">
       {/* Playback Controls */}
       <div className="gap- flex items-center sm:gap-2">
         <ControlButton

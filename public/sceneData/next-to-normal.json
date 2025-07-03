@@ -32,7 +32,8 @@
           { "character": "Diana", "line": "Not a very exact science, is it?" },
           {
             "character": "VOICES",
-            "line": "ZOLOFT AND PAXIL AND BUSPAR AND XANAX / DEPAKOTE, KLONOPIN, AMBIEN, PROZAC / ATIVAN CALMS ME WHEN I SEE THE BILLS / THESE ARE A FEW OF MY FAVORITE PILLS."
+            "line": "ZOLOFT AND PAXIL AND BUSPAR AND XANAX / DEPAKOTE, KLONOPIN, AMBIEN, PROZAC / ATIVAN CALMS ME WHEN I SEE THE BILLS / THESE ARE A FEW OF MY FAVORITE PILLS.",
+            "sung": true
           },
           {
             "character": "Diana",
@@ -69,11 +70,24 @@
           },
           {
             "character": "VOICES",
-            "line": "MAY CAUSE THE FOLLOWING SIDE EFFECTS, ONE OR MORE: / DIZZINESS, DROWSINESS, SEXUAL DYSFUNCTION / HEADACHES, AND TREMORS, AND NIGHTMARES, AND SEIZURES, / ANXIOUSNESS, ANGER, EXHAUSTION, INSOMNIA, / IRRITABILITY, NAUSEA, VOMITING, /"
+            "line": "MAY CAUSE THE FOLLOWING SIDE EFFECTS, ONE OR MORE: / DIZZINESS, DROWSINESS, SEXUAL DYSFUNCTION / HEADACHES, AND TREMORS, AND NIGHTMARES, AND SEIZURES, / ANXIOUSNESS, ANGER, EXHAUSTION, INSOMNIA, / IRRITABILITY, NAUSEA, VOMITING, /",
+            "sung": true
           },
-          { "character": "Diana", "line": "ODD AND ALARMING SEXUAL FEELINGS" },
-          { "character": "VOICES", "line": "OH, AND ONE LAST THING -- " },
-          { "character": "Doctor Fine", "line": "USE MAY BE FATAL..." },
+          {
+            "character": "Diana",
+            "line": "ODD AND ALARMING SEXUAL FEELINGS",
+            "sung": true
+          },
+          {
+            "character": "VOICES",
+            "line": "OH, AND ONE LAST THING -- ",
+            "sung": true
+          },
+          {
+            "character": "Doctor Fine",
+            "line": "USE MAY BE FATAL...",
+            "sung": true
+          },
           {
             "character": "Doctor Fine",
             "line": "Goodman, Diana. Third adjustment after five weeks. Reports continued mild anxiety and some lingering depression."
@@ -100,7 +114,8 @@
           { "character": "Doctor Fine", "line": "I'm sure it's the medicine." },
           {
             "character": "Dan",
-            "line": "THEY SAVE LOVE IS BLIND, BUT BELIEVE ME -- LOVE IS INSANE."
+            "line": "THEY SAVE LOVE IS BLIND, BUT BELIEVE ME -- LOVE IS INSANE.",
+            "sung": true
           },
           {
             "character": "Doctor Fine",
