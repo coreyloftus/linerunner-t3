@@ -22,15 +22,17 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
     <>
       {/* sidebar */}
       <div
-        className={`fixed left-0 top-0 h-full transform border-r-2 border-t-2 border-stone-200 bg-stone-400 transition-all duration-500 ease-in-out ${
+        className={`fixed left-0 top-0 h-full transform border-r-2 border-stone-200 bg-stone-400 transition-all duration-500 ease-in-out ${
           navOpen
             ? "w-[75vw] translate-x-0 opacity-100 sm:w-[75vw] md:w-[33vw]"
-            : "w-10 -translate-x-0 opacity-100"
+            : "w-[75vw] -translate-x-full opacity-100 sm:w-[75vw] md:w-[33vw]"
         }`}
         style={{ zIndex: 50 }}
       >
         {/* Content area - only visible when open */}
-        <div className={`h-full ${navOpen ? "block" : "hidden"}`}>
+        <div
+          className={`h-full transition-opacity duration-300 ${navOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
+        >
           <div className="pt-10">
             <div className="px-1">
               <p className="mb-2 font-bold">Script Select</p>
@@ -38,7 +40,7 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
             </div>
             <div className="mt-2 flex flex-col p-2">
               {/* add a toggle for the "Auto Advance" feature -- when TRUE set the context.autoAdvance to TRUE */}
-              <p className="font-bold">NPC Settings</p>
+              {/* <p className="font-bold">NPC Settings</p>
               <div className="flex justify-between p-2">
                 <p>Word-by-word</p>
                 <Switch
@@ -51,27 +53,27 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
                   }
                   className="bg-stone-500 text-white"
                 />
-              </div>
+              </div> */}
             </div>
           </div>
           <div className="fixed bottom-0 pb-10 pl-2 font-mono text-sm">
             LineRunner by Corey -- ©2025
           </div>
         </div>
+      </div>
 
-        {/* Arrow button - always visible */}
-        <div className="absolute bottom-1 left-1 flex h-8 w-8 items-center justify-center">
-          <Button
-            onClick={() => setNavOpen(!navOpen)}
-            className="h-8 w-8 rounded-md bg-stone-500 p-0 text-white hover:bg-stone-600"
-          >
-            <IoChevronForward
-              className={`h-4 w-4 transition-transform duration-300 ${
-                navOpen ? "rotate-180" : "rotate-0"
-              }`}
-            />
-          </Button>
-        </div>
+      {/* Arrow button - always visible, positioned outside sidebar */}
+      <div className="fixed bottom-1 left-1 z-[60] flex h-8 w-8 items-center justify-center">
+        <Button
+          onClick={() => setNavOpen(!navOpen)}
+          className="h-8 w-8 rounded-md bg-stone-500 p-0 text-white hover:bg-stone-600"
+        >
+          <IoChevronForward
+            className={`h-4 w-4 transition-transform duration-300 ${
+              navOpen ? "rotate-180" : "rotate-0"
+            }`}
+          />
+        </Button>
       </div>
     </>
   );
