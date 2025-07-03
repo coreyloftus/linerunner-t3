@@ -40,7 +40,7 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
             </div>
             <div className="mt-2 flex flex-col p-2">
               {/* add a toggle for the "Auto Advance" feature -- when TRUE set the context.autoAdvance to TRUE */}
-              <p className="font-bold">NPC Settings</p>
+              {/* <p className="font-bold">NPC Settings</p>
               <div className="flex justify-between p-2">
                 <p>Word-by-word</p>
                 <Switch
@@ -53,7 +53,7 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
                   }
                   className="bg-stone-500 text-white"
                 />
-              </div>
+              </div> */}
             </div>
           </div>
           <div className="fixed bottom-0 pb-10 pl-2 font-mono text-sm">

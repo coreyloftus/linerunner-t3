@@ -11,7 +11,7 @@ interface ScriptDataProps {
     allData: ProjectJSON[];
   };
 }
-export default function ScriptData({ data }: ScriptDataProps) {
+export const ScriptData = ({ data }: ScriptDataProps) => {
   const { selectedProject, selectedScene } = useContext(ScriptContext);
   const script = data.allData
     .find((project) => project.project === selectedProject)
@@ -38,4 +38,4 @@ export default function ScriptData({ data }: ScriptDataProps) {
       </div>
     </>
   );
-}
+};
