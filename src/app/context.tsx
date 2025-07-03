@@ -36,6 +36,11 @@ interface ScriptContextProps {
   setAwaitingInput: Dispatch<SetStateAction<boolean>>;
   currentLineSplit: string[];
   setCurrentLineSplit: Dispatch<SetStateAction<string[]>>;
+  // Script creation state
+  scriptCharacterNames: string[];
+  setScriptCharacterNames: Dispatch<SetStateAction<string[]>>;
+  newScriptBox: string;
+  setNewScriptBox: Dispatch<SetStateAction<string>>;
 }
 
 type UserConfig = {
@@ -70,6 +75,11 @@ export const ScriptContext = createContext<ScriptContextProps>({
   setAwaitingInput: () => false,
   currentLineSplit: [],
   setCurrentLineSplit: () => [],
+  // Script creation state defaults
+  scriptCharacterNames: [],
+  setScriptCharacterNames: () => [],
+  newScriptBox: "",
+  setNewScriptBox: () => "",
 });
 
 export const ScriptProvider = ({ children }: { children: ReactNode }) => {
@@ -94,6 +104,12 @@ export const ScriptProvider = ({ children }: { children: ReactNode }) => {
   const [playScene, setPlayScene] = useState<boolean>(false);
   const [awaitingInput, setAwaitingInput] = useState<boolean>(false);
   const [currentLineSplit, setCurrentLineSplit] = useState<string[]>([]);
+
+  // Script creation state
+  const [scriptCharacterNames, setScriptCharacterNames] = useState<string[]>(
+    [],
+  );
+  const [newScriptBox, setNewScriptBox] = useState<string>("");
 
   useEffect(() => {
     setQueryParams(Object.fromEntries(searchParams));
@@ -127,6 +143,11 @@ export const ScriptProvider = ({ children }: { children: ReactNode }) => {
         setAwaitingInput,
         currentLineSplit,
         setCurrentLineSplit,
+        // Script creation state
+        scriptCharacterNames,
+        setScriptCharacterNames,
+        newScriptBox,
+        setNewScriptBox,
       }}
     >
       {children}

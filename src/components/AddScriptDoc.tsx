@@ -1,14 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useContext } from "react";
 import { Textarea } from "./ui/textarea";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
+import { ScriptContext } from "~/app/context";
 
 export const AddScriptDoc = () => {
-  const [newScript, setNewScript] = useState("");
-  const [newScriptBox, setNewScriptBox] = useState("");
-  const [characterNames, setCharacterNames] = useState<string[]>([]);
+  const {
+    scriptCharacterNames,
+    setScriptCharacterNames,
+    newScriptBox,
+    setNewScriptBox,
+  } = useContext(ScriptContext);
 
   const handleAddCharacters = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
@@ -16,11 +20,11 @@ export const AddScriptDoc = () => {
     const characterNamesArray = characterNames
       .split(",")
       .map((name) => name.trim());
-    setCharacterNames(characterNamesArray);
+    setScriptCharacterNames(characterNamesArray);
     console.log(characterNamesArray);
   };
   const handleAddScript = (script: string) => {
-    const parsedLines = parseScript(script, characterNames);
+    const parsedLines = parseScript(script, scriptCharacterNames);
     console.log(parsedLines);
   };
   const parseScript = (script: string, characterNames: string[]) => {
@@ -92,7 +96,7 @@ export const AddScriptDoc = () => {
               </p>
               <Input
                 placeholder="Mulder, Scully, etc."
-                value={characterNames.join(", ")}
+                value={scriptCharacterNames.join(", ")}
                 onChange={(e) => handleAddCharacters(e)}
               />
               <Button className="w-fit" variant="outline" type="submit">
