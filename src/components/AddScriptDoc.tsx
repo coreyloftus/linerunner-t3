@@ -19,6 +19,62 @@ export const AddScriptDoc = () => {
     setCharacterNames(characterNamesArray);
     console.log(characterNamesArray);
   };
+  const handleAddScript = (script: string) => {
+    const parsedLines = parseScript(script, characterNames);
+    console.log(parsedLines);
+  };
+  const parseScript = (script: string, characterNames: string[]) => {
+    const lines = script.split(/\n/);
+    const parsedLines: { character: string; line: string }[] = [];
+    let currentCharacter = "";
+    let currentLine = "";
+
+    // Helper function to normalize text by removing spaces
+    const normalizeText = (text: string) =>
+      text.toLowerCase().replace(/\s+/g, "");
+
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+      if (!trimmedLine) continue; // Skip empty lines
+
+      // Check if this line contains a character name (normalized comparison)
+      const foundCharacter = characterNames.find((name) => {
+        const normalizedName = normalizeText(name);
+        const normalizedLine = normalizeText(trimmedLine);
+        return normalizedLine.includes(normalizedName);
+      });
+
+      if (foundCharacter) {
+        // If we have a previous character and line, save it
+        if (currentCharacter && currentLine.trim()) {
+          parsedLines.push({
+            character: currentCharacter,
+            line: currentLine.trim(),
+          });
+        }
+        // Start new character
+        currentCharacter = foundCharacter;
+        currentLine = "";
+      } else {
+        // This line is dialogue for the current character
+        if (currentCharacter) {
+          currentLine += (currentLine ? " " : "") + trimmedLine;
+        }
+      }
+    }
+
+    // last lines
+    if (currentCharacter && currentLine.trim()) {
+      parsedLines.push({
+        character: currentCharacter,
+        line: currentLine.trim(),
+      });
+    }
+
+    console.log(parsedLines);
+    return parsedLines;
+  };
+
   return (
     <div>
       <>
@@ -31,28 +87,35 @@ export const AddScriptDoc = () => {
             </div>
             {/* inputs for character names */}
             <div className="flex flex-col gap-2 p-2">
-              <form className="flex flex-col gap-2">
-                <p className="text-sm text-stone-100">
-                  Enter character names separated by commas:
-                </p>
-                <Input
-                  placeholder="Mulder, Scully, etc."
-                  value={characterNames.join(", ")}
-                  onChange={(e) => handleAddCharacters(e)}
-                />
-                <Button className="w-fit" variant="outline">
-                  Add
-                </Button>
-                <div className="flex-1">
-                  <Textarea
-                    value={newScriptBox}
-                    onChange={(e) => setNewScriptBox(e.target.value)}
-                    className="h-full min-h-[60px] resize-none border-0 bg-transparent text-sm leading-relaxed text-stone-100 focus-visible:ring-0 dark:text-stone-100"
-                    placeholder="Copy/paste your raw script here..."
-                  />
-                </div>
-              </form>
+              <p className="text-sm text-stone-100">
+                Enter character names separated by commas:
+              </p>
+              <Input
+                placeholder="Mulder, Scully, etc."
+                value={characterNames.join(", ")}
+                onChange={(e) => handleAddCharacters(e)}
+              />
+              <Button className="w-fit" variant="outline" type="submit">
+                Add
+              </Button>
             </div>
+
+            {/* textarea container that takes remaining space */}
+            <div className="flex-1 p-2">
+              <Textarea
+                value={newScriptBox}
+                onChange={(e) => setNewScriptBox(e.target.value)}
+                className="h-full w-full resize-none overflow-y-auto border-0 bg-transparent text-sm leading-relaxed text-stone-100 focus-visible:ring-0 dark:text-stone-100"
+                placeholder="Copy/paste your raw script here..."
+              />
+            </div>
+            <Button
+              className="w-fit"
+              variant="outline"
+              onClick={() => handleAddScript(newScriptBox)}
+            >
+              Add Script
+            </Button>
           </div>
         </div>
       </>
