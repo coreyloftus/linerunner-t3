@@ -41,9 +41,8 @@ export default function ControlBar({
   return (
     <div className="flex h-full w-full items-center justify-between rounded-xl bg-gray-50/50 px-4 py-3 shadow-sm backdrop-blur-sm sm:px-6">
       {/* Playback Controls */}
-      <div className="flex items-center gap-2 sm:gap-3">
+      <div className="gap- flex items-center sm:gap-2">
         <ControlButton
-          size="small"
           variant="playback"
           onClick={() => {
             handleClick({ title: "PLAY", desc: "play button clicked" });
@@ -55,7 +54,6 @@ export default function ControlBar({
           {playScene === false ? <FaPlay /> : <FaPause />}
         </ControlButton>
         <ControlButton
-          size="small"
           variant="playback"
           onClick={() => {
             handleClick({ title: "STOP", desc: "stop playback clicked" });
@@ -69,8 +67,8 @@ export default function ControlBar({
       </div>
 
       {/* Navigation Controls */}
-      <div className="flex items-center gap-3 sm:gap-4">
-        <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-4 sm:gap-2">
+        <div className="flex gap-2">
           <ControlButton
             onClick={() => {
               handleClick({
@@ -96,7 +94,7 @@ export default function ControlBar({
           </ControlButton>
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div className="flex  gap-2">
           <ControlButton
             onClick={() => {
               handleClick({
