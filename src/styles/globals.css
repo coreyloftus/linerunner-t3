@@ -21,3 +21,18 @@
   border-radius: 10px;
   border: 2px solid #a1a097;
 }
+
+@keyframes blink-on-and-off {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0.3;
+  }
+}
+
+.blink-on-and-off {
+  animation: blink-on-and-off 2s ease-in-out infinite;
+}

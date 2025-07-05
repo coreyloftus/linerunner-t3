@@ -5,7 +5,7 @@ import { Button } from "./ui/button";
 import { useContext, useEffect, useState, useRef } from "react";
 import { IoChevronForward } from "react-icons/io5";
 import { ScriptContext } from "~/app/context";
-import { Switch } from "./ui/switch";
+import Script from "next/script";
 
 type SidebarClientProps = {
   projects: string[];
@@ -15,10 +15,12 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
   const [navOpen, setNavOpen] = useState(false);
   const { userConfig, setUserConfig } = useContext(ScriptContext);
   const sidebarRef = useRef<HTMLDivElement>(null);
+  const arrowButtonRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    console.log(userConfig);
-  }, [userConfig]);
+  const { selectedProject, selectedScene, selectedCharacter } =
+    useContext(ScriptContext);
+
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   // Handle escape key press
   useEffect(() => {
@@ -37,11 +39,13 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
   // Handle click outside sidebar
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        sidebarRef.current &&
-        !sidebarRef.current.contains(event.target as Node) &&
-        navOpen
-      ) {
+      const target = event.target as Node;
+
+      // Check if click is on sidebar or arrow button
+      const isOnSidebar = sidebarRef.current?.contains(target);
+      const isOnArrowButton = arrowButtonRef.current?.contains(target);
+
+      if (!isOnSidebar && !isOnArrowButton && !isDropdownOpen && navOpen) {
         setNavOpen(false);
       }
     };
@@ -50,7 +54,7 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [navOpen]);
+  }, [navOpen, isDropdownOpen]);
 
   return (
     <>
@@ -98,7 +102,10 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
       </div>
 
       {/* Arrow button - always visible, positioned outside sidebar */}
-      <div className="fixed bottom-1 left-1 z-[60] flex h-8 w-8 items-center justify-center">
+      <div
+        ref={arrowButtonRef}
+        className="fixed bottom-1 left-1 z-[60] flex h-8 w-8 items-center justify-center"
+      >
         <Button
           onClick={() => setNavOpen(!navOpen)}
           className="h-8 w-8 rounded-md bg-stone-500 p-0 text-white hover:bg-stone-600"
@@ -106,7 +113,7 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
           <IoChevronForward
             className={`h-8 w-8 transition-transform duration-300 ${
               navOpen ? "rotate-180" : "rotate-0"
-            }`}
+            } ${!selectedProject.length && !selectedScene.length && !selectedCharacter.length ? "blink-on-and-off" : ""}`}
           />
         </Button>
       </div>

@@ -12,3 +12,16 @@
 .slide-in-from-left {
   animation: slide-in-from-left 0.5s ease-out forwards;
 }
+
+.blink-on-and-off {
+  animation: blink-on-and-off 1s infinite;
+}
+
+@keyframes blink-on-and-off {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}

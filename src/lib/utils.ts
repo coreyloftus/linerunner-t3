@@ -52,7 +52,6 @@ export const mdToJSON = async (markdownContent: string): Promise<Project[]> => {
       currentScene = { title: node.children[0]?.value ?? "", lines: [] };
     } else if (node.type === "heading" && node.depth == 3 && node.children) {
       currentCharacter = node.children[0]?.value ?? "";
-      console.log("currentLine", currentCharacter);
     } else if (
       node.type === "paragraph" &&
       node.children &&

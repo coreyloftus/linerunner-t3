@@ -92,7 +92,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     if (gameMode === "navigate") {
       if (currentLine?.character === selectedCharacter) {
         setCurrentLine(currentLine.line.split(""));
-        console.log(`setting current user line to ${currentLine.line}`);
+
         setAwaitingInput(true);
         return;
       }
@@ -188,9 +188,6 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
       setAwaitingInput,
     ],
   );
-  useEffect(() => {
-    console.log({ wordIndex, currentLineSplit });
-  }, [wordIndex, currentLineSplit]);
   const handleWordNavigation = useCallback(
     (direction: "left" | "right") => {
       if (!playScene) return;
@@ -273,12 +270,6 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
       handleSubmit();
     }
   });
-
-  useEffect(() => {
-    console.log(
-      `${currentLineIndex} | ${script?.lines?.[currentLineIndex]?.character}: ${script?.lines?.[currentLineIndex]?.line}`,
-    );
-  }, [currentLineIndex, script, wordIndex, userConfig]);
 
   return (
     <div className="flex h-[90dvh] w-[80dvw] flex-col rounded-md border-2 border-stone-200">
