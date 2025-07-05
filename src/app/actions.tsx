@@ -3,8 +3,8 @@ import { api } from "~/trpc/server";
 
 export const getAllProjects = async () => {
   const projects = await api.scriptData.getAll();
-  console.log("getAllProjects actions hit");
-  console.log(projects);
+  // console.log("getAllProjects actions hit");
+  // console.log(projects);
   return projects;
 };
 

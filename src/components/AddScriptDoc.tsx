@@ -21,11 +21,11 @@ export const AddScriptDoc = () => {
       .split(",")
       .map((name) => name.trim());
     setScriptCharacterNames(characterNamesArray);
-    console.log(characterNamesArray);
+    // console.log(characterNamesArray);
   };
   const handleAddScript = (script: string) => {
     const parsedLines = parseScript(script, scriptCharacterNames);
-    console.log(parsedLines);
+    // console.log(parsedLines);
   };
   const parseScript = (script: string, characterNames: string[]) => {
     const lines = script.split(/\n/);
@@ -75,7 +75,7 @@ export const AddScriptDoc = () => {
       });
     }
 
-    console.log(parsedLines);
+    // console.log(parsedLines);
     return parsedLines;
   };
 

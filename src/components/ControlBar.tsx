@@ -33,19 +33,14 @@ export default function ControlBar({
   handleWordNavigation,
 }: ControlBarProps) {
   // const { toast } = useToast();
-  const handleClick = ({ title, desc }: { title: string; desc: string }) => {
-    // toast({ title: title, description: desc });
-    console.log({ title: title, description: desc });
-  };
 
   return (
-    <div className="flex h-full w-full items-center justify-between rounded-xl bg-gray-50/50 px-4 py-3 shadow-sm backdrop-blur-sm sm:px-6">
+    <div className="flex h-full w-full items-center justify-between rounded-b-md bg-gray-50/50 px-4 py-3 shadow-sm backdrop-blur-sm sm:px-6">
       {/* Playback Controls */}
       <div className="gap- flex items-center sm:gap-2">
         <ControlButton
           variant="playback"
           onClick={() => {
-            handleClick({ title: "PLAY", desc: "play button clicked" });
             if (!playScene) {
               setPlayScene(true);
             }
@@ -56,7 +51,6 @@ export default function ControlBar({
         <ControlButton
           variant="playback"
           onClick={() => {
-            handleClick({ title: "STOP", desc: "stop playback clicked" });
             setCurrentLineIndex(0);
             setWordIndex(0);
             if (playScene) setPlayScene(false);
@@ -71,10 +65,6 @@ export default function ControlBar({
         <div className="flex gap-2">
           <ControlButton
             onClick={() => {
-              handleClick({
-                title: "PREV LINE",
-                desc: "prev line clicked",
-              });
               handleLineNavigation("up");
             }}
           >
@@ -82,10 +72,6 @@ export default function ControlBar({
           </ControlButton>
           <ControlButton
             onClick={() => {
-              handleClick({
-                title: "NEXT LINE",
-                desc: "next line clicked",
-              });
               setWordIndex(0);
               handleLineNavigation("down");
             }}
@@ -97,10 +83,6 @@ export default function ControlBar({
         <div className="flex  gap-2">
           <ControlButton
             onClick={() => {
-              handleClick({
-                title: "PREV WORD",
-                desc: "prev word clicked",
-              });
               handleWordNavigation("left");
             }}
           >
@@ -108,10 +90,6 @@ export default function ControlBar({
           </ControlButton>
           <ControlButton
             onClick={() => {
-              handleClick({
-                title: "NEXT WORD",
-                desc: "next word clicked",
-              });
               handleWordNavigation("right");
             }}
           >
