@@ -63,15 +63,34 @@ export class FirestoreService {
     subcollectionName: string,
   ): Promise<T[]> {
     try {
+      console.log("🔥 [FirestoreService.getUserDocuments] Constructing path:");
+      console.log("  - User ID:", userId);
+      console.log("  - Subcollection:", subcollectionName);
+      console.log(
+        "  - Firestore path: users/" + userId + "/" + subcollectionName,
+      );
+
       const userDocRef = doc(db, "users", userId);
       const subcollectionRef = collection(userDocRef, subcollectionName);
+
+      console.log("🔥 [FirestoreService.getUserDocuments] Executing query...");
       const querySnapshot = await getDocs(subcollectionRef);
-      return querySnapshot.docs.map((doc) => ({
+
+      console.log("🔥 [FirestoreService.getUserDocuments] Query completed:");
+      console.log("  - Documents found:", querySnapshot.docs.length);
+
+      const documents = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       })) as T[];
+
+      console.log(
+        "🔥 [FirestoreService.getUserDocuments] Returning documents:",
+        documents,
+      );
+      return documents;
     } catch (error) {
-      console.error("Error getting user documents:", error);
+      console.error("🔥 [FirestoreService.getUserDocuments] Error:", error);
       throw error;
     }
   }
@@ -97,12 +116,36 @@ export class FirestoreService {
     data: Omit<T, "id">,
   ): Promise<string> {
     try {
+      console.log("🔥 [FirestoreService.addUserDocument] Constructing path:");
+      console.log("  - User ID:", userId);
+      console.log("  - Subcollection:", subcollectionName);
+      console.log("  - Data to add:", data);
+      console.log(
+        "  - Firestore path: users/" + userId + "/" + subcollectionName,
+      );
+
       const userDocRef = doc(db, "users", userId);
       const subcollectionRef = collection(userDocRef, subcollectionName);
+
+      console.log("🔥 [FirestoreService.addUserDocument] Adding document...");
       const docRef = await addDoc(subcollectionRef, data);
+
+      console.log(
+        "🔥 [FirestoreService.addUserDocument] Document added successfully:",
+      );
+      console.log("  - Document ID:", docRef.id);
+      console.log(
+        "  - Full document path: users/" +
+          userId +
+          "/" +
+          subcollectionName +
+          "/" +
+          docRef.id,
+      );
+
       return docRef.id;
     } catch (error) {
-      console.error("Error adding user document:", error);
+      console.error("🔥 [FirestoreService.addUserDocument] Error:", error);
       throw error;
     }
   }

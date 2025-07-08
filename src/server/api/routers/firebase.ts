@@ -35,13 +35,35 @@ export const firebaseRouter = createTRPCRouter({
       }),
     )
     .query(async ({ input, ctx }) => {
+      if (!ctx.session.user.email) {
+        throw new Error("User email is required");
+      }
       try {
+        console.log("🔍 [getUserDocuments] Starting query with:");
+        console.log("  - User ID:", ctx.session.user.email);
+        console.log("  - Subcollection:", input.subcollectionName);
+        console.log(
+          "  - Full path: users/" +
+            ctx.session.user.email +
+            "/" +
+            input.subcollectionName,
+        );
+
         const documents = await FirestoreService.getUserDocuments(
-          ctx.session.user.id,
+          ctx.session.user.email,
           input.subcollectionName,
         );
+
+        console.log(
+          "✅ [getUserDocuments] Success - Found",
+          documents.length,
+          "documents",
+        );
+        console.log("  - Documents:", documents);
+
         return { success: true, data: documents };
       } catch (error) {
+        console.error("❌ [getUserDocuments] Error:", error);
         return { success: false, error: (error as Error).message };
       }
     }),
@@ -95,14 +117,43 @@ export const firebaseRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      if (!ctx.session.user.email) {
+        throw new Error("User email is required");
+      }
       try {
+        console.log("📝 [addUserDocument] Starting mutation with:");
+        console.log("  - User ID:", ctx.session.user.email);
+        console.log("  - Subcollection:", input.subcollectionName);
+        console.log("  - Data:", input.data);
+        console.log(
+          "  - Full path: users/" +
+            ctx.session.user.email +
+            "/" +
+            input.subcollectionName,
+        );
+
         const documentId = await FirestoreService.addUserDocument(
-          ctx.session.user.id,
+          ctx.session.user.email,
           input.subcollectionName,
           input.data,
         );
+
+        console.log(
+          "✅ [addUserDocument] Success - Document created with ID:",
+          documentId,
+        );
+        console.log(
+          "  - Full document path: users/" +
+            ctx.session.user.email +
+            "/" +
+            input.subcollectionName +
+            "/" +
+            documentId,
+        );
+
         return { success: true, documentId };
       } catch (error) {
+        console.error("❌ [addUserDocument] Error:", error);
         return { success: false, error: (error as Error).message };
       }
     }),
