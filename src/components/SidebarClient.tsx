@@ -6,6 +6,8 @@ import { useContext, useEffect, useState, useRef } from "react";
 import { IoChevronForward } from "react-icons/io5";
 import { ScriptContext } from "~/app/context";
 import Script from "next/script";
+import { AuthButton } from "./AuthButton";
+import { signIn, signOut } from "next-auth/react";
 
 type SidebarClientProps = {
   projects: string[];
@@ -68,6 +70,9 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
         }`}
         style={{ zIndex: 50 }}
       >
+        <div className="flex justify-end p-2">
+          <AuthButton />
+        </div>
         {/* Content area - only visible when open */}
         <div
           className={`h-full transition-opacity duration-300 ${navOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
