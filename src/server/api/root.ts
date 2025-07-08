@@ -1,6 +1,7 @@
 import { postRouter } from "~/server/api/routers/post";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 import { scriptData } from "./routers/scriptData";
+import { firebaseRouter } from "./routers/firebase";
 
 /**
  * This is the primary router for your server.
@@ -10,6 +11,7 @@ import { scriptData } from "./routers/scriptData";
 export const appRouter = createTRPCRouter({
   post: postRouter,
   scriptData: scriptData,
+  firebase: firebaseRouter,
 });
 
 // export type definition of API

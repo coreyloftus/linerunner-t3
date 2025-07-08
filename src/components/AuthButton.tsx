@@ -12,6 +12,7 @@ export const AuthButton = () => {
   }
 
   if (session) {
+    console.log(session);
     return (
       <DropdownMenu
         trigger={session.user?.email ?? "User"}
