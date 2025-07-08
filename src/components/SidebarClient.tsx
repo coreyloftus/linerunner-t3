@@ -70,14 +70,14 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
         }`}
         style={{ zIndex: 50 }}
       >
-        <div className="flex justify-end p-2">
-          <AuthButton />
-        </div>
         {/* Content area - only visible when open */}
         <div
           className={`h-full transition-opacity duration-300 ${navOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
         >
-          <div className="pt-10">
+          <div className="pt-2">
+            <div className="flex justify-end p-2">
+              <AuthButton />
+            </div>
             <div className="px-1">
               <p className="mb-2 font-bold">Script Select</p>
               <NewScriptSelect projects={projects} allData={allData} />
@@ -100,7 +100,8 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
               </div> */}
             </div>
           </div>
-          <div className="fixed bottom-0 pb-10 pl-2 font-mono text-sm">
+
+          <div className="fixed bottom-0 mb-16 pl-2 font-mono text-sm">
             LineRunner by Corey -- ©2025
           </div>
         </div>
@@ -109,11 +110,11 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
       {/* Arrow button - always visible, positioned outside sidebar */}
       <div
         ref={arrowButtonRef}
-        className="fixed bottom-1 left-1 z-[60] flex h-8 w-8 items-center justify-center"
+        className="fixed bottom-1 left-1 z-[60] flex h-12 w-12 items-center justify-center"
       >
         <Button
           onClick={() => setNavOpen(!navOpen)}
-          className="h-8 w-8 rounded-md bg-stone-500 p-0 text-white hover:bg-stone-600"
+          className="h-full w-full rounded-md bg-stone-500 p-0 text-white hover:bg-stone-600"
         >
           <IoChevronForward
             className={`h-8 w-8 transition-transform duration-300 ${
