@@ -5,7 +5,13 @@ import {
   publicProcedure,
 } from "~/server/api/trpc";
 import { FirestoreService } from "~/server/firebase";
+import { type WhereFilterOp } from "firebase/firestore";
 
+export type FirestoreFilter = {
+  field: string;
+  operator: WhereFilterOp;
+  value: unknown;
+};
 export const firebaseRouter = createTRPCRouter({
   // Example: Get all documents from a collection
   getDocuments: publicProcedure
@@ -152,8 +158,8 @@ export const firebaseRouter = createTRPCRouter({
           .array(
             z.object({
               field: z.string(),
-              operator: z.string(),
-              value: z.any(),
+              operator: z.custom<WhereFilterOp>(),
+              value: z.unknown(),
             }),
           )
           .optional(),
@@ -166,7 +172,7 @@ export const firebaseRouter = createTRPCRouter({
       try {
         const documents = await FirestoreService.queryDocuments(
           input.collectionName,
-          input.filters,
+          input.filters as FirestoreFilter[],
           input.orderByField,
           input.orderDirection,
           input.limitCount,

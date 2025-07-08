@@ -14,6 +14,9 @@ import {
   type DocumentData,
   type QueryDocumentSnapshot,
   type QuerySnapshot,
+  type WhereFilterOp,
+  type Query,
+  type CollectionReference,
 } from "firebase/firestore";
 
 // Generic CRUD operations for Firestore
@@ -136,13 +139,15 @@ export class FirestoreService {
   // Query documents with filters
   static async queryDocuments<T = DocumentData>(
     collectionName: string,
-    filters?: Array<{ field: string; operator: any; value: any }>,
+    filters?: Array<{ field: string; operator: WhereFilterOp; value: unknown }>,
     orderByField?: string,
     orderDirection?: "asc" | "desc",
     limitCount?: number,
   ): Promise<T[]> {
     try {
-      let q = collection(db, collectionName);
+      const collectionRef = collection(db, collectionName);
+      let q: Query<DocumentData> | CollectionReference<DocumentData> =
+        collectionRef;
 
       // Apply filters
       if (filters && filters.length > 0) {
@@ -153,7 +158,7 @@ export class FirestoreService {
 
       // Apply ordering
       if (orderByField) {
-        q = query(q, orderBy(orderByField, orderDirection || "asc"));
+        q = query(q, orderBy(orderByField, orderDirection ?? "asc"));
       }
 
       // Apply limit

@@ -1,15 +1,12 @@
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import {
   getServerSession,
   type DefaultSession,
   type NextAuthOptions,
 } from "next-auth";
-import { type Adapter } from "next-auth/adapters";
 import GoogleProvider from "next-auth/providers/google";
 // import DiscordProvider from "next-auth/providers/discord"; // Commented out for future use
 
 import { env } from "~/env";
-import { db } from "~/server/db";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -40,15 +37,25 @@ declare module "next-auth" {
 export const authOptions: NextAuthOptions = {
   debug: true, // Enable debug logging
   callbacks: {
-    session: ({ session, user }) => ({
+    jwt: ({ token, account, profile }) => {
+      // Persist the OAuth access_token and or the user id to the token right after signin
+      if (account) {
+        token.accessToken = account.access_token;
+      }
+      if (profile) {
+        token.id = profile.sub;
+      }
+      return token;
+    },
+    session: ({ session, token }) => ({
       ...session,
       user: {
         ...session.user,
-        id: user.id,
+        id: token.id as string,
       },
     }),
   },
-  adapter: PrismaAdapter(db) as Adapter,
+  // Removed PrismaAdapter since we're using Firestore
   providers: [
     GoogleProvider({
       clientId: env.GOOGLE_CLIENT_ID,
