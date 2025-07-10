@@ -41,6 +41,8 @@ interface ScriptContextProps {
   setScriptCharacterNames: Dispatch<SetStateAction<string[]>>;
   newScriptBox: string;
   setNewScriptBox: Dispatch<SetStateAction<string>>;
+  isAdmin: boolean;
+  setIsAdmin: Dispatch<SetStateAction<boolean>>;
 }
 
 type UserConfig = {
@@ -89,6 +91,8 @@ export const ScriptContext = createContext<ScriptContextProps>({
   setScriptCharacterNames: () => [],
   newScriptBox: "",
   setNewScriptBox: () => "",
+  isAdmin: false,
+  setIsAdmin: () => false,
 });
 
 export const ScriptProvider = ({ children }: { children: ReactNode }) => {
@@ -120,6 +124,7 @@ export const ScriptProvider = ({ children }: { children: ReactNode }) => {
     [],
   );
   const [newScriptBox, setNewScriptBox] = useState<string>("");
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
   useEffect(() => {
     setQueryParams(Object.fromEntries(searchParams));
@@ -158,6 +163,8 @@ export const ScriptProvider = ({ children }: { children: ReactNode }) => {
         setScriptCharacterNames,
         newScriptBox,
         setNewScriptBox,
+        isAdmin,
+        setIsAdmin,
       }}
     >
       {children}

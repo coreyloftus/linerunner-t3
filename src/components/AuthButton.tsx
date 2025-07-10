@@ -3,16 +3,21 @@
 import { signIn, signOut, useSession } from "next-auth/react";
 import { Button } from "./ui/button";
 import { DropdownMenu, DropdownMenuItem } from "./ui/dropdown-menu";
+import { ScriptContext } from "~/app/context";
+import { useContext } from "react";
 
 export const AuthButton = () => {
   const { data: session, status } = useSession();
+  const { setIsAdmin } = useContext(ScriptContext);
 
   if (status === "loading") {
     return <Button disabled>Loading...</Button>;
   }
 
   if (session) {
-    console.log(session);
+    if (session.user?.email === "coreyloftus@gmail.com") {
+      setIsAdmin(true);
+    }
     return (
       <DropdownMenu
         trigger={session.user?.email ?? "User"}

@@ -7,8 +7,17 @@ import { Button } from "./ui/button";
 import { ScriptContext } from "~/app/context";
 import { api } from "~/trpc/react";
 import { useToast } from "~/components/ui/use-toast";
+import { useSession } from "next-auth/react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 
 export const AddScriptDoc = () => {
+  const { data: session } = useSession();
   const {
     scriptCharacterNames,
     setScriptCharacterNames,
@@ -19,7 +28,17 @@ export const AddScriptDoc = () => {
 
   const [projectName, setProjectName] = useState("");
   const [sceneTitle, setSceneTitle] = useState("");
+  const [isNewProject, setIsNewProject] = useState(false);
   const { toast } = useToast();
+
+  // Fetch existing projects
+  const { data: scriptData, isLoading: isLoadingProjects } =
+    api.scriptData.getAll.useQuery(
+      { dataSource: userConfig.dataSource },
+      {
+        enabled: !!session?.user && userConfig.dataSource === "firestore",
+      },
+    );
 
   const createScriptMutation = api.scriptData.createScript.useMutation({
     onSuccess: (data) => {
@@ -33,6 +52,7 @@ export const AddScriptDoc = () => {
         setSceneTitle("");
         setNewScriptBox("");
         setScriptCharacterNames([]);
+        setIsNewProject(false);
       } else {
         toast({
           title: "Error",
@@ -58,6 +78,16 @@ export const AddScriptDoc = () => {
       .map((name) => name.trim());
     setScriptCharacterNames(characterNamesArray);
     // console.log(characterNamesArray);
+  };
+
+  const handleProjectChange = (value: string) => {
+    if (value === "new") {
+      setIsNewProject(true);
+      setProjectName("");
+    } else {
+      setIsNewProject(false);
+      setProjectName(value);
+    }
   };
 
   const handleAddScript = (script: string) => {
@@ -170,6 +200,22 @@ export const AddScriptDoc = () => {
     return parsedLines;
   };
 
+  // If user is not authenticated, show message
+  if (!session?.user) {
+    return (
+      <div className="flex h-[90dvh] w-[80dvw] flex-col items-center justify-center rounded-md border-2 border-stone-200">
+        <div className="text-center">
+          <h2 className="mb-4 text-lg font-semibold text-stone-900 dark:text-stone-100">
+            Authentication Required
+          </h2>
+          <p className="text-stone-600 dark:text-stone-400">
+            Please sign in to add scripts to the database.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <>
@@ -177,7 +223,7 @@ export const AddScriptDoc = () => {
           <div className="flex h-full flex-col rounded-md">
             <div className="flex items-center justify-between border-b border-stone-200 bg-stone-50 px-4 py-3 dark:border-stone-700 dark:bg-stone-800">
               <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">
-                Add Lines
+                Add Script
               </h2>
             </div>
 
@@ -186,11 +232,39 @@ export const AddScriptDoc = () => {
               <div className="flex gap-2">
                 <div className="flex-1">
                   <p className="mb-1 text-sm text-stone-100">Project Name:</p>
-                  <Input
-                    placeholder="Enter project name..."
-                    value={projectName}
-                    onChange={(e) => setProjectName(e.target.value)}
-                  />
+                  {userConfig.dataSource === "firestore" ? (
+                    <div className="space-y-2">
+                      <Select
+                        onValueChange={handleProjectChange}
+                        value={isNewProject ? "new" : projectName}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select existing project or add new..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {scriptData?.projects.map((project) => (
+                            <SelectItem key={project} value={project}>
+                              {project}
+                            </SelectItem>
+                          ))}
+                          <SelectItem value="new">+ Add New Project</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {isNewProject && (
+                        <Input
+                          placeholder="Enter new project name..."
+                          value={projectName}
+                          onChange={(e) => setProjectName(e.target.value)}
+                        />
+                      )}
+                    </div>
+                  ) : (
+                    <Input
+                      placeholder="Enter project name..."
+                      value={projectName}
+                      onChange={(e) => setProjectName(e.target.value)}
+                    />
+                  )}
                 </div>
                 <div className="flex-1">
                   <p className="mb-1 text-sm text-stone-100">Scene Title:</p>
@@ -229,7 +303,10 @@ export const AddScriptDoc = () => {
                 className="w-fit"
                 variant="outline"
                 onClick={() => handleAddScript(newScriptBox)}
-                disabled={createScriptMutation.isPending}
+                disabled={
+                  createScriptMutation.isPending ||
+                  (userConfig.dataSource === "firestore" && isLoadingProjects)
+                }
               >
                 {createScriptMutation.isPending ? "Saving..." : "Add Script"}
               </Button>
