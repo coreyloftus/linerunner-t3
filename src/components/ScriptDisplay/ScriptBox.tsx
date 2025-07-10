@@ -6,7 +6,7 @@ import { ScriptContext } from "~/app/context";
 import { type ProjectJSON } from "../../server/api/routers/scriptData";
 import ControlBar from "../ControlBar";
 import { CharacterLineDisplay } from "./CharacterLineDisplay";
-import { api } from "~/trpc/react";
+import { useScriptData } from "~/hooks/useScriptData";
 
 interface ScriptBoxProps {
   data: {
@@ -36,14 +36,12 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     setCurrentLineSplit,
   } = useContext(ScriptContext);
 
-  // Dynamic data fetching based on data source
-  const { data: dynamicData } = api.scriptData.getAll.useQuery(
-    { dataSource: userConfig.dataSource },
-    {
-      enabled: true,
-      refetchOnWindowFocus: false,
-    },
-  );
+  // Dynamic data fetching based on data source with optimized caching
+  const { data: dynamicData, isLoading: isDataLoading } = useScriptData({
+    dataSource: userConfig.dataSource,
+    enableAutoRefresh: false, // Disable auto-refresh to reduce Firestore calls
+    cacheTime: 10 * 60 * 1000, // 10 minutes cache
+  });
 
   // Use dynamic data if available, otherwise fall back to static data
   const currentData = dynamicData ?? data;

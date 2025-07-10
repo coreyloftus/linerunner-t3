@@ -29,12 +29,11 @@ export default async function Home() {
             defaultValue="runner"
             className="flex w-full flex-1 flex-col items-center justify-center"
           >
-            <TabsList className="mb-4 grid w-full max-w-md grid-cols-5">
+            <TabsList className="mb-4 grid w-full max-w-md grid-cols-4">
               <TabsTrigger value="runner">Line Runner</TabsTrigger>
               <TabsTrigger value="viewer">Line Viewer</TabsTrigger>
               <TabsTrigger value="scriptdata">Line Data</TabsTrigger>
               <TabsTrigger value="newlines">Add Lines</TabsTrigger>
-              <TabsTrigger value="firebase">Firebase Test</TabsTrigger>
             </TabsList>
             <TabsContent value="runner" className="mt-0">
               <ScriptBox data={projectData} />
@@ -47,9 +46,6 @@ export default async function Home() {
             </TabsContent>
             <TabsContent value="newlines" className="mt-0">
               <AddScriptDoc />
-            </TabsContent>
-            <TabsContent value="firebase" className="mt-0">
-              <FirebaseTest />
             </TabsContent>
           </Tabs>
         </div>
