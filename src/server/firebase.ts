@@ -57,7 +57,7 @@ export class FirestoreService {
         "🔥 [FirestoreService.getUserDocuments] Testing basic Firestore access...",
       );
       try {
-        const testCollection = adminDb.collection("test");
+        const testCollection = adminDb.collection("scripts");
         await testCollection.limit(1).get();
         console.log(
           "🔥 [FirestoreService.getUserDocuments] Basic Firestore access successful",
@@ -121,7 +121,7 @@ export class FirestoreService {
       console.log("  - Subcollection:", subcollectionName);
       console.log("  - Data to add:", data);
       console.log(
-        "  - Firestore path: scripts/users/" + userId + "/" + subcollectionName,
+        "  - Firestore path: users/" + userId + "/" + subcollectionName,
       );
 
       const userDocRef = adminDb.collection("users").doc(userId);

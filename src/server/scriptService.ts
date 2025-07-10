@@ -45,7 +45,7 @@ export class ScriptService {
     try {
       const documents = await FirestoreService.getUserDocuments<ProjectJSON>(
         userId,
-        "scripts",
+        "uploaded_data",
       );
 
       const projects = documents.map((doc) => doc.project);
@@ -200,7 +200,7 @@ export class ScriptService {
 
       const documentId = await FirestoreService.addUserDocument(
         userId,
-        "scripts",
+        "uploaded_data",
         scriptData,
       );
 

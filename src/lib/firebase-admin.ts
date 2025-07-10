@@ -89,10 +89,10 @@ try {
   throw error;
 }
 
-// Get Firestore instance with custom database
+// Get Firestore instance (using default database)
 const adminDb = getFirestore(adminApp, "scripts");
 console.log(
-  "🔧 [Firebase Admin] Firestore instance created for database: scripts",
+  "🔧 [Firebase Admin] Firestore instance created for scripts database",
 );
 
 export { adminDb };
