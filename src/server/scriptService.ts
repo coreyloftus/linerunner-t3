@@ -118,4 +118,99 @@ export class ScriptService {
       ?.lines.map((line) => line.line);
     return lines ?? [];
   }
+
+  // Save script to local files or Firestore
+  static async saveScript(
+    projectName: string,
+    sceneTitle: string,
+    lines: { character: string; line: string }[],
+    dataSource: "local" | "firestore",
+    userId?: string,
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      if (dataSource === "local") {
+        return this.saveLocalScript(projectName, sceneTitle, lines);
+      } else if (dataSource === "firestore" && userId) {
+        return this.saveFirestoreScript(projectName, sceneTitle, lines, userId);
+      } else {
+        throw new Error("Invalid data source or missing userId for Firestore");
+      }
+    } catch (error) {
+      console.error("Error saving script:", error);
+      return { success: false, message: (error as Error).message };
+    }
+  }
+
+  // Save script to local file
+  private static async saveLocalScript(
+    projectName: string,
+    sceneTitle: string,
+    lines: { character: string; line: string }[],
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      const directory = path.join(process.cwd(), "public/sceneData");
+
+      // Create directory if it doesn't exist
+      if (!fs.existsSync(directory)) {
+        fs.mkdirSync(directory, { recursive: true });
+      }
+
+      // Create the script data structure
+      const scriptData: ProjectJSON = {
+        project: projectName,
+        scenes: [
+          {
+            title: sceneTitle,
+            lines: lines,
+          },
+        ],
+      };
+
+      // Generate filename from project name
+      const filename = `${projectName.toLowerCase().replace(/\s+/g, "-")}.json`;
+      const filepath = path.join(directory, filename);
+
+      // Write to file
+      fs.writeFileSync(filepath, JSON.stringify(scriptData, null, 2));
+
+      return { success: true, message: `Script saved to ${filename}` };
+    } catch (error) {
+      console.error("Error saving local script:", error);
+      return { success: false, message: (error as Error).message };
+    }
+  }
+
+  // Save script to Firestore
+  private static async saveFirestoreScript(
+    projectName: string,
+    sceneTitle: string,
+    lines: { character: string; line: string }[],
+    userId: string,
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      const scriptData: ProjectJSON = {
+        project: projectName,
+        scenes: [
+          {
+            title: sceneTitle,
+            lines: lines,
+          },
+        ],
+      };
+
+      const documentId = await FirestoreService.addUserDocument(
+        userId,
+        "scripts",
+        scriptData,
+      );
+
+      return {
+        success: true,
+        message: `Script saved to Firestore with ID: ${documentId}`,
+      };
+    } catch (error) {
+      console.error("Error saving Firestore script:", error);
+      return { success: false, message: (error as Error).message };
+    }
+  }
 }

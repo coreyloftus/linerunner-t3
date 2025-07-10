@@ -1,10 +1,12 @@
 "use client";
 
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { Textarea } from "./ui/textarea";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { ScriptContext } from "~/app/context";
+import { api } from "~/trpc/react";
+import { useToast } from "~/components/ui/use-toast";
 
 export const AddScriptDoc = () => {
   const {
@@ -12,7 +14,41 @@ export const AddScriptDoc = () => {
     setScriptCharacterNames,
     newScriptBox,
     setNewScriptBox,
+    userConfig,
   } = useContext(ScriptContext);
+
+  const [projectName, setProjectName] = useState("");
+  const [sceneTitle, setSceneTitle] = useState("");
+  const { toast } = useToast();
+
+  const createScriptMutation = api.scriptData.createScript.useMutation({
+    onSuccess: (data) => {
+      if (data.success) {
+        toast({
+          title: "Success!",
+          description: data.message,
+        });
+        // Clear the form
+        setProjectName("");
+        setSceneTitle("");
+        setNewScriptBox("");
+        setScriptCharacterNames([]);
+      } else {
+        toast({
+          title: "Error",
+          description: data.message,
+          variant: "destructive",
+        });
+      }
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleAddCharacters = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
@@ -23,10 +59,65 @@ export const AddScriptDoc = () => {
     setScriptCharacterNames(characterNamesArray);
     // console.log(characterNamesArray);
   };
+
   const handleAddScript = (script: string) => {
+    if (!projectName.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a project name",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!sceneTitle.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a scene title",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (scriptCharacterNames.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please enter character names",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!script.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter script content",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const parsedLines = parseScript(script, scriptCharacterNames);
-    // console.log(parsedLines);
+
+    if (parsedLines.length === 0) {
+      toast({
+        title: "Error",
+        description:
+          "No valid lines found. Please check your script format and character names.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Call the mutation to save the script
+    createScriptMutation.mutate({
+      projectName: projectName.trim(),
+      sceneTitle: sceneTitle.trim(),
+      lines: parsedLines,
+      dataSource: userConfig.dataSource,
+    });
   };
+
   const parseScript = (script: string, characterNames: string[]) => {
     const lines = script.split(/\n/);
     const parsedLines: { character: string; line: string }[] = [];
@@ -89,6 +180,29 @@ export const AddScriptDoc = () => {
                 Add Lines
               </h2>
             </div>
+
+            {/* Project and Scene inputs */}
+            <div className="flex flex-col gap-2 p-2">
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <p className="mb-1 text-sm text-stone-100">Project Name:</p>
+                  <Input
+                    placeholder="Enter project name..."
+                    value={projectName}
+                    onChange={(e) => setProjectName(e.target.value)}
+                  />
+                </div>
+                <div className="flex-1">
+                  <p className="mb-1 text-sm text-stone-100">Scene Title:</p>
+                  <Input
+                    placeholder="Enter scene title..."
+                    value={sceneTitle}
+                    onChange={(e) => setSceneTitle(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* inputs for character names */}
             <div className="flex flex-col gap-2 p-2">
               <p className="text-sm text-stone-100">
@@ -99,9 +213,6 @@ export const AddScriptDoc = () => {
                 value={scriptCharacterNames.join(", ")}
                 onChange={(e) => handleAddCharacters(e)}
               />
-              <Button className="w-fit" variant="outline" type="submit">
-                Add
-              </Button>
             </div>
 
             {/* textarea container that takes remaining space */}
@@ -113,13 +224,16 @@ export const AddScriptDoc = () => {
                 placeholder="Copy/paste your raw script here..."
               />
             </div>
-            <Button
-              className="w-fit"
-              variant="outline"
-              onClick={() => handleAddScript(newScriptBox)}
-            >
-              Add Script
-            </Button>
+            <div className="p-2">
+              <Button
+                className="w-fit"
+                variant="outline"
+                onClick={() => handleAddScript(newScriptBox)}
+                disabled={createScriptMutation.isPending}
+              >
+                {createScriptMutation.isPending ? "Saving..." : "Add Script"}
+              </Button>
+            </div>
           </div>
         </div>
       </>

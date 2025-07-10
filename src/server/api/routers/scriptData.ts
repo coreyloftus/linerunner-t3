@@ -107,4 +107,40 @@ export const scriptData = createTRPCRouter({
         return ScriptService.getLines(input.project, input.scene, "local");
       }
     }),
+
+  createScript: protectedProcedure
+    .input(
+      z.object({
+        projectName: z.string(),
+        sceneTitle: z.string(),
+        lines: z.array(
+          z.object({
+            character: z.string(),
+            line: z.string(),
+          }),
+        ),
+        dataSource: z.enum(["local", "firestore"]).default("local"),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      if (input.dataSource === "firestore") {
+        if (!ctx.session?.user?.email) {
+          throw new Error("User must be authenticated to save to Firestore");
+        }
+        return ScriptService.saveScript(
+          input.projectName,
+          input.sceneTitle,
+          input.lines,
+          "firestore",
+          ctx.session.user.email,
+        );
+      } else {
+        return ScriptService.saveScript(
+          input.projectName,
+          input.sceneTitle,
+          input.lines,
+          "local",
+        );
+      }
+    }),
 });
