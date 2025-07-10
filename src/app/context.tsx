@@ -46,6 +46,7 @@ interface ScriptContextProps {
 type UserConfig = {
   stopOnCharacter: boolean;
   autoAdvanceScript: boolean;
+  dataSource: "local" | "firestore";
 };
 
 // Create the context with default values
@@ -56,9 +57,17 @@ export const ScriptContext = createContext<ScriptContextProps>({
   setSelectedScene: () => "",
   selectedCharacter: "",
   setSelectedCharacter: () => "",
-  userConfig: { stopOnCharacter: true, autoAdvanceScript: true },
+  userConfig: {
+    stopOnCharacter: true,
+    autoAdvanceScript: true,
+    dataSource: "local",
+  },
   gameMode: "linerun",
-  setUserConfig: () => ({ stopOnCharacter: true, autoAdvanceScript: false }),
+  setUserConfig: () => ({
+    stopOnCharacter: true,
+    autoAdvanceScript: false,
+    dataSource: "local",
+  }),
   setGameMode: () => "linerun",
   queryParams: {},
   setQueryParams: () => ({}),
@@ -89,6 +98,7 @@ export const ScriptProvider = ({ children }: { children: ReactNode }) => {
   const [userConfig, setUserConfig] = useState<UserConfig>({
     stopOnCharacter: true,
     autoAdvanceScript: true,
+    dataSource: "local",
   });
   const [gameMode, setGameMode] = useState<"navigate" | "linerun">("linerun");
   const [queryParams, setQueryParams] = useState({});

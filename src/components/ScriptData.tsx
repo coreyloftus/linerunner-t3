@@ -4,6 +4,7 @@ import { type ProjectJSON } from "~/server/api/routers/scriptData";
 import { Textarea } from "./ui/textarea";
 import { ScriptContext } from "~/app/context";
 import { useContext } from "react";
+import { api } from "~/trpc/react";
 
 interface ScriptDataProps {
   data: {
@@ -12,8 +13,22 @@ interface ScriptDataProps {
   };
 }
 export const ScriptData = ({ data }: ScriptDataProps) => {
-  const { selectedProject, selectedScene } = useContext(ScriptContext);
-  const script = data.allData
+  const { selectedProject, selectedScene, userConfig } =
+    useContext(ScriptContext);
+
+  // Dynamic data fetching based on data source
+  const { data: dynamicData } = api.scriptData.getAll.useQuery(
+    { dataSource: userConfig.dataSource },
+    {
+      enabled: true,
+      refetchOnWindowFocus: false,
+    },
+  );
+
+  // Use dynamic data if available, otherwise fall back to static data
+  const currentData = dynamicData ?? data;
+
+  const script = currentData.allData
     .find((project) => project.project === selectedProject)
     ?.scenes.find((scene) => scene.title === selectedScene);
 

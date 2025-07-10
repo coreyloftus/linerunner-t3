@@ -6,6 +6,7 @@ import {
 } from "~/server/api/trpc";
 import { FirestoreService } from "~/server/firebase";
 import { type WhereFilterOp } from "firebase/firestore";
+import { testFirebaseConnection } from "~/lib/firebase-admin-test";
 
 export type FirestoreFilter = {
   field: string;
@@ -13,6 +14,19 @@ export type FirestoreFilter = {
   value: unknown;
 };
 export const firebaseRouter = createTRPCRouter({
+  // Test Firebase connection
+  testConnection: publicProcedure.query(async () => {
+    try {
+      console.log("🧪 [tRPC Test] Starting test connection...");
+      const result = await testFirebaseConnection();
+      console.log("🧪 [tRPC Test] Test completed with result:", result);
+      return { success: result };
+    } catch (error) {
+      console.error("🧪 [tRPC Test] Error in test connection:", error);
+      return { success: false, error: (error as Error).message };
+    }
+  }),
+
   // Example: Get all documents from a collection
   getDocuments: publicProcedure
     .input(z.object({ collectionName: z.string() }))
@@ -40,7 +54,7 @@ export const firebaseRouter = createTRPCRouter({
       }
       try {
         console.log("🔍 [getUserDocuments] Starting query with:");
-        console.log("  - User ID:", ctx.session.user.email);
+        console.log("  - User Email:", ctx.session.user.email);
         console.log("  - Subcollection:", input.subcollectionName);
         console.log(
           "  - Full path: users/" +
@@ -122,7 +136,7 @@ export const firebaseRouter = createTRPCRouter({
       }
       try {
         console.log("📝 [addUserDocument] Starting mutation with:");
-        console.log("  - User ID:", ctx.session.user.email);
+        console.log("  - User Email:", ctx.session.user.email);
         console.log("  - Subcollection:", input.subcollectionName);
         console.log("  - Data:", input.data);
         console.log(

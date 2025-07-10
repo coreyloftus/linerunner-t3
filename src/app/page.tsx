@@ -12,7 +12,7 @@ import FirebaseTest from "~/components/FirebaseTest";
 // import PlayStopControls from "~/components/PlayStopControls";
 
 export default async function Home() {
-  const projectData = await api.scriptData.getAll();
+  const projectData = await api.scriptData.getAll({ dataSource: "local" });
   return (
     <div>
       <ScriptProvider>

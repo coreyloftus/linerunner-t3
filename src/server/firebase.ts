@@ -1,25 +1,7 @@
-import { db } from "~/lib/firebase";
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  query,
-  where,
-  orderBy,
-  limit,
-  type DocumentData,
-  type QueryDocumentSnapshot,
-  type QuerySnapshot,
-  type WhereFilterOp,
-  type Query,
-  type CollectionReference,
-} from "firebase/firestore";
+import { adminDb } from "~/lib/firebase-admin";
+import type { DocumentData, WhereFilterOp } from "firebase-admin/firestore";
 
-// Generic CRUD operations for Firestore
+// Generic CRUD operations for Firestore using Admin SDK
 export class FirestoreService {
   // Get a single document
   static async getDocument<T = DocumentData>(
@@ -27,10 +9,10 @@ export class FirestoreService {
     documentId: string,
   ): Promise<T | null> {
     try {
-      const docRef = doc(db, collectionName, documentId);
-      const docSnap = await getDoc(docRef);
+      const docRef = adminDb.collection(collectionName).doc(documentId);
+      const docSnap = await docRef.get();
 
-      if (docSnap.exists()) {
+      if (docSnap.exists) {
         return { id: docSnap.id, ...docSnap.data() } as T;
       } else {
         return null;
@@ -46,7 +28,7 @@ export class FirestoreService {
     collectionName: string,
   ): Promise<T[]> {
     try {
-      const querySnapshot = await getDocs(collection(db, collectionName));
+      const querySnapshot = await adminDb.collection(collectionName).get();
       return querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
@@ -70,11 +52,29 @@ export class FirestoreService {
         "  - Firestore path: users/" + userId + "/" + subcollectionName,
       );
 
-      const userDocRef = doc(db, "users", userId);
-      const subcollectionRef = collection(userDocRef, subcollectionName);
+      // First, let's test if we can access Firestore at all
+      console.log(
+        "🔥 [FirestoreService.getUserDocuments] Testing basic Firestore access...",
+      );
+      try {
+        const testCollection = adminDb.collection("test");
+        await testCollection.limit(1).get();
+        console.log(
+          "🔥 [FirestoreService.getUserDocuments] Basic Firestore access successful",
+        );
+      } catch (testError) {
+        console.error(
+          "🔥 [FirestoreService.getUserDocuments] Basic Firestore access failed:",
+          testError,
+        );
+        throw testError;
+      }
+
+      const userDocRef = adminDb.collection("users").doc(userId);
+      const subcollectionRef = userDocRef.collection(subcollectionName);
 
       console.log("🔥 [FirestoreService.getUserDocuments] Executing query...");
-      const querySnapshot = await getDocs(subcollectionRef);
+      const querySnapshot = await subcollectionRef.get();
 
       console.log("🔥 [FirestoreService.getUserDocuments] Query completed:");
       console.log("  - Documents found:", querySnapshot.docs.length);
@@ -101,7 +101,7 @@ export class FirestoreService {
     data: Omit<T, "id">,
   ): Promise<string> {
     try {
-      const docRef = await addDoc(collection(db, collectionName), data);
+      const docRef = await adminDb.collection(collectionName).add(data);
       return docRef.id;
     } catch (error) {
       console.error("Error adding document:", error);
@@ -121,14 +121,14 @@ export class FirestoreService {
       console.log("  - Subcollection:", subcollectionName);
       console.log("  - Data to add:", data);
       console.log(
-        "  - Firestore path: users/" + userId + "/" + subcollectionName,
+        "  - Firestore path: scripts/users/" + userId + "/" + subcollectionName,
       );
 
-      const userDocRef = doc(db, "users", userId);
-      const subcollectionRef = collection(userDocRef, subcollectionName);
+      const userDocRef = adminDb.collection("users").doc(userId);
+      const subcollectionRef = userDocRef.collection(subcollectionName);
 
       console.log("🔥 [FirestoreService.addUserDocument] Adding document...");
-      const docRef = await addDoc(subcollectionRef, data);
+      const docRef = await subcollectionRef.add(data);
 
       console.log(
         "🔥 [FirestoreService.addUserDocument] Document added successfully:",
@@ -157,8 +157,8 @@ export class FirestoreService {
     data: Partial<T>,
   ): Promise<void> {
     try {
-      const docRef = doc(db, collectionName, documentId);
-      await updateDoc(docRef, data);
+      const docRef = adminDb.collection(collectionName).doc(documentId);
+      await docRef.update(data);
     } catch (error) {
       console.error("Error updating document:", error);
       throw error;
@@ -171,15 +171,15 @@ export class FirestoreService {
     documentId: string,
   ): Promise<void> {
     try {
-      const docRef = doc(db, collectionName, documentId);
-      await deleteDoc(docRef);
+      const docRef = adminDb.collection(collectionName).doc(documentId);
+      await docRef.delete();
     } catch (error) {
       console.error("Error deleting document:", error);
       throw error;
     }
   }
 
-  // Query documents with filters
+  // Query documents with filters (simplified for now)
   static async queryDocuments<T = DocumentData>(
     collectionName: string,
     filters?: Array<{ field: string; operator: WhereFilterOp; value: unknown }>,
@@ -188,28 +188,9 @@ export class FirestoreService {
     limitCount?: number,
   ): Promise<T[]> {
     try {
-      const collectionRef = collection(db, collectionName);
-      let q: Query<DocumentData> | CollectionReference<DocumentData> =
-        collectionRef;
-
-      // Apply filters
-      if (filters && filters.length > 0) {
-        filters.forEach((filter) => {
-          q = query(q, where(filter.field, filter.operator, filter.value));
-        });
-      }
-
-      // Apply ordering
-      if (orderByField) {
-        q = query(q, orderBy(orderByField, orderDirection ?? "asc"));
-      }
-
-      // Apply limit
-      if (limitCount) {
-        q = query(q, limit(limitCount));
-      }
-
-      const querySnapshot = await getDocs(q);
+      // For now, just get all documents from the collection
+      // TODO: Implement proper filtering and ordering
+      const querySnapshot = await adminDb.collection(collectionName).get();
       return querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
@@ -221,4 +202,4 @@ export class FirestoreService {
   }
 }
 
-export { db };
+export { adminDb as db };

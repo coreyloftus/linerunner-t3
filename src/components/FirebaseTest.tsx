@@ -23,6 +23,11 @@ export default function FirebaseTest() {
     { enabled: false }, // Don't run automatically
   );
 
+  // Test Firebase connection
+  const testConnectionQuery = api.firebase.testConnection.useQuery(undefined, {
+    enabled: false, // Don't run automatically
+  });
+
   // Test mutation to add a user document
   const addDocumentMutation = api.firebase.addUserDocument.useMutation({
     onSuccess: () => {
@@ -55,13 +60,18 @@ export default function FirebaseTest() {
         {session ? (
           <div>
             <p>
-              <strong>User ID:</strong> {session.user?.id ?? "No ID"}
+              <strong>User ID (Google Sub):</strong>{" "}
+              {session.user?.id ?? "No ID"}
             </p>
             <p>
               <strong>Email:</strong> {session.user?.email ?? "No email"}
             </p>
             <p>
               <strong>Name:</strong> {session.user?.name ?? "No name"}
+            </p>
+            <p>
+              <strong>Expected Firestore Path:</strong> users/
+              {session.user?.email ?? "No email"}/uploaded_data
             </p>
           </div>
         ) : (
@@ -90,6 +100,12 @@ export default function FirebaseTest() {
       </div>
 
       <div className="flex gap-2">
+        <Button
+          onClick={() => testConnectionQuery.refetch()}
+          disabled={testConnectionQuery.isLoading}
+        >
+          {testConnectionQuery.isLoading ? "Testing..." : "Test Connection"}
+        </Button>
         <Button onClick={() => refetch()} disabled={isLoading || !session}>
           {isLoading ? "Loading..." : "Fetch Documents"}
         </Button>
@@ -104,6 +120,24 @@ export default function FirebaseTest() {
       {error && (
         <div className="rounded border border-red-400 bg-red-100 p-4 text-red-700">
           Error: {error.message}
+        </div>
+      )}
+
+      {testConnectionQuery.data && (
+        <div
+          className={`rounded border p-4 ${
+            testConnectionQuery.data.success
+              ? "border-green-400 bg-green-100 text-green-700"
+              : "border-red-400 bg-red-100 text-red-700"
+          }`}
+        >
+          <strong>Connection Test:</strong>{" "}
+          {testConnectionQuery.data.success ? "SUCCESS" : "FAILED"}
+          {testConnectionQuery.data.error && (
+            <div className="mt-2 text-sm">
+              Error: {testConnectionQuery.data.error}
+            </div>
+          )}
         </div>
       )}
 

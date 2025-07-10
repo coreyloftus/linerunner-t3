@@ -8,6 +8,9 @@ import { ScriptContext } from "~/app/context";
 import Script from "next/script";
 import { AuthButton } from "./AuthButton";
 import { signIn, signOut } from "next-auth/react";
+import { Switch } from "./ui/switch";
+import { Label } from "./ui/label";
+import { useSession } from "next-auth/react";
 
 type SidebarClientProps = {
   projects: string[];
@@ -18,11 +21,10 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
   const { userConfig, setUserConfig } = useContext(ScriptContext);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const arrowButtonRef = useRef<HTMLDivElement>(null);
+  const { data: session } = useSession();
 
   const { selectedProject, selectedScene, selectedCharacter } =
     useContext(ScriptContext);
-
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   // Handle escape key press
   useEffect(() => {
@@ -41,13 +43,27 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
   // Handle click outside sidebar
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node;
+      const target = event.target as Element;
 
       // Check if click is on sidebar or arrow button
       const isOnSidebar = sidebarRef.current?.contains(target);
       const isOnArrowButton = arrowButtonRef.current?.contains(target);
 
-      if (!isOnSidebar && !isOnArrowButton && !isDropdownOpen && navOpen) {
+      // Check if click is on any dropdown content (Select components)
+      const isOnDropdown =
+        target.closest("[data-radix-popper-content-wrapper]") !== null;
+      const isOnSelectTrigger = target.closest("[data-radix-trigger]") !== null;
+      const isOnSelectContent = target.closest("[data-radix-content]") !== null;
+
+      // Only close sidebar if click is outside sidebar, arrow button, and not on any dropdown
+      if (
+        !isOnSidebar &&
+        !isOnArrowButton &&
+        !isOnDropdown &&
+        !isOnSelectTrigger &&
+        !isOnSelectContent &&
+        navOpen
+      ) {
         setNavOpen(false);
       }
     };
@@ -56,7 +72,7 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [navOpen, isDropdownOpen]);
+  }, [navOpen]);
 
   return (
     <>
@@ -82,6 +98,42 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
               <p className="mb-2 font-bold">Script Select</p>
               <NewScriptSelect projects={projects} allData={allData} />
             </div>
+
+            {/* Data Source Configuration */}
+            <div className="mt-4 px-1">
+              <p className="mb-2 font-bold">Data Source</p>
+              <div className="space-y-2">
+                {session?.user && (
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="data-source" className="text-sm">
+                      Use Database
+                    </Label>
+                    <Switch
+                      id="data-source"
+                      checked={userConfig.dataSource === "firestore"}
+                      onCheckedChange={(checked) => {
+                        setUserConfig({
+                          ...userConfig,
+                          dataSource: checked ? "firestore" : "local",
+                        });
+                      }}
+                      disabled={!session?.user}
+                    />
+                  </div>
+                )}
+                {!session?.user && (
+                  <p className="text-xs text-gray-500">
+                    Sign in to use Database
+                  </p>
+                )}
+                {/* <p className="text-xs text-gray-500">
+                  {userConfig.dataSource === "local"
+                    ? "Using local demo files"
+                    : "Using Firestore database"}
+                </p> */}
+              </div>
+            </div>
+
             <div className="mt-2 flex flex-col p-2">
               {/* add a toggle for the "Auto Advance" feature -- when TRUE set the context.autoAdvance to TRUE */}
               {/* <p className="font-bold">NPC Settings</p>

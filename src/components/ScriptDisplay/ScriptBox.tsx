@@ -6,6 +6,7 @@ import { ScriptContext } from "~/app/context";
 import { type ProjectJSON } from "../../server/api/routers/scriptData";
 import ControlBar from "../ControlBar";
 import { CharacterLineDisplay } from "./CharacterLineDisplay";
+import { api } from "~/trpc/react";
 
 interface ScriptBoxProps {
   data: {
@@ -35,12 +36,24 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     setCurrentLineSplit,
   } = useContext(ScriptContext);
 
+  // Dynamic data fetching based on data source
+  const { data: dynamicData } = api.scriptData.getAll.useQuery(
+    { dataSource: userConfig.dataSource },
+    {
+      enabled: true,
+      refetchOnWindowFocus: false,
+    },
+  );
+
+  // Use dynamic data if available, otherwise fall back to static data
+  const currentData = dynamicData ?? data;
+
   // Local state that doesn't need to persist across tabs
   const [userInput, setUserInput] = useState("");
   const [currentLine, setCurrentLine] = useState<string[]>([]);
   const [helperIndex, setHelperIndex] = useState(0);
 
-  const script = data.allData
+  const script = currentData.allData
     .find((project) => project.project === selectedProject)
     ?.scenes.find((scene) => scene.title === selectedScene);
 
