@@ -241,11 +241,14 @@ export const AddScriptDoc = () => {
       });
     } else {
       // Call the regular mutation to save the script
+      // Note: Public scripts are read-only, so we default to local for saving
+      const saveDataSource =
+        userConfig.dataSource === "public" ? "local" : userConfig.dataSource;
       createScriptMutation.mutate({
         projectName: projectName.trim(),
         sceneTitle: sceneTitle.trim(),
         lines: parsedLines,
-        dataSource: userConfig.dataSource,
+        dataSource: saveDataSource,
       });
     }
   };
