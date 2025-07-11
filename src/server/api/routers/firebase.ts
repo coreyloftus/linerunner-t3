@@ -4,7 +4,7 @@ import {
   protectedProcedure,
   publicProcedure,
 } from "~/server/api/trpc";
-import { FirestoreService } from "~/server/firebase";
+import { FirestoreService, db as adminDb } from "~/server/firebase";
 import { type WhereFilterOp } from "firebase/firestore";
 import { testFirebaseConnection } from "~/lib/firebase-admin-test";
 
@@ -195,6 +195,30 @@ export const firebaseRouter = createTRPCRouter({
       }
     }),
 
+  // Get user document count (protected)
+  getUserDocumentCount: protectedProcedure
+    .input(
+      z.object({
+        subcollectionName: z.string(),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      if (!ctx.session.user.email) {
+        throw new Error("User email is required");
+      }
+      try {
+        const count = await FirestoreService.countUserDocuments(
+          ctx.session.user.email,
+          "users",
+          input.subcollectionName,
+        );
+        return { success: true, count };
+      } catch (error) {
+        console.error("❌ [getUserDocumentCount] Error:", error);
+        return { success: false, error: (error as Error).message };
+      }
+    }),
+
   // Add a document to user-specific subcollection (protected)
   addUserDocument: protectedProcedure
     .input(
@@ -283,6 +307,32 @@ export const firebaseRouter = createTRPCRouter({
         );
         return { success: true };
       } catch (error) {
+        return { success: false, error: (error as Error).message };
+      }
+    }),
+
+  // Delete a user document (protected)
+  deleteUserDocument: protectedProcedure
+    .input(
+      z.object({
+        subcollectionName: z.string(),
+        documentId: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      if (!ctx.session.user.email) {
+        throw new Error("User email is required");
+      }
+      try {
+        const userDocRef = adminDb
+          .collection("users")
+          .doc(ctx.session.user.email);
+        const subcollectionRef = userDocRef.collection(input.subcollectionName);
+        const documentRef = subcollectionRef.doc(input.documentId);
+        await documentRef.delete();
+        return { success: true };
+      } catch (error) {
+        console.error("❌ [deleteUserDocument] Error:", error);
         return { success: false, error: (error as Error).message };
       }
     }),

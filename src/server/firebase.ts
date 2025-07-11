@@ -142,6 +142,24 @@ export class FirestoreService {
     }
   }
 
+  // Count documents in a user-specific subcollection
+  static async countUserDocuments(
+    userId: string,
+    collectionName: string,
+    subcollectionName: string,
+  ): Promise<number> {
+    try {
+      const userDocRef = adminDb.collection(collectionName).doc(userId);
+      const subcollectionRef = userDocRef.collection(subcollectionName);
+
+      const querySnapshot = await subcollectionRef.get();
+      return querySnapshot.size;
+    } catch (error) {
+      console.error("Error counting user documents:", error);
+      throw error;
+    }
+  }
+
   // Add a new document
   static async addDocument<T = DocumentData>(
     collectionName: string,
@@ -163,6 +181,26 @@ export class FirestoreService {
     data: Omit<T, "id">,
   ): Promise<string> {
     try {
+      // Check if this is a script upload (uploaded_data subcollection)
+      if (subcollectionName === "uploaded_data") {
+        const currentCount = await this.countUserDocuments(
+          userId,
+          "users",
+          subcollectionName,
+        );
+
+        console.log(
+          "🔥 [FirestoreService.addUserDocument] Current script count:",
+          currentCount,
+        );
+
+        if (currentCount >= 5) {
+          throw new Error(
+            "Script limit reached. You can only store up to 5 scripts. Please delete an existing script before adding a new one.",
+          );
+        }
+      }
+
       const userDocRef = adminDb.collection("users").doc(userId);
       const subcollectionRef = userDocRef.collection(subcollectionName);
 
