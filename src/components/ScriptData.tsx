@@ -22,6 +22,7 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
     {
       enabled: true,
       refetchOnWindowFocus: false,
+      refetchOnMount: true, // Always refetch when data source changes
     },
   );
 
@@ -38,7 +39,7 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
         <div className="flex h-full flex-col rounded-md">
           <div className="flex items-center justify-between border-b border-stone-200 bg-stone-50 px-4 py-3 dark:border-stone-700 dark:bg-stone-800">
             <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">
-              Line Data
+              Script Data
             </h2>
           </div>
           <div className="flex-1 p-4">

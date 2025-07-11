@@ -5,12 +5,12 @@ import { Button } from "./ui/button";
 import { useContext, useEffect, useState, useRef } from "react";
 import { IoChevronForward } from "react-icons/io5";
 import { ScriptContext } from "~/app/context";
-import Script from "next/script";
 import { AuthButton } from "./AuthButton";
-import { signIn, signOut } from "next-auth/react";
 import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
 import { useSession } from "next-auth/react";
+import { RefreshButton } from "./ui/refresh-button";
+import { useScriptData } from "~/hooks/useScriptData";
 
 type SidebarClientProps = {
   projects: string[];
@@ -22,6 +22,13 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
   const sidebarRef = useRef<HTMLDivElement>(null);
   const arrowButtonRef = useRef<HTMLDivElement>(null);
   const { data: session } = useSession();
+
+  // Get refresh functionality from the optimized hook
+  const { refreshData, isLoading: isDataLoading } = useScriptData({
+    dataSource: userConfig.dataSource,
+    enableAutoRefresh: false,
+    cacheTime: 1000 * 60 * 60 * 24, // 24 hours cache
+  });
 
   const { selectedProject, selectedScene, selectedCharacter } =
     useContext(ScriptContext);
@@ -103,6 +110,23 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
             <div className="mt-4 px-1">
               <p className="mb-2 font-bold">Data Source</p>
               <div className="space-y-2">
+                {/* Public Scripts Option - Available to all users */}
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="public-scripts" className="text-sm">
+                    Public Scripts
+                  </Label>
+                  <Switch
+                    id="public-scripts"
+                    checked={userConfig.dataSource === "public"}
+                    onCheckedChange={(checked) => {
+                      setUserConfig({
+                        ...userConfig,
+                        dataSource: checked ? "public" : "local",
+                      });
+                    }}
+                  />
+                </div>
+
                 {session?.user && (
                   <div className="flex items-center justify-between">
                     <Label htmlFor="data-source" className="text-sm">
@@ -126,6 +150,19 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
                     Sign in to use Database
                   </p>
                 )}
+
+                {/* Refresh Button - only show when using Firestore */}
+                {session?.user && userConfig.dataSource === "firestore" && (
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">Refresh Data</Label>
+                    <RefreshButton
+                      onClick={refreshData}
+                      isLoading={isDataLoading}
+                      size="sm"
+                    />
+                  </div>
+                )}
+
                 {/* <p className="text-xs text-gray-500">
                   {userConfig.dataSource === "local"
                     ? "Using local demo files"

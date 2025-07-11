@@ -6,7 +6,7 @@ import { ScriptContext } from "~/app/context";
 import { type ProjectJSON } from "../../server/api/routers/scriptData";
 import ControlBar from "../ControlBar";
 import { CharacterLineDisplay } from "./CharacterLineDisplay";
-import { api } from "~/trpc/react";
+import { useScriptData } from "~/hooks/useScriptData";
 
 interface ScriptBoxProps {
   data: {
@@ -36,14 +36,12 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     setCurrentLineSplit,
   } = useContext(ScriptContext);
 
-  // Dynamic data fetching based on data source
-  const { data: dynamicData } = api.scriptData.getAll.useQuery(
-    { dataSource: userConfig.dataSource },
-    {
-      enabled: true,
-      refetchOnWindowFocus: false,
-    },
-  );
+  // Dynamic data fetching based on data source with optimized caching
+  const { data: dynamicData, isLoading: isDataLoading } = useScriptData({
+    dataSource: userConfig.dataSource,
+    enableAutoRefresh: false, // Disable auto-refresh to reduce Firestore calls
+    cacheTime: 10 * 60 * 1000, // 10 minutes cache
+  });
 
   // Use dynamic data if available, otherwise fall back to static data
   const currentData = dynamicData ?? data;
@@ -52,6 +50,24 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
   const [userInput, setUserInput] = useState("");
   const [currentLine, setCurrentLine] = useState<string[]>([]);
   const [helperIndex, setHelperIndex] = useState(0);
+
+  // Reset script state when data source changes
+  useEffect(() => {
+    setCurrentLineIndex(0);
+    setWordIndex(0);
+    setPlayScene(false);
+    setAwaitingInput(false);
+    setCurrentLineSplit([]);
+    setUserInput("");
+    setHelperIndex(0);
+  }, [
+    userConfig.dataSource,
+    setCurrentLineIndex,
+    setWordIndex,
+    setPlayScene,
+    setAwaitingInput,
+    setCurrentLineSplit,
+  ]);
 
   const script = currentData.allData
     .find((project) => project.project === selectedProject)
