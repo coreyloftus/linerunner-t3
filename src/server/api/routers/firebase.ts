@@ -65,6 +65,7 @@ export const firebaseRouter = createTRPCRouter({
 
         const documents = await FirestoreService.getUserDocuments(
           ctx.session.user.email,
+          "users",
           input.subcollectionName,
         );
 
@@ -78,6 +79,78 @@ export const firebaseRouter = createTRPCRouter({
         return { success: true, data: documents };
       } catch (error) {
         console.error("❌ [getUserDocuments] Error:", error);
+        return { success: false, error: (error as Error).message };
+      }
+    }),
+
+  // Get all collections (admin only)
+  getCollections: protectedProcedure
+    .input(
+      z.object({
+        adminEmail: z.string(),
+      }),
+    )
+    .query(async ({ input }) => {
+      try {
+        // Check if user is admin (you can enhance this with proper role checking)
+        if (input.adminEmail !== "coreyloftus@gmail.com") {
+          throw new Error("Admin access required");
+        }
+
+        const collections = await FirestoreService.getCollections();
+        return { success: true, data: collections };
+      } catch (error) {
+        console.error("❌ [getCollections] Error:", error);
+        return { success: false, error: (error as Error).message };
+      }
+    }),
+
+  // Get subcollections for a specific collection (admin only)
+  getSubcollections: protectedProcedure
+    .input(
+      z.object({
+        collectionName: z.string(),
+        adminEmail: z.string(),
+      }),
+    )
+    .query(async ({ input }) => {
+      try {
+        // Check if user is admin (you can enhance this with proper role checking)
+        if (input.adminEmail !== "coreyloftus@gmail.com") {
+          throw new Error("Admin access required");
+        }
+
+        const subcollections = await FirestoreService.getSubcollections(
+          input.collectionName,
+        );
+        return { success: true, data: subcollections };
+      } catch (error) {
+        console.error("❌ [getSubcollections] Error:", error);
+        return { success: false, error: (error as Error).message };
+      }
+    }),
+
+  // Get document IDs from a collection (admin only)
+  getDocumentIds: protectedProcedure
+    .input(
+      z.object({
+        collectionName: z.string(),
+        adminEmail: z.string(),
+      }),
+    )
+    .query(async ({ input }) => {
+      try {
+        // Check if user is admin (you can enhance this with proper role checking)
+        if (input.adminEmail !== "coreyloftus@gmail.com") {
+          throw new Error("Admin access required");
+        }
+
+        const documentIds = await FirestoreService.getDocumentIds(
+          input.collectionName,
+        );
+        return { success: true, data: documentIds };
+      } catch (error) {
+        console.error("❌ [getDocumentIds] Error:", error);
         return { success: false, error: (error as Error).message };
       }
     }),

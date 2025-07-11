@@ -3,6 +3,65 @@ import type { DocumentData, WhereFilterOp } from "firebase-admin/firestore";
 
 // Generic CRUD operations for Firestore using Admin SDK
 export class FirestoreService {
+  // Get all collections
+  static async getCollections(): Promise<string[]> {
+    try {
+      const collections = await adminDb.listCollections();
+      return collections.map((collection) => collection.id);
+    } catch (error) {
+      console.error("Error getting collections:", error);
+      throw error;
+    }
+  }
+
+  // Get all subcollections for a specific collection
+  static async getSubcollections(collectionName: string): Promise<string[]> {
+    try {
+      const collectionRef = adminDb.collection(collectionName);
+      const documents = await collectionRef.listDocuments();
+
+      const subcollections = new Set<string>();
+
+      for (const docRef of documents) {
+        const subcollectionsList = await docRef.listCollections();
+        subcollectionsList.forEach((subcollection) => {
+          subcollections.add(subcollection.id);
+        });
+      }
+
+      return Array.from(subcollections);
+    } catch (error) {
+      console.error("Error getting subcollections:", error);
+      throw error;
+    }
+  }
+
+  // Get subcollections for a specific document
+  static async getDocumentSubcollections(
+    collectionName: string,
+    documentId: string,
+  ): Promise<string[]> {
+    try {
+      const docRef = adminDb.collection(collectionName).doc(documentId);
+      const subcollections = await docRef.listCollections();
+      return subcollections.map((subcollection) => subcollection.id);
+    } catch (error) {
+      console.error("Error getting document subcollections:", error);
+      throw error;
+    }
+  }
+
+  // Get all document IDs from a collection
+  static async getDocumentIds(collectionName: string): Promise<string[]> {
+    try {
+      const querySnapshot = await adminDb.collection(collectionName).get();
+      return querySnapshot.docs.map((doc) => doc.id);
+    } catch (error) {
+      console.error("Error getting document IDs:", error);
+      throw error;
+    }
+  }
+
   // Get a single document
   static async getDocument<T = DocumentData>(
     collectionName: string,
@@ -42,55 +101,23 @@ export class FirestoreService {
   // Get documents from a user-specific subcollection
   static async getUserDocuments<T = DocumentData>(
     userId: string,
+    collectionName: string,
     subcollectionName: string,
   ): Promise<T[]> {
     try {
-      console.log("🔥 [FirestoreService.getUserDocuments] Constructing path:");
-      console.log("  - User ID:", userId);
-      console.log("  - Subcollection:", subcollectionName);
-      console.log(
-        "  - Firestore path: users/" + userId + "/" + subcollectionName,
-      );
-
-      // First, let's test if we can access Firestore at all
-      console.log(
-        "🔥 [FirestoreService.getUserDocuments] Testing basic Firestore access...",
-      );
-      try {
-        const testCollection = adminDb.collection("scripts");
-        await testCollection.limit(1).get();
-        console.log(
-          "🔥 [FirestoreService.getUserDocuments] Basic Firestore access successful",
-        );
-      } catch (testError) {
-        console.error(
-          "🔥 [FirestoreService.getUserDocuments] Basic Firestore access failed:",
-          testError,
-        );
-        throw testError;
-      }
-
-      const userDocRef = adminDb.collection("users").doc(userId);
+      const userDocRef = adminDb.collection(collectionName).doc(userId);
       const subcollectionRef = userDocRef.collection(subcollectionName);
 
-      console.log("🔥 [FirestoreService.getUserDocuments] Executing query...");
       const querySnapshot = await subcollectionRef.get();
-
-      console.log("🔥 [FirestoreService.getUserDocuments] Query completed:");
-      console.log("  - Documents found:", querySnapshot.docs.length);
 
       const documents = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       })) as T[];
 
-      console.log(
-        "🔥 [FirestoreService.getUserDocuments] Returning documents:",
-        documents,
-      );
       return documents;
     } catch (error) {
-      console.error("🔥 [FirestoreService.getUserDocuments] Error:", error);
+      console.error("Error getting user documents:", error);
       throw error;
     }
   }
@@ -116,14 +143,6 @@ export class FirestoreService {
     data: Omit<T, "id">,
   ): Promise<string> {
     try {
-      console.log("🔥 [FirestoreService.addUserDocument] Constructing path:");
-      console.log("  - User ID:", userId);
-      console.log("  - Subcollection:", subcollectionName);
-      console.log("  - Data to add:", data);
-      console.log(
-        "  - Firestore path: users/" + userId + "/" + subcollectionName,
-      );
-
       const userDocRef = adminDb.collection("users").doc(userId);
       const subcollectionRef = userDocRef.collection(subcollectionName);
 
@@ -146,6 +165,47 @@ export class FirestoreService {
       return docRef.id;
     } catch (error) {
       console.error("🔥 [FirestoreService.addUserDocument] Error:", error);
+      throw error;
+    }
+  }
+
+  // Add a document to a specific collection and subcollection (admin function)
+  static async addDocumentToSubcollection<T = DocumentData>(
+    collectionName: string,
+    documentId: string,
+    subcollectionName: string,
+    data: Omit<T, "id">,
+  ): Promise<string> {
+    try {
+      const docRef = adminDb.collection(collectionName).doc(documentId);
+      const subcollectionRef = docRef.collection(subcollectionName);
+
+      console.log(
+        "🔥 [FirestoreService.addDocumentToSubcollection] Adding document...",
+      );
+      const newDocRef = await subcollectionRef.add(data);
+
+      console.log(
+        "🔥 [FirestoreService.addDocumentToSubcollection] Document added successfully:",
+      );
+      console.log("  - Document ID:", newDocRef.id);
+      console.log(
+        "  - Full document path: " +
+          collectionName +
+          "/" +
+          documentId +
+          "/" +
+          subcollectionName +
+          "/" +
+          newDocRef.id,
+      );
+
+      return newDocRef.id;
+    } catch (error) {
+      console.error(
+        "🔥 [FirestoreService.addDocumentToSubcollection] Error:",
+        error,
+      );
       throw error;
     }
   }

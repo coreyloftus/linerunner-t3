@@ -24,11 +24,16 @@ export const AddScriptDoc = () => {
     newScriptBox,
     setNewScriptBox,
     userConfig,
+    isAdmin,
   } = useContext(ScriptContext);
 
   const [projectName, setProjectName] = useState("");
   const [sceneTitle, setSceneTitle] = useState("");
   const [isNewProject, setIsNewProject] = useState(false);
+  const [selectedCollection, setSelectedCollection] = useState("");
+  const [selectedDocumentId, setSelectedDocumentId] = useState("");
+  const [selectedSubcollection, setSelectedSubcollection] = useState("");
+  const [isAdminMode, setIsAdminMode] = useState(false);
   const { toast } = useToast();
 
   // Fetch existing projects
@@ -37,6 +42,41 @@ export const AddScriptDoc = () => {
       { dataSource: userConfig.dataSource },
       {
         enabled: !!session?.user && userConfig.dataSource === "firestore",
+      },
+    );
+
+  // Fetch collections for admin mode
+  const { data: collectionsData, isLoading: isLoadingCollections } =
+    api.firebase.getCollections.useQuery(
+      { adminEmail: session?.user?.email ?? "" },
+      {
+        enabled: !!session?.user && isAdmin && isAdminMode,
+      },
+    );
+
+  // Fetch subcollections for selected collection
+  const { data: subcollectionsData, isLoading: isLoadingSubcollections } =
+    api.firebase.getSubcollections.useQuery(
+      {
+        collectionName: selectedCollection,
+        adminEmail: session?.user?.email ?? "",
+      },
+      {
+        enabled:
+          !!session?.user && isAdmin && isAdminMode && !!selectedCollection,
+      },
+    );
+
+  // Fetch document IDs for selected collection
+  const { data: documentIdsData, isLoading: isLoadingDocumentIds } =
+    api.firebase.getDocumentIds.useQuery(
+      {
+        collectionName: selectedCollection,
+        adminEmail: session?.user?.email ?? "",
+      },
+      {
+        enabled:
+          !!session?.user && isAdmin && isAdminMode && !!selectedCollection,
       },
     );
 
@@ -69,6 +109,41 @@ export const AddScriptDoc = () => {
       });
     },
   });
+
+  const createAdminScriptMutation =
+    api.scriptData.createAdminScript.useMutation({
+      onSuccess: (data) => {
+        if (data.success) {
+          toast({
+            title: "Success!",
+            description: data.message,
+          });
+          // Clear the form
+          setProjectName("");
+          setSceneTitle("");
+          setNewScriptBox("");
+          setScriptCharacterNames([]);
+          setIsNewProject(false);
+          setSelectedCollection("");
+          setSelectedDocumentId("");
+          setSelectedSubcollection("");
+          setIsAdminMode(false);
+        } else {
+          toast({
+            title: "Error",
+            description: data.message,
+            variant: "destructive",
+          });
+        }
+      },
+      onError: (error) => {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      },
+    });
 
   const handleAddCharacters = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
@@ -139,13 +214,40 @@ export const AddScriptDoc = () => {
       return;
     }
 
-    // Call the mutation to save the script
-    createScriptMutation.mutate({
-      projectName: projectName.trim(),
-      sceneTitle: sceneTitle.trim(),
-      lines: parsedLines,
-      dataSource: userConfig.dataSource,
-    });
+    // Use admin mutation if in admin mode
+    if (isAdminMode) {
+      if (
+        !selectedCollection ||
+        !selectedDocumentId ||
+        !selectedSubcollection
+      ) {
+        toast({
+          title: "Error",
+          description:
+            "Please select collection, document ID, and subcollection",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      createAdminScriptMutation.mutate({
+        projectName: projectName.trim(),
+        sceneTitle: sceneTitle.trim(),
+        lines: parsedLines,
+        collectionName: selectedCollection,
+        documentId: selectedDocumentId,
+        subcollectionName: selectedSubcollection,
+        adminEmail: session?.user?.email ?? "",
+      });
+    } else {
+      // Call the regular mutation to save the script
+      createScriptMutation.mutate({
+        projectName: projectName.trim(),
+        sceneTitle: sceneTitle.trim(),
+        lines: parsedLines,
+        dataSource: userConfig.dataSource,
+      });
+    }
   };
 
   const parseScript = (script: string, characterNames: string[]) => {
@@ -225,7 +327,87 @@ export const AddScriptDoc = () => {
               <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">
                 Add Script
               </h2>
+              {isAdmin && (
+                <div className="flex items-center gap-2">
+                  <label className="text-sm text-stone-700 dark:text-stone-300">
+                    Admin Mode:
+                  </label>
+                  <input
+                    type="checkbox"
+                    checked={isAdminMode}
+                    onChange={(e) => setIsAdminMode(e.target.checked)}
+                    className="rounded border-stone-300"
+                  />
+                </div>
+              )}
             </div>
+
+            {/* Admin Mode Configuration */}
+            {isAdmin && isAdminMode && (
+              <div className="flex flex-col gap-2 border-b border-stone-200 p-2">
+                <p className="text-sm font-semibold text-stone-100">
+                  Admin Configuration:
+                </p>
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <p className="mb-1 text-xs text-stone-100">Collection:</p>
+                    <Select
+                      onValueChange={setSelectedCollection}
+                      value={selectedCollection}
+                    >
+                      <SelectTrigger className="h-8">
+                        <SelectValue placeholder="Select collection..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {collectionsData?.data?.map((collection) => (
+                          <SelectItem key={collection} value={collection}>
+                            {collection}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <p className="mb-1 text-xs text-stone-100">Document ID:</p>
+                    <Select
+                      onValueChange={setSelectedDocumentId}
+                      value={selectedDocumentId}
+                    >
+                      <SelectTrigger className="h-8">
+                        <SelectValue placeholder="Select document ID..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {documentIdsData?.data?.map((documentId) => (
+                          <SelectItem key={documentId} value={documentId}>
+                            {documentId}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <p className="mb-1 text-xs text-stone-100">
+                      Subcollection:
+                    </p>
+                    <Select
+                      onValueChange={setSelectedSubcollection}
+                      value={selectedSubcollection}
+                    >
+                      <SelectTrigger className="h-8">
+                        <SelectValue placeholder="Select subcollection..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {subcollectionsData?.data?.map((subcollection) => (
+                          <SelectItem key={subcollection} value={subcollection}>
+                            {subcollection}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Project and Scene inputs */}
             <div className="flex flex-col gap-2 p-2">
@@ -305,10 +487,19 @@ export const AddScriptDoc = () => {
                 onClick={() => handleAddScript(newScriptBox)}
                 disabled={
                   createScriptMutation.isPending ||
-                  (userConfig.dataSource === "firestore" && isLoadingProjects)
+                  createAdminScriptMutation.isPending ||
+                  (userConfig.dataSource === "firestore" &&
+                    isLoadingProjects) ||
+                  (isAdminMode &&
+                    (isLoadingCollections ||
+                      isLoadingSubcollections ||
+                      isLoadingDocumentIds))
                 }
               >
-                {createScriptMutation.isPending ? "Saving..." : "Add Script"}
+                {createScriptMutation.isPending ||
+                createAdminScriptMutation.isPending
+                  ? "Saving..."
+                  : "Add Script"}
               </Button>
             </div>
           </div>

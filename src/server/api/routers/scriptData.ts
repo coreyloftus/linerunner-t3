@@ -143,4 +143,37 @@ export const scriptData = createTRPCRouter({
         );
       }
     }),
+
+  createAdminScript: protectedProcedure
+    .input(
+      z.object({
+        projectName: z.string(),
+        sceneTitle: z.string(),
+        lines: z.array(
+          z.object({
+            character: z.string(),
+            line: z.string(),
+          }),
+        ),
+        collectionName: z.string(),
+        documentId: z.string(),
+        subcollectionName: z.string(),
+        adminEmail: z.string(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      // Check if user is admin
+      if (input.adminEmail !== "coreyloftus@gmail.com") {
+        throw new Error("Admin access required");
+      }
+
+      return ScriptService.saveAdminScript(
+        input.projectName,
+        input.sceneTitle,
+        input.lines,
+        input.collectionName,
+        input.documentId,
+        input.subcollectionName,
+      );
+    }),
 });

@@ -45,6 +45,7 @@ export class ScriptService {
     try {
       const documents = await FirestoreService.getUserDocuments<ProjectJSON>(
         userId,
+        "users",
         "uploaded_data",
       );
 
@@ -210,6 +211,43 @@ export class ScriptService {
       };
     } catch (error) {
       console.error("Error saving Firestore script:", error);
+      return { success: false, message: (error as Error).message };
+    }
+  }
+
+  // Save script to specific collection/subcollection (admin function)
+  static async saveAdminScript(
+    projectName: string,
+    sceneTitle: string,
+    lines: { character: string; line: string }[],
+    collectionName: string,
+    documentId: string,
+    subcollectionName: string,
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      const scriptData: ProjectJSON = {
+        project: projectName,
+        scenes: [
+          {
+            title: sceneTitle,
+            lines: lines,
+          },
+        ],
+      };
+
+      const newDocumentId = await FirestoreService.addDocumentToSubcollection(
+        collectionName,
+        documentId,
+        subcollectionName,
+        scriptData,
+      );
+
+      return {
+        success: true,
+        message: `Script saved to ${collectionName}/${documentId}/${subcollectionName} with ID: ${newDocumentId}`,
+      };
+    } catch (error) {
+      console.error("Error saving admin script:", error);
       return { success: false, message: (error as Error).message };
     }
   }
