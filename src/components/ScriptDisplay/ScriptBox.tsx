@@ -51,6 +51,24 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
   const [currentLine, setCurrentLine] = useState<string[]>([]);
   const [helperIndex, setHelperIndex] = useState(0);
 
+  // Reset script state when data source changes
+  useEffect(() => {
+    setCurrentLineIndex(0);
+    setWordIndex(0);
+    setPlayScene(false);
+    setAwaitingInput(false);
+    setCurrentLineSplit([]);
+    setUserInput("");
+    setHelperIndex(0);
+  }, [
+    userConfig.dataSource,
+    setCurrentLineIndex,
+    setWordIndex,
+    setPlayScene,
+    setAwaitingInput,
+    setCurrentLineSplit,
+  ]);
+
   const script = currentData.allData
     .find((project) => project.project === selectedProject)
     ?.scenes.find((scene) => scene.title === selectedScene);

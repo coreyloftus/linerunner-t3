@@ -16,7 +16,7 @@ export const scriptData = createTRPCRouter({
   getAll: publicProcedure
     .input(
       z.object({
-        dataSource: z.enum(["local", "firestore"]).default("local"),
+        dataSource: z.enum(["local", "firestore", "public"]).default("local"),
       }),
     )
     .query(async ({ input, ctx }): Promise<GetAllResponse> => {
@@ -27,6 +27,8 @@ export const scriptData = createTRPCRouter({
           );
         }
         return ScriptService.getScripts("firestore", ctx.session.user.email);
+      } else if (input.dataSource === "public") {
+        return ScriptService.getScripts("public");
       } else {
         return ScriptService.getScripts("local");
       }
@@ -36,7 +38,7 @@ export const scriptData = createTRPCRouter({
     .input(
       z.object({
         project: z.string(),
-        dataSource: z.enum(["local", "firestore"]).default("local"),
+        dataSource: z.enum(["local", "firestore", "public"]).default("local"),
       }),
     )
     .query(async ({ input, ctx }) => {
@@ -51,6 +53,8 @@ export const scriptData = createTRPCRouter({
           "firestore",
           ctx.session.user.email,
         );
+      } else if (input.dataSource === "public") {
+        return ScriptService.getScenes(input.project, "public");
       } else {
         return ScriptService.getScenes(input.project, "local");
       }
@@ -61,7 +65,7 @@ export const scriptData = createTRPCRouter({
       z.object({
         project: z.string(),
         scene: z.string(),
-        dataSource: z.enum(["local", "firestore"]).default("local"),
+        dataSource: z.enum(["local", "firestore", "public"]).default("local"),
       }),
     )
     .query(async ({ input, ctx }) => {
@@ -77,6 +81,12 @@ export const scriptData = createTRPCRouter({
           "firestore",
           ctx.session.user.email,
         );
+      } else if (input.dataSource === "public") {
+        return ScriptService.getCharacters(
+          input.project,
+          input.scene,
+          "public",
+        );
       } else {
         return ScriptService.getCharacters(input.project, input.scene, "local");
       }
@@ -87,7 +97,7 @@ export const scriptData = createTRPCRouter({
       z.object({
         project: z.string(),
         scene: z.string(),
-        dataSource: z.enum(["local", "firestore"]).default("local"),
+        dataSource: z.enum(["local", "firestore", "public"]).default("local"),
       }),
     )
     .query(async ({ input, ctx }) => {
@@ -103,6 +113,8 @@ export const scriptData = createTRPCRouter({
           "firestore",
           ctx.session.user.email,
         );
+      } else if (input.dataSource === "public") {
+        return ScriptService.getLines(input.project, input.scene, "public");
       } else {
         return ScriptService.getLines(input.project, input.scene, "local");
       }

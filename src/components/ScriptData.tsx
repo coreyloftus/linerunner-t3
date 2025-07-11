@@ -22,6 +22,7 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
     {
       enabled: true,
       refetchOnWindowFocus: false,
+      refetchOnMount: true, // Always refetch when data source changes
     },
   );
 

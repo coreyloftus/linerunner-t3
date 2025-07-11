@@ -110,6 +110,23 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
             <div className="mt-4 px-1">
               <p className="mb-2 font-bold">Data Source</p>
               <div className="space-y-2">
+                {/* Public Scripts Option - Available to all users */}
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="public-scripts" className="text-sm">
+                    Public Scripts
+                  </Label>
+                  <Switch
+                    id="public-scripts"
+                    checked={userConfig.dataSource === "public"}
+                    onCheckedChange={(checked) => {
+                      setUserConfig({
+                        ...userConfig,
+                        dataSource: checked ? "public" : "local",
+                      });
+                    }}
+                  />
+                </div>
+
                 {session?.user && (
                   <div className="flex items-center justify-between">
                     <Label htmlFor="data-source" className="text-sm">

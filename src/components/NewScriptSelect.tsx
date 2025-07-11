@@ -41,6 +41,7 @@ export default function NewScriptSelect({
     {
       enabled: true,
       refetchOnWindowFocus: false,
+      refetchOnMount: true, // Always refetch when data source changes
     },
   );
 
@@ -94,6 +95,18 @@ export default function NewScriptSelect({
     project,
     scene,
     character,
+    setSelectedProject,
+    setSelectedScene,
+    setSelectedCharacter,
+  ]);
+
+  // Clear selections when data source changes
+  useEffect(() => {
+    setSelectedProject("");
+    setSelectedScene("");
+    setSelectedCharacter("");
+  }, [
+    userConfig.dataSource,
     setSelectedProject,
     setSelectedScene,
     setSelectedCharacter,

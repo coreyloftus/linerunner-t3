@@ -62,6 +62,26 @@ export class FirestoreService {
     }
   }
 
+  // Get documents from public scripts subcollection
+  static async getPublicScripts<T = DocumentData>(): Promise<T[]> {
+    try {
+      const publicDocRef = adminDb.collection("public").doc("public_scripts");
+      const subcollectionRef = publicDocRef.collection("uploaded_data");
+
+      const querySnapshot = await subcollectionRef.get();
+
+      const documents = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as T[];
+
+      return documents;
+    } catch (error) {
+      console.error("Error getting public scripts:", error);
+      throw error;
+    }
+  }
+
   // Get a single document
   static async getDocument<T = DocumentData>(
     collectionName: string,

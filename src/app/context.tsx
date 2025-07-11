@@ -48,7 +48,7 @@ interface ScriptContextProps {
 type UserConfig = {
   stopOnCharacter: boolean;
   autoAdvanceScript: boolean;
-  dataSource: "local" | "firestore";
+  dataSource: "local" | "firestore" | "public";
 };
 
 // Create the context with default values

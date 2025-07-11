@@ -64,15 +64,37 @@ export class ScriptService {
     }
   }
 
+  // Load public scripts from Firestore
+  static async getPublicScripts(): Promise<GetAllResponse> {
+    try {
+      const documents = await FirestoreService.getPublicScripts<ProjectJSON>();
+
+      const projects = documents.map((doc) => doc.project);
+      return {
+        projects,
+        allData: documents,
+      };
+    } catch (error) {
+      console.error("Error loading public scripts:", error);
+      // Return empty data if Firestore fails
+      return {
+        projects: [],
+        allData: [],
+      };
+    }
+  }
+
   // Unified method to get scripts based on data source
   static async getScripts(
-    dataSource: "local" | "firestore",
+    dataSource: "local" | "firestore" | "public",
     userId?: string,
   ): Promise<GetAllResponse> {
     if (dataSource === "local") {
       return this.getLocalScripts();
     } else if (dataSource === "firestore" && userId) {
       return this.getFirestoreScripts(userId);
+    } else if (dataSource === "public") {
+      return this.getPublicScripts();
     } else {
       throw new Error("Invalid data source or missing userId for Firestore");
     }
@@ -81,7 +103,7 @@ export class ScriptService {
   // Get scenes for a specific project
   static async getScenes(
     project: string,
-    dataSource: "local" | "firestore",
+    dataSource: "local" | "firestore" | "public",
     userId?: string,
   ): Promise<{ sceneTitles: string[] | undefined }> {
     const { allData } = await this.getScripts(dataSource, userId);
@@ -94,7 +116,7 @@ export class ScriptService {
   static async getCharacters(
     project: string,
     scene: string,
-    dataSource: "local" | "firestore",
+    dataSource: "local" | "firestore" | "public",
     userId?: string,
   ): Promise<{ characters: string[] | undefined }> {
     const { allData } = await this.getScripts(dataSource, userId);
@@ -109,7 +131,7 @@ export class ScriptService {
   static async getLines(
     project: string,
     scene: string,
-    dataSource: "local" | "firestore",
+    dataSource: "local" | "firestore" | "public",
     userId?: string,
   ): Promise<string[]> {
     const { allData } = await this.getScripts(dataSource, userId);
