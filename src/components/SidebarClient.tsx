@@ -5,7 +5,12 @@ import { Button } from "./ui/button";
 import { useContext, useEffect, useState, useRef } from "react";
 import { IoChevronForward } from "react-icons/io5";
 import { ScriptContext } from "~/app/context";
-import Script from "next/script";
+import { AuthButton } from "./AuthButton";
+import { Switch } from "./ui/switch";
+import { Label } from "./ui/label";
+import { useSession } from "next-auth/react";
+import { RefreshButton } from "./ui/refresh-button";
+import { useScriptData } from "~/hooks/useScriptData";
 
 type SidebarClientProps = {
   projects: string[];
@@ -16,11 +21,17 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
   const { userConfig, setUserConfig } = useContext(ScriptContext);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const arrowButtonRef = useRef<HTMLDivElement>(null);
+  const { data: session } = useSession();
+
+  // Get refresh functionality from the optimized hook
+  const { refreshData, isLoading: isDataLoading } = useScriptData({
+    dataSource: userConfig.dataSource,
+    enableAutoRefresh: false,
+    cacheTime: 1000 * 60 * 60 * 24, // 24 hours cache
+  });
 
   const { selectedProject, selectedScene, selectedCharacter } =
     useContext(ScriptContext);
-
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   // Handle escape key press
   useEffect(() => {
@@ -39,13 +50,27 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
   // Handle click outside sidebar
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node;
+      const target = event.target as Element;
 
       // Check if click is on sidebar or arrow button
       const isOnSidebar = sidebarRef.current?.contains(target);
       const isOnArrowButton = arrowButtonRef.current?.contains(target);
 
-      if (!isOnSidebar && !isOnArrowButton && !isDropdownOpen && navOpen) {
+      // Check if click is on any dropdown content (Select components)
+      const isOnDropdown =
+        target.closest("[data-radix-popper-content-wrapper]") !== null;
+      const isOnSelectTrigger = target.closest("[data-radix-trigger]") !== null;
+      const isOnSelectContent = target.closest("[data-radix-content]") !== null;
+
+      // Only close sidebar if click is outside sidebar, arrow button, and not on any dropdown
+      if (
+        !isOnSidebar &&
+        !isOnArrowButton &&
+        !isOnDropdown &&
+        !isOnSelectTrigger &&
+        !isOnSelectContent &&
+        navOpen
+      ) {
         setNavOpen(false);
       }
     };
@@ -54,7 +79,7 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [navOpen, isDropdownOpen]);
+  }, [navOpen]);
 
   return (
     <>
@@ -72,11 +97,80 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
         <div
           className={`h-full transition-opacity duration-300 ${navOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
         >
-          <div className="pt-10">
+          <div className="pt-2">
+            <div className="flex justify-end p-2">
+              <AuthButton />
+            </div>
             <div className="px-1">
               <p className="mb-2 font-bold">Script Select</p>
               <NewScriptSelect projects={projects} allData={allData} />
             </div>
+
+            {/* Data Source Configuration */}
+            <div className="mt-4 px-1">
+              <p className="mb-2 font-bold">Data Source</p>
+              <div className="space-y-2">
+                {/* Public Scripts Option - Available to all users */}
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="public-scripts" className="text-sm">
+                    Public Scripts
+                  </Label>
+                  <Switch
+                    id="public-scripts"
+                    checked={userConfig.dataSource === "public"}
+                    onCheckedChange={(checked) => {
+                      setUserConfig({
+                        ...userConfig,
+                        dataSource: checked ? "public" : "local",
+                      });
+                    }}
+                  />
+                </div>
+
+                {session?.user && (
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="data-source" className="text-sm">
+                      Use Database
+                    </Label>
+                    <Switch
+                      id="data-source"
+                      checked={userConfig.dataSource === "firestore"}
+                      onCheckedChange={(checked) => {
+                        setUserConfig({
+                          ...userConfig,
+                          dataSource: checked ? "firestore" : "local",
+                        });
+                      }}
+                      disabled={!session?.user}
+                    />
+                  </div>
+                )}
+                {!session?.user && (
+                  <p className="text-xs text-gray-500">
+                    Sign in to use Database
+                  </p>
+                )}
+
+                {/* Refresh Button - only show when using Firestore */}
+                {session?.user && userConfig.dataSource === "firestore" && (
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">Refresh Data</Label>
+                    <RefreshButton
+                      onClick={refreshData}
+                      isLoading={isDataLoading}
+                      size="sm"
+                    />
+                  </div>
+                )}
+
+                {/* <p className="text-xs text-gray-500">
+                  {userConfig.dataSource === "local"
+                    ? "Using local demo files"
+                    : "Using Firestore database"}
+                </p> */}
+              </div>
+            </div>
+
             <div className="mt-2 flex flex-col p-2">
               {/* add a toggle for the "Auto Advance" feature -- when TRUE set the context.autoAdvance to TRUE */}
               {/* <p className="font-bold">NPC Settings</p>
@@ -95,7 +189,8 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
               </div> */}
             </div>
           </div>
-          <div className="fixed bottom-0 pb-10 pl-2 font-mono text-sm">
+
+          <div className="fixed bottom-0 mb-16 pl-2 font-mono text-sm">
             LineRunner by Corey -- ©2025
           </div>
         </div>
@@ -104,11 +199,11 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
       {/* Arrow button - always visible, positioned outside sidebar */}
       <div
         ref={arrowButtonRef}
-        className="fixed bottom-1 left-1 z-[60] flex h-8 w-8 items-center justify-center"
+        className="fixed bottom-1 left-1 z-[60] flex h-12 w-12 items-center justify-center"
       >
         <Button
           onClick={() => setNavOpen(!navOpen)}
-          className="h-8 w-8 rounded-md bg-stone-500 p-0 text-white hover:bg-stone-600"
+          className="h-full w-full rounded-md bg-stone-500 p-0 text-white hover:bg-stone-600"
         >
           <IoChevronForward
             className={`h-8 w-8 transition-transform duration-300 ${

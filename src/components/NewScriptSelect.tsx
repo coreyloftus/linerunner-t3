@@ -11,6 +11,7 @@ import { useContext, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { type ProjectJSON } from "../server/api/routers/scriptData";
 import { Label } from "./ui/label";
+import { api } from "~/trpc/react";
 
 export default function NewScriptSelect({
   projects,
@@ -30,8 +31,24 @@ export default function NewScriptSelect({
     selectedCharacter,
     setSelectedCharacter,
     queryParams,
+    userConfig,
   } = useContext(ScriptContext);
   const { project, scene, character } = queryParams;
+
+  // Dynamic data fetching based on data source
+  const { data: dynamicData } = api.scriptData.getAll.useQuery(
+    { dataSource: userConfig.dataSource },
+    {
+      enabled: true,
+      refetchOnWindowFocus: false,
+      refetchOnMount: true, // Always refetch when data source changes
+    },
+  );
+
+  // Use dynamic data if available, otherwise fall back to static data
+  const currentProjects = dynamicData?.projects ?? projects;
+  const currentAllData = dynamicData?.allData ?? allData;
+
   const handleProjectChange = (newProject: string) => {
     setSelectedProject(newProject);
     const newQPs = `?project=${newProject}&scene=${selectedScene}&character=${selectedCharacter}`;
@@ -49,13 +66,14 @@ export default function NewScriptSelect({
   };
 
   const sceneList = selectedProject
-    ? allData.find((project) => project.project === selectedProject)?.scenes
+    ? currentAllData.find((project) => project.project === selectedProject)
+        ?.scenes
     : [];
 
   const characterList = selectedScene
     ? Array.from(
         new Set(
-          allData
+          currentAllData
             .find((project) => project.project === selectedProject)
             ?.scenes.find((scene) => scene.title === selectedScene)
             ?.lines.map((line) => line.character),
@@ -82,6 +100,18 @@ export default function NewScriptSelect({
     setSelectedCharacter,
   ]);
 
+  // Clear selections when data source changes
+  useEffect(() => {
+    setSelectedProject("");
+    setSelectedScene("");
+    setSelectedCharacter("");
+  }, [
+    userConfig.dataSource,
+    setSelectedProject,
+    setSelectedScene,
+    setSelectedCharacter,
+  ]);
+
   return (
     <div className="flex flex-col gap-4 px-4">
       <Select onValueChange={handleProjectChange} value={selectedProject}>
@@ -91,7 +121,7 @@ export default function NewScriptSelect({
         </SelectTrigger>
         <Label>Scene</Label>
         <SelectContent>
-          {projects?.map((project, index) => (
+          {currentProjects?.map((project, index) => (
             <SelectItem value={project.toString()} key={index}>
               {project}
             </SelectItem>

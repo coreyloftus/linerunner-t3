@@ -21,19 +21,25 @@ export const postRouter = createTRPCRouter({
       // simulate a slow db call
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      return ctx.db.post.create({
-        data: {
-          name: input.name,
-          createdBy: { connect: { id: ctx.session.user.id } },
-        },
-      });
+      // Return mock data since we're not using a database
+      return {
+        id: "mock-id",
+        name: input.name,
+        createdBy: { id: ctx.session.user.id },
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
     }),
 
   getLatest: protectedProcedure.query(({ ctx }) => {
-    return ctx.db.post.findFirst({
-      orderBy: { createdAt: "desc" },
-      where: { createdBy: { id: ctx.session.user.id } },
-    });
+    // Return mock data since we're not using a database
+    return {
+      id: "mock-latest-id",
+      name: "Mock Post",
+      createdBy: { id: ctx.session.user.id },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
   }),
 
   getSecretMessage: protectedProcedure.query(() => {

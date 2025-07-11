@@ -4,6 +4,7 @@ import { type ProjectJSON } from "~/server/api/routers/scriptData";
 import { Textarea } from "./ui/textarea";
 import { ScriptContext } from "~/app/context";
 import { useContext } from "react";
+import { api } from "~/trpc/react";
 
 interface ScriptDataProps {
   data: {
@@ -12,8 +13,23 @@ interface ScriptDataProps {
   };
 }
 export const ScriptData = ({ data }: ScriptDataProps) => {
-  const { selectedProject, selectedScene } = useContext(ScriptContext);
-  const script = data.allData
+  const { selectedProject, selectedScene, userConfig } =
+    useContext(ScriptContext);
+
+  // Dynamic data fetching based on data source
+  const { data: dynamicData } = api.scriptData.getAll.useQuery(
+    { dataSource: userConfig.dataSource },
+    {
+      enabled: true,
+      refetchOnWindowFocus: false,
+      refetchOnMount: true, // Always refetch when data source changes
+    },
+  );
+
+  // Use dynamic data if available, otherwise fall back to static data
+  const currentData = dynamicData ?? data;
+
+  const script = currentData.allData
     .find((project) => project.project === selectedProject)
     ?.scenes.find((scene) => scene.title === selectedScene);
 
@@ -23,7 +39,7 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
         <div className="flex h-full flex-col rounded-md">
           <div className="flex items-center justify-between border-b border-stone-200 bg-stone-50 px-4 py-3 dark:border-stone-700 dark:bg-stone-800">
             <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">
-              Line Data
+              Script Data
             </h2>
           </div>
           <div className="flex-1 p-4">

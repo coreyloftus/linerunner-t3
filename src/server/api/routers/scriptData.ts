@@ -1,85 +1,191 @@
-import fs from "fs";
-import path from "path";
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import {
+  createTRPCRouter,
+  publicProcedure,
+  protectedProcedure,
+} from "~/server/api/trpc";
+import { ScriptService, type GetAllResponse } from "~/server/scriptService";
 
-export interface ProjectJSON {
-  project: string;
-  scenes: SceneJSON[];
-}
-export interface SceneJSON {
-  title: string;
-  lines: {
-    character: string;
-    line: string;
-    sung?: boolean;
-  }[];
-}
-export interface GetAllResponse {
-  projects: string[];
-  allData: ProjectJSON[];
-}
-// const importAllJSON = (directory: string): ProjectJSON[] => {
-//   const fullPath = path.join(process.cwd(), "public", "sceneData");
-//   const files = fs.readdirSync(fullPath);
-//   const jsonData = files.map((file) => {
-//     const data = fs.readFileSync(path.join(directory, file), "utf8");
-//     return JSON.parse(data) as ProjectJSON;
-//   });
-//   return jsonData.flat();
-// };
-const getJSONData = (): ProjectJSON[] => {
-  const directory = path.join(process.cwd(), "public/sceneData");
-  const files = fs.readdirSync(directory);
-  return files
-    .map((file) => {
-      const data = fs.readFileSync(path.join(directory, file), "utf8");
-      return JSON.parse(data) as ProjectJSON;
-    })
-    .flat();
-};
-
-// const allData: ProjectJSON[] = importAllJSON(
-//   path.resolve(__dirname, "~/../public/sceneData"),
-// );
+export type {
+  ProjectJSON,
+  SceneJSON,
+  GetAllResponse,
+} from "~/server/scriptService";
 
 export const scriptData = createTRPCRouter({
-  getAll: publicProcedure.query(async (): Promise<GetAllResponse> => {
-    const allData: ProjectJSON[] = getJSONData();
-    const projects = allData.map((file) => file.project);
-    return {
-      projects,
-      allData,
-    };
-  }),
+  getAll: publicProcedure
+    .input(
+      z.object({
+        dataSource: z.enum(["local", "firestore", "public"]).default("local"),
+      }),
+    )
+    .query(async ({ input, ctx }): Promise<GetAllResponse> => {
+      if (input.dataSource === "firestore") {
+        if (!ctx.session?.user?.email) {
+          throw new Error(
+            "User must be authenticated to access Firestore data",
+          );
+        }
+        return ScriptService.getScripts("firestore", ctx.session.user.email);
+      } else if (input.dataSource === "public") {
+        return ScriptService.getScripts("public");
+      } else {
+        return ScriptService.getScripts("local");
+      }
+    }),
+
   getScenes: publicProcedure
-    .input(z.object({ project: z.string() }))
-    .query(async ({ input }) => {
-      const allData = getJSONData();
-      const scenes = allData.find(
-        (file) => file.project === input.project,
-      )?.scenes;
-      const sceneTitles = scenes?.map((scene) => scene.title);
-      return { sceneTitles };
+    .input(
+      z.object({
+        project: z.string(),
+        dataSource: z.enum(["local", "firestore", "public"]).default("local"),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      if (input.dataSource === "firestore") {
+        if (!ctx.session?.user?.email) {
+          throw new Error(
+            "User must be authenticated to access Firestore data",
+          );
+        }
+        return ScriptService.getScenes(
+          input.project,
+          "firestore",
+          ctx.session.user.email,
+        );
+      } else if (input.dataSource === "public") {
+        return ScriptService.getScenes(input.project, "public");
+      } else {
+        return ScriptService.getScenes(input.project, "local");
+      }
     }),
+
   getCharacters: publicProcedure
-    .input(z.object({ project: z.string(), scene: z.string() }))
-    .query(async ({ input }) => {
-      const allData = getJSONData();
-      const characters = allData
-        .find((file) => file.project === input.project)
-        ?.scenes.find((scene) => scene.title === input.scene)
-        ?.lines.map((line) => line.character);
-      return { characters };
+    .input(
+      z.object({
+        project: z.string(),
+        scene: z.string(),
+        dataSource: z.enum(["local", "firestore", "public"]).default("local"),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      if (input.dataSource === "firestore") {
+        if (!ctx.session?.user?.email) {
+          throw new Error(
+            "User must be authenticated to access Firestore data",
+          );
+        }
+        return ScriptService.getCharacters(
+          input.project,
+          input.scene,
+          "firestore",
+          ctx.session.user.email,
+        );
+      } else if (input.dataSource === "public") {
+        return ScriptService.getCharacters(
+          input.project,
+          input.scene,
+          "public",
+        );
+      } else {
+        return ScriptService.getCharacters(input.project, input.scene, "local");
+      }
     }),
+
   getLines: publicProcedure
-    .input(z.object({ project: z.string(), scene: z.string() }))
-    .query(({ input }) => {
-      const allData = getJSONData();
-      const lines = allData
-        .find((file) => file.project === input.project)
-        ?.scenes.find((scene) => scene.title === input.scene)
-        ?.lines.map((line) => line.line);
-      return lines;
+    .input(
+      z.object({
+        project: z.string(),
+        scene: z.string(),
+        dataSource: z.enum(["local", "firestore", "public"]).default("local"),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      if (input.dataSource === "firestore") {
+        if (!ctx.session?.user?.email) {
+          throw new Error(
+            "User must be authenticated to access Firestore data",
+          );
+        }
+        return ScriptService.getLines(
+          input.project,
+          input.scene,
+          "firestore",
+          ctx.session.user.email,
+        );
+      } else if (input.dataSource === "public") {
+        return ScriptService.getLines(input.project, input.scene, "public");
+      } else {
+        return ScriptService.getLines(input.project, input.scene, "local");
+      }
+    }),
+
+  createScript: protectedProcedure
+    .input(
+      z.object({
+        projectName: z.string(),
+        sceneTitle: z.string(),
+        lines: z.array(
+          z.object({
+            character: z.string(),
+            line: z.string(),
+          }),
+        ),
+        dataSource: z.enum(["local", "firestore"]).default("local"),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      if (input.dataSource === "firestore") {
+        if (!ctx.session?.user?.email) {
+          throw new Error("User must be authenticated to save to Firestore");
+        }
+        return ScriptService.saveScript(
+          input.projectName,
+          input.sceneTitle,
+          input.lines,
+          "firestore",
+          ctx.session.user.email,
+        );
+      } else {
+        return ScriptService.saveScript(
+          input.projectName,
+          input.sceneTitle,
+          input.lines,
+          "local",
+        );
+      }
+    }),
+
+  createAdminScript: protectedProcedure
+    .input(
+      z.object({
+        projectName: z.string(),
+        sceneTitle: z.string(),
+        lines: z.array(
+          z.object({
+            character: z.string(),
+            line: z.string(),
+          }),
+        ),
+        collectionName: z.string(),
+        documentId: z.string(),
+        subcollectionName: z.string(),
+        adminEmail: z.string(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      // Check if user is admin
+      if (input.adminEmail !== "coreyloftus@gmail.com") {
+        throw new Error("Admin access required");
+      }
+
+      return ScriptService.saveAdminScript(
+        input.projectName,
+        input.sceneTitle,
+        input.lines,
+        input.collectionName,
+        input.documentId,
+        input.subcollectionName,
+      );
     }),
 });

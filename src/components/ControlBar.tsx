@@ -1,5 +1,4 @@
 import { ControlButton } from "./ui/control-button";
-// import { useToast } from "./ui/use-toast";
 import { FaPlay } from "react-icons/fa6";
 import { FaStop } from "react-icons/fa6";
 import { FaPause } from "react-icons/fa6";
@@ -32,8 +31,6 @@ export default function ControlBar({
   handleLineNavigation,
   handleWordNavigation,
 }: ControlBarProps) {
-  // const { toast } = useToast();
-
   return (
     <div className="flex h-full w-full items-center justify-between rounded-b-md bg-gray-50/50 px-4 py-3 shadow-sm backdrop-blur-sm sm:px-6">
       {/* Playback Controls */}
