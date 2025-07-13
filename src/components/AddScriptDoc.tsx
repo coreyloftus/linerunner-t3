@@ -45,6 +45,14 @@ export const AddScriptDoc = () => {
       },
     );
 
+  // Fetch script count for limit checking
+  const { data: scriptCountData } = api.firebase.getUserDocumentCount.useQuery(
+    { subcollectionName: "uploaded_data" },
+    {
+      enabled: !!session?.user && userConfig.dataSource === "firestore",
+    },
+  );
+
   // Fetch collections for admin mode
   const { data: collectionsData, isLoading: isLoadingCollections } =
     api.firebase.getCollections.useQuery(
@@ -327,9 +335,25 @@ export const AddScriptDoc = () => {
         <div className="flex h-[90dvh] w-[80dvw] flex-col rounded-md border-2 border-stone-200">
           <div className="flex h-full flex-col rounded-md">
             <div className="flex items-center justify-between border-b border-stone-200 bg-stone-50 px-4 py-3 dark:border-stone-700 dark:bg-stone-800">
-              <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">
-                Add Script
-              </h2>
+              <div className="flex items-center gap-4">
+                <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">
+                  Add Script
+                </h2>
+                {userConfig.dataSource === "firestore" &&
+                  scriptCountData?.success &&
+                  typeof scriptCountData.count === "number" && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="text-stone-600 dark:text-stone-400">
+                        Scripts: {scriptCountData.count}/5
+                      </span>
+                      {scriptCountData.count >= 5 && (
+                        <span className="rounded bg-red-100 px-2 py-1 text-xs text-red-700 dark:bg-red-900 dark:text-red-300">
+                          Limit reached
+                        </span>
+                      )}
+                    </div>
+                  )}
+              </div>
               {isAdmin && (
                 <div className="flex items-center gap-2">
                   <label className="text-sm text-stone-700 dark:text-stone-300">
@@ -496,14 +520,33 @@ export const AddScriptDoc = () => {
                   (isAdminMode &&
                     (isLoadingCollections ||
                       isLoadingSubcollections ||
-                      isLoadingDocumentIds))
+                      isLoadingDocumentIds)) ||
+                  (userConfig.dataSource === "firestore" &&
+                    scriptCountData?.success &&
+                    typeof scriptCountData.count === "number" &&
+                    scriptCountData.count >= 5)
                 }
               >
                 {createScriptMutation.isPending ||
                 createAdminScriptMutation.isPending
                   ? "Saving..."
-                  : "Add Script"}
+                  : userConfig.dataSource === "firestore" &&
+                      scriptCountData?.success &&
+                      typeof scriptCountData.count === "number" &&
+                      scriptCountData.count >= 5
+                    ? "Limit Reached"
+                    : "Add Script"}
               </Button>
+              {userConfig.dataSource === "firestore" &&
+                scriptCountData?.success && (
+                  // typeof scriptCountData.count === "number" &&
+                  // scriptCountData.count >= 5 &&
+                  <p className="mt-2 text-sm text-amber-600 dark:text-amber-400">
+                    {
+                      "You've reached the limit of 5 scripts. Please delete an existing script before adding a new one."
+                    }
+                  </p>
+                )}
             </div>
           </div>
         </div>
