@@ -538,9 +538,9 @@ export const AddScriptDoc = () => {
                     : "Add Script"}
               </Button>
               {userConfig.dataSource === "firestore" &&
-                scriptCountData?.success &&
-                typeof scriptCountData.count === "number" &&
-                scriptCountData.count >= 5 && (
+                scriptCountData?.success && (
+                  // typeof scriptCountData.count === "number" &&
+                  // scriptCountData.count >= 5 &&
                   <p className="mt-2 text-sm text-amber-600 dark:text-amber-400">
                     {
                       "You've reached the limit of 5 scripts. Please delete an existing script before adding a new one."

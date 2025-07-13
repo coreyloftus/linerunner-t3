@@ -194,9 +194,9 @@ export class FirestoreService {
           currentCount,
         );
 
-        if (currentCount >= 5) {
+        if (currentCount >= 100) {
           throw new Error(
-            "Script limit reached. You can only store up to 5 scripts. Please delete an existing script before adding a new one.",
+            "Script limit reached. You can only store up to 100 scripts. Please delete an existing script before adding a new one.",
           );
         }
       }
