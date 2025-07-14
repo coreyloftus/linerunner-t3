@@ -43,11 +43,9 @@ export class ScriptService {
   // Load scripts from Firestore
   static async getFirestoreScripts(userId: string): Promise<GetAllResponse> {
     try {
-      const documents = await FirestoreService.getUserDocuments<ProjectJSON>(
-        userId,
-        "users",
-        "uploaded_data",
-      );
+      const documents = await FirestoreService.getUserDocuments<
+        ProjectJSON & { id: string }
+      >(userId, "users", "uploaded_data");
 
       const projects = documents.map((doc) => doc.project);
       return {
@@ -211,26 +209,59 @@ export class ScriptService {
     userId: string,
   ): Promise<{ success: boolean; message: string }> {
     try {
-      const scriptData: ProjectJSON = {
-        project: projectName,
-        scenes: [
+      // First, check if a document with this project already exists
+      const existingDocuments = await FirestoreService.getUserDocuments<
+        ProjectJSON & { id: string }
+      >(userId, "users", "uploaded_data");
+
+      const existingProjectDoc = existingDocuments.find(
+        (doc) => doc.project === projectName,
+      );
+
+      if (existingProjectDoc) {
+        // Project exists, add the new scene to the existing document
+        const updatedScenes = [
+          ...existingProjectDoc.scenes,
           {
             title: sceneTitle,
             lines: lines,
           },
-        ],
-      };
+        ];
 
-      const documentId = await FirestoreService.addUserDocument(
-        userId,
-        "uploaded_data",
-        scriptData,
-      );
+        await FirestoreService.updateUserDocument(
+          userId,
+          "uploaded_data",
+          existingProjectDoc.id,
+          { scenes: updatedScenes },
+        );
 
-      return {
-        success: true,
-        message: `Script saved to Firestore with ID: ${documentId}`,
-      };
+        return {
+          success: true,
+          message: `Scene "${sceneTitle}" added to existing project "${projectName}"`,
+        };
+      } else {
+        // Project doesn't exist, create a new document
+        const scriptData: ProjectJSON = {
+          project: projectName,
+          scenes: [
+            {
+              title: sceneTitle,
+              lines: lines,
+            },
+          ],
+        };
+
+        const documentId = await FirestoreService.addUserDocument(
+          userId,
+          "uploaded_data",
+          scriptData,
+        );
+
+        return {
+          success: true,
+          message: `Script saved to Firestore with ID: ${documentId}`,
+        };
+      }
     } catch (error) {
       console.error("Error saving Firestore script:", error);
       return { success: false, message: (error as Error).message };
