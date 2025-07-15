@@ -255,13 +255,23 @@ export const AddScriptDoc = () => {
 
   const parseScript = (script: string, characterNames: string[]) => {
     const lines = script.split(/\n/);
-    const parsedLines: { character: string; line: string }[] = [];
+    const parsedLines: { character: string; line: string; sung?: boolean }[] =
+      [];
     let currentCharacter = "";
     let currentLine = "";
 
     // Helper function to normalize text by removing spaces
     const normalizeText = (text: string) =>
       text.toLowerCase().replace(/\s+/g, "");
+
+    // Helper function to check if a line is sung (all caps)
+    const isSungLine = (text: string) => {
+      // Remove spaces and punctuation, check if all remaining characters are uppercase
+      const cleanedText = text.replace(/[^a-zA-Z]/g, "");
+      return (
+        cleanedText.length > 0 && cleanedText === cleanedText.toUpperCase()
+      );
+    };
 
     for (const line of lines) {
       const trimmedLine = line.trim();
@@ -286,14 +296,34 @@ export const AddScriptDoc = () => {
         currentCharacter = foundCharacter;
         currentLine = "";
       } else {
-        // This line is dialogue for the current character
-        if (currentCharacter) {
-          currentLine += (currentLine ? " " : "") + trimmedLine;
+        // Check if this is a sung line (all caps)
+        if (isSungLine(trimmedLine)) {
+          // If we have a previous character and line, save it first
+          if (currentCharacter && currentLine.trim()) {
+            parsedLines.push({
+              character: currentCharacter,
+              line: currentLine.trim(),
+            });
+          }
+          // Add the sung line as a separate line object
+          if (currentCharacter) {
+            parsedLines.push({
+              character: currentCharacter,
+              line: trimmedLine,
+              sung: true,
+            });
+          }
+          currentLine = "";
+        } else {
+          // This line is regular dialogue for the current character
+          if (currentCharacter) {
+            currentLine += (currentLine ? " " : "") + trimmedLine;
+          }
         }
       }
     }
 
-    // last lines
+    // Save the last lines
     if (currentCharacter && currentLine.trim()) {
       parsedLines.push({
         character: currentCharacter,

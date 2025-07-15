@@ -271,12 +271,28 @@ export class FirestoreService {
     data: Partial<T>,
   ): Promise<void> {
     try {
+      console.log("🔥 [FirestoreService.updateUserDocument] Starting update:");
+      console.log("  - User ID:", userId);
+      console.log("  - Subcollection:", subcollectionName);
+      console.log("  - Document ID:", documentId);
+      console.log("  - Update data:", data);
+
       const userDocRef = adminDb.collection("users").doc(userId);
       const subcollectionRef = userDocRef.collection(subcollectionName);
       const docRef = subcollectionRef.doc(documentId);
+
+      console.log(
+        "🔥 [FirestoreService.updateUserDocument] Full path:",
+        `users/${userId}/${subcollectionName}/${documentId}`,
+      );
+
       await docRef.update(data);
+
+      console.log(
+        "✅ [FirestoreService.updateUserDocument] Successfully updated document",
+      );
     } catch (error) {
-      console.error("Error updating user document:", error);
+      console.error("❌ [FirestoreService.updateUserDocument] Error:", error);
       throw error;
     }
   }

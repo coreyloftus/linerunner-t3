@@ -209,14 +209,57 @@ export class ScriptService {
     userId: string,
   ): Promise<{ success: boolean; message: string }> {
     try {
+      console.log("🔍 [ScriptService.saveFirestoreScript] Starting with:");
+      console.log("  - Project Name:", projectName);
+      console.log("  - Scene Title:", sceneTitle);
+      console.log("  - User ID:", userId);
+
       // First, check if a document with this project already exists
       const existingDocuments = await FirestoreService.getUserDocuments<
         ProjectJSON & { id: string }
       >(userId, "users", "uploaded_data");
 
-      const existingProjectDoc = existingDocuments.find(
-        (doc) => doc.project === projectName,
+      console.log(
+        "🔍 [ScriptService.saveFirestoreScript] Found",
+        existingDocuments.length,
+        "existing documents",
       );
+      console.log(
+        "  - Existing documents:",
+        existingDocuments.map((doc) => ({ id: doc.id, project: doc.project })),
+      );
+
+      const existingProjectDoc = existingDocuments.find(
+        (doc) => doc.project.trim() === projectName.trim(),
+      );
+
+      console.log(
+        "🔍 [ScriptService.saveFirestoreScript] Looking for project:",
+        projectName,
+      );
+      console.log("  - Project name (trimmed):", `"${projectName.trim()}"`);
+      console.log(
+        "  - Found existing project:",
+        existingProjectDoc ? "YES" : "NO",
+      );
+
+      // Show detailed comparison for debugging
+      existingDocuments.forEach((doc, index) => {
+        const docProjectTrimmed = doc.project.trim();
+        const projectNameTrimmed = projectName.trim();
+        const matches = docProjectTrimmed === projectNameTrimmed;
+        console.log(
+          `  - Document ${index}: "${docProjectTrimmed}" === "${projectNameTrimmed}" = ${matches}`,
+        );
+      });
+
+      if (existingProjectDoc) {
+        console.log("  - Existing project document ID:", existingProjectDoc.id);
+        console.log(
+          "  - Existing project scenes count:",
+          existingProjectDoc.scenes.length,
+        );
+      }
 
       if (existingProjectDoc) {
         // Project exists, add the new scene to the existing document
@@ -228,11 +271,20 @@ export class ScriptService {
           },
         ];
 
+        console.log(
+          "🔍 [ScriptService.saveFirestoreScript] Updating existing project",
+        );
+        console.log("  - New scenes count:", updatedScenes.length);
+
         await FirestoreService.updateUserDocument(
           userId,
           "uploaded_data",
           existingProjectDoc.id,
           { scenes: updatedScenes },
+        );
+
+        console.log(
+          "✅ [ScriptService.saveFirestoreScript] Successfully updated existing project",
         );
 
         return {
@@ -241,6 +293,10 @@ export class ScriptService {
         };
       } else {
         // Project doesn't exist, create a new document
+        console.log(
+          "🔍 [ScriptService.saveFirestoreScript] Creating new project document",
+        );
+
         const scriptData: ProjectJSON = {
           project: projectName,
           scenes: [
@@ -257,13 +313,18 @@ export class ScriptService {
           scriptData,
         );
 
+        console.log(
+          "✅ [ScriptService.saveFirestoreScript] Successfully created new project with ID:",
+          documentId,
+        );
+
         return {
           success: true,
           message: `Script saved to Firestore with ID: ${documentId}`,
         };
       }
     } catch (error) {
-      console.error("Error saving Firestore script:", error);
+      console.error("❌ [ScriptService.saveFirestoreScript] Error:", error);
       return { success: false, message: (error as Error).message };
     }
   }
