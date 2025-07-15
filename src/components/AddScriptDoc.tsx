@@ -45,14 +45,6 @@ export const AddScriptDoc = () => {
       },
     );
 
-  // Fetch script count for limit checking
-  const { data: scriptCountData } = api.firebase.getUserDocumentCount.useQuery(
-    { subcollectionName: "uploaded_data" },
-    {
-      enabled: !!session?.user && userConfig.dataSource === "firestore",
-    },
-  );
-
   // Fetch collections for admin mode
   const { data: collectionsData, isLoading: isLoadingCollections } =
     api.firebase.getCollections.useQuery(
@@ -263,13 +255,23 @@ export const AddScriptDoc = () => {
 
   const parseScript = (script: string, characterNames: string[]) => {
     const lines = script.split(/\n/);
-    const parsedLines: { character: string; line: string }[] = [];
+    const parsedLines: { character: string; line: string; sung?: boolean }[] =
+      [];
     let currentCharacter = "";
     let currentLine = "";
 
     // Helper function to normalize text by removing spaces
     const normalizeText = (text: string) =>
       text.toLowerCase().replace(/\s+/g, "");
+
+    // Helper function to check if a line is sung (all caps)
+    const isSungLine = (text: string) => {
+      // Remove spaces and punctuation, check if all remaining characters are uppercase
+      const cleanedText = text.replace(/[^a-zA-Z]/g, "");
+      return (
+        cleanedText.length > 0 && cleanedText === cleanedText.toUpperCase()
+      );
+    };
 
     for (const line of lines) {
       const trimmedLine = line.trim();
@@ -294,14 +296,34 @@ export const AddScriptDoc = () => {
         currentCharacter = foundCharacter;
         currentLine = "";
       } else {
-        // This line is dialogue for the current character
-        if (currentCharacter) {
-          currentLine += (currentLine ? " " : "") + trimmedLine;
+        // Check if this is a sung line (all caps)
+        if (isSungLine(trimmedLine)) {
+          // If we have a previous character and line, save it first
+          if (currentCharacter && currentLine.trim()) {
+            parsedLines.push({
+              character: currentCharacter,
+              line: currentLine.trim(),
+            });
+          }
+          // Add the sung line as a separate line object
+          if (currentCharacter) {
+            parsedLines.push({
+              character: currentCharacter,
+              line: trimmedLine,
+              sung: true,
+            });
+          }
+          currentLine = "";
+        } else {
+          // This line is regular dialogue for the current character
+          if (currentCharacter) {
+            currentLine += (currentLine ? " " : "") + trimmedLine;
+          }
         }
       }
     }
 
-    // last lines
+    // Save the last lines
     if (currentCharacter && currentLine.trim()) {
       parsedLines.push({
         character: currentCharacter,
@@ -339,20 +361,6 @@ export const AddScriptDoc = () => {
                 <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">
                   Add Script
                 </h2>
-                {userConfig.dataSource === "firestore" &&
-                  scriptCountData?.success &&
-                  typeof scriptCountData.count === "number" && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="text-stone-600 dark:text-stone-400">
-                        Scripts: {scriptCountData.count}/5
-                      </span>
-                      {scriptCountData.count >= 5 && (
-                        <span className="rounded bg-red-100 px-2 py-1 text-xs text-red-700 dark:bg-red-900 dark:text-red-300">
-                          Limit reached
-                        </span>
-                      )}
-                    </div>
-                  )}
               </div>
               {isAdmin && (
                 <div className="flex items-center gap-2">
@@ -520,33 +528,14 @@ export const AddScriptDoc = () => {
                   (isAdminMode &&
                     (isLoadingCollections ||
                       isLoadingSubcollections ||
-                      isLoadingDocumentIds)) ||
-                  (userConfig.dataSource === "firestore" &&
-                    scriptCountData?.success &&
-                    typeof scriptCountData.count === "number" &&
-                    scriptCountData.count >= 5)
+                      isLoadingDocumentIds))
                 }
               >
                 {createScriptMutation.isPending ||
                 createAdminScriptMutation.isPending
                   ? "Saving..."
-                  : userConfig.dataSource === "firestore" &&
-                      scriptCountData?.success &&
-                      typeof scriptCountData.count === "number" &&
-                      scriptCountData.count >= 5
-                    ? "Limit Reached"
-                    : "Add Script"}
+                  : "Add Script"}
               </Button>
-              {userConfig.dataSource === "firestore" &&
-                scriptCountData?.success && (
-                  // typeof scriptCountData.count === "number" &&
-                  // scriptCountData.count >= 5 &&
-                  <p className="mt-2 text-sm text-amber-600 dark:text-amber-400">
-                    {
-                      "You've reached the limit of 5 scripts. Please delete an existing script before adding a new one."
-                    }
-                  </p>
-                )}
             </div>
           </div>
         </div>
