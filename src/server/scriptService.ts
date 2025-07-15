@@ -365,4 +365,52 @@ export class ScriptService {
       return { success: false, message: (error as Error).message };
     }
   }
+
+  // Update existing script in Firestore
+  static async updateScript(
+    projectName: string,
+    sceneTitle: string,
+    updatedScript: ProjectJSON,
+    userId: string,
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      console.log("🔍 [ScriptService.updateScript] Starting with:");
+      console.log("  - Project Name:", projectName);
+      console.log("  - Scene Title:", sceneTitle);
+      console.log("  - User ID:", userId);
+
+      // Get existing documents to find the one to update
+      const existingDocuments = await FirestoreService.getUserDocuments<
+        ProjectJSON & { id: string }
+      >(userId, "users", "uploaded_data");
+
+      const existingProjectDoc = existingDocuments.find(
+        (doc) => doc.project.trim() === projectName.trim(),
+      );
+
+      if (!existingProjectDoc) {
+        return { success: false, message: "Project not found" };
+      }
+
+      // Update the document with the new script data
+      await FirestoreService.updateUserDocument(
+        userId,
+        "uploaded_data",
+        existingProjectDoc.id,
+        updatedScript,
+      );
+
+      console.log(
+        "✅ [ScriptService.updateScript] Successfully updated script",
+      );
+
+      return {
+        success: true,
+        message: `Script "${projectName}" updated successfully`,
+      };
+    } catch (error) {
+      console.error("❌ [ScriptService.updateScript] Error:", error);
+      return { success: false, message: (error as Error).message };
+    }
+  }
 }
