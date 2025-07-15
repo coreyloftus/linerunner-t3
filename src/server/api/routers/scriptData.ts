@@ -188,4 +188,45 @@ export const scriptData = createTRPCRouter({
         input.subcollectionName,
       );
     }),
+
+  updateScript: protectedProcedure
+    .input(
+      z.object({
+        projectName: z.string(),
+        sceneTitle: z.string(),
+        updatedScript: z.object({
+          project: z.string(),
+          scenes: z.array(
+            z.object({
+              title: z.string(),
+              lines: z.array(
+                z.object({
+                  character: z.string(),
+                  line: z.string(),
+                  sung: z.boolean().optional(),
+                }),
+              ),
+            }),
+          ),
+        }),
+        dataSource: z.enum(["local", "firestore"]).default("firestore"),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      if (input.dataSource === "firestore") {
+        if (!ctx.session?.user?.email) {
+          throw new Error(
+            "User must be authenticated to update Firestore data",
+          );
+        }
+        return ScriptService.updateScript(
+          input.projectName,
+          input.sceneTitle,
+          input.updatedScript,
+          ctx.session.user.email,
+        );
+      } else {
+        throw new Error("Local script updates not supported");
+      }
+    }),
 });

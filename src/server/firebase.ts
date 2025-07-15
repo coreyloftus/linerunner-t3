@@ -181,26 +181,6 @@ export class FirestoreService {
     data: Omit<T, "id">,
   ): Promise<string> {
     try {
-      // Check if this is a script upload (uploaded_data subcollection)
-      if (subcollectionName === "uploaded_data") {
-        const currentCount = await this.countUserDocuments(
-          userId,
-          "users",
-          subcollectionName,
-        );
-
-        console.log(
-          "🔥 [FirestoreService.addUserDocument] Current script count:",
-          currentCount,
-        );
-
-        if (currentCount >= 100) {
-          throw new Error(
-            "Script limit reached. You can only store up to 100 scripts. Please delete an existing script before adding a new one.",
-          );
-        }
-      }
-
       const userDocRef = adminDb.collection("users").doc(userId);
       const subcollectionRef = userDocRef.collection(subcollectionName);
 
@@ -279,6 +259,40 @@ export class FirestoreService {
       await docRef.update(data);
     } catch (error) {
       console.error("Error updating document:", error);
+      throw error;
+    }
+  }
+
+  // Update a document in a user-specific subcollection
+  static async updateUserDocument<T = DocumentData>(
+    userId: string,
+    subcollectionName: string,
+    documentId: string,
+    data: Partial<T>,
+  ): Promise<void> {
+    try {
+      console.log("🔥 [FirestoreService.updateUserDocument] Starting update:");
+      console.log("  - User ID:", userId);
+      console.log("  - Subcollection:", subcollectionName);
+      console.log("  - Document ID:", documentId);
+      console.log("  - Update data:", data);
+
+      const userDocRef = adminDb.collection("users").doc(userId);
+      const subcollectionRef = userDocRef.collection(subcollectionName);
+      const docRef = subcollectionRef.doc(documentId);
+
+      console.log(
+        "🔥 [FirestoreService.updateUserDocument] Full path:",
+        `users/${userId}/${subcollectionName}/${documentId}`,
+      );
+
+      await docRef.update(data);
+
+      console.log(
+        "✅ [FirestoreService.updateUserDocument] Successfully updated document",
+      );
+    } catch (error) {
+      console.error("❌ [FirestoreService.updateUserDocument] Error:", error);
       throw error;
     }
   }
