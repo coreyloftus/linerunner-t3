@@ -25,13 +25,13 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
   const [editedScript, setEditedScript] = useState<string>("");
   const [originalScript, setOriginalScript] = useState<string>("");
 
-  // Dynamic data fetching based on data source
+  // Always fetch public data
   const { data: dynamicData, refetch } = api.scriptData.getAll.useQuery(
-    { dataSource: userConfig.dataSource },
+    { dataSource: "public" },
     {
       enabled: true,
       refetchOnWindowFocus: false,
-      refetchOnMount: true, // Always refetch when data source changes
+      refetchOnMount: true,
     },
   );
 
@@ -99,10 +99,7 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
         projectName: selectedProject,
         sceneTitle: selectedScene,
         updatedScript: updatedScript,
-        dataSource:
-          userConfig.dataSource === "public"
-            ? "firestore"
-            : userConfig.dataSource,
+        dataSource: "firestore",
       });
     } catch (error) {
       toast({

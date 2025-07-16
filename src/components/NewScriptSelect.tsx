@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import { type ProjectJSON } from "../server/api/routers/scriptData";
 import { Label } from "./ui/label";
 import { api } from "~/trpc/react";
+import { useSession } from "next-auth/react";
 
 export default function NewScriptSelect({
   projects,
@@ -21,6 +22,7 @@ export default function NewScriptSelect({
   allData: ProjectJSON[];
 }) {
   const router = useRouter();
+  const { data: session } = useSession();
 
   // add query params to select the project, scene, and character
   const {
@@ -35,19 +37,46 @@ export default function NewScriptSelect({
   } = useContext(ScriptContext);
   const { project, scene, character } = queryParams;
 
-  // Dynamic data fetching based on data source
-  const { data: dynamicData } = api.scriptData.getAll.useQuery(
-    { dataSource: userConfig.dataSource },
+  // Fetch public data (always available)
+  const { data: publicData } = api.scriptData.getAll.useQuery(
+    { dataSource: "public" },
     {
       enabled: true,
       refetchOnWindowFocus: false,
-      refetchOnMount: true, // Always refetch when data source changes
+      refetchOnMount: true,
     },
   );
 
-  // Use dynamic data if available, otherwise fall back to static data
-  const currentProjects = dynamicData?.projects ?? projects;
-  const currentAllData = dynamicData?.allData ?? allData;
+  // Fetch user data (only if authenticated)
+  const { data: userData } = api.scriptData.getAll.useQuery(
+    { dataSource: "firestore" },
+    {
+      enabled: !!session?.user,
+      refetchOnWindowFocus: false,
+      refetchOnMount: true,
+    },
+  );
+
+  // Combine public and user data
+  const publicProjects = publicData?.projects ?? [];
+  const publicAllData = publicData?.allData ?? [];
+  const userProjects = userData?.projects ?? [];
+  const userAllData = userData?.allData ?? [];
+
+  // Create hierarchical project list
+  const hierarchicalProjects = [
+    ...publicProjects.map((project) => ({
+      name: project,
+      type: "public" as const,
+    })),
+    ...userProjects.map((project) => ({
+      name: project,
+      type: "user" as const,
+    })),
+  ];
+
+  // Combine all data for scene/character lookup
+  const currentAllData = [...publicAllData, ...userAllData];
 
   const handleProjectChange = (newProject: string) => {
     setSelectedProject(newProject);
@@ -100,18 +129,6 @@ export default function NewScriptSelect({
     setSelectedCharacter,
   ]);
 
-  // Clear selections when data source changes
-  useEffect(() => {
-    setSelectedProject("");
-    setSelectedScene("");
-    setSelectedCharacter("");
-  }, [
-    userConfig.dataSource,
-    setSelectedProject,
-    setSelectedScene,
-    setSelectedCharacter,
-  ]);
-
   return (
     <div className="flex flex-col gap-4 px-4">
       <Select onValueChange={handleProjectChange} value={selectedProject}>
@@ -121,9 +138,11 @@ export default function NewScriptSelect({
         </SelectTrigger>
         <Label>Scene</Label>
         <SelectContent>
-          {currentProjects?.map((project, index) => (
-            <SelectItem value={project.toString()} key={index}>
-              {project}
+          {hierarchicalProjects.map((project, index) => (
+            <SelectItem value={project.name} key={index}>
+              {project.type === "public"
+                ? `📁 ${project.name}`
+                : `👤 ${project.name}`}
             </SelectItem>
           ))}
         </SelectContent>

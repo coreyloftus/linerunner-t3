@@ -3,7 +3,7 @@ import { ScriptProvider } from "~/app/context";
 import ScriptBox from "./ScriptDisplay/ScriptBox";
 import { api } from "~/trpc/server";
 export default async function ScriptDisplay() {
-  const projectData = await api.scriptData.getAll({ dataSource: "local" });
+  const projectData = await api.scriptData.getAll({ dataSource: "public" });
   return (
     <div>
       <div className="">

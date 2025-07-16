@@ -36,12 +36,12 @@ export const AddScriptDoc = () => {
   const [isAdminMode, setIsAdminMode] = useState(false);
   const { toast } = useToast();
 
-  // Fetch existing projects
+  // Fetch existing projects from public data
   const { data: scriptData, isLoading: isLoadingProjects } =
     api.scriptData.getAll.useQuery(
-      { dataSource: userConfig.dataSource },
+      { dataSource: "public" },
       {
-        enabled: !!session?.user && userConfig.dataSource === "firestore",
+        enabled: true,
       },
     );
 
@@ -240,15 +240,12 @@ export const AddScriptDoc = () => {
         adminEmail: session?.user?.email ?? "",
       });
     } else {
-      // Call the regular mutation to save the script
-      // Note: Public scripts are read-only, so we default to local for saving
-      const saveDataSource =
-        userConfig.dataSource === "public" ? "local" : userConfig.dataSource;
+      // Call the regular mutation to save the script to firestore
       createScriptMutation.mutate({
         projectName: projectName.trim(),
         sceneTitle: sceneTitle.trim(),
         lines: parsedLines,
-        dataSource: saveDataSource,
+        dataSource: "firestore",
       });
     }
   };
@@ -449,39 +446,31 @@ export const AddScriptDoc = () => {
               <div className="flex gap-2">
                 <div className="flex-1">
                   <p className="mb-1 text-sm text-stone-100">Project Name:</p>
-                  {userConfig.dataSource === "firestore" ? (
-                    <div className="space-y-2">
-                      <Select
-                        onValueChange={handleProjectChange}
-                        value={isNewProject ? "new" : projectName}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select existing project or add new..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {scriptData?.projects.map((project) => (
-                            <SelectItem key={project} value={project}>
-                              {project}
-                            </SelectItem>
-                          ))}
-                          <SelectItem value="new">+ Add New Project</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      {isNewProject && (
-                        <Input
-                          placeholder="Enter new project name..."
-                          value={projectName}
-                          onChange={(e) => setProjectName(e.target.value)}
-                        />
-                      )}
-                    </div>
-                  ) : (
-                    <Input
-                      placeholder="Enter project name..."
-                      value={projectName}
-                      onChange={(e) => setProjectName(e.target.value)}
-                    />
-                  )}
+                  <div className="space-y-2">
+                    <Select
+                      onValueChange={handleProjectChange}
+                      value={isNewProject ? "new" : projectName}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select existing project or add new..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {scriptData?.projects.map((project) => (
+                          <SelectItem key={project} value={project}>
+                            {project}
+                          </SelectItem>
+                        ))}
+                        <SelectItem value="new">+ Add New Project</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {isNewProject && (
+                      <Input
+                        placeholder="Enter new project name..."
+                        value={projectName}
+                        onChange={(e) => setProjectName(e.target.value)}
+                      />
+                    )}
+                  </div>
                 </div>
                 <div className="flex-1">
                   <p className="mb-1 text-sm text-stone-100">Scene Title:</p>

@@ -23,9 +23,9 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
     userConfig,
   } = useContext(ScriptContext);
 
-  // Dynamic data fetching based on data source
+  // Always fetch public data
   const { data: dynamicData } = api.scriptData.getAll.useQuery(
-    { dataSource: userConfig.dataSource },
+    { dataSource: "public" },
     {
       enabled: true,
       refetchOnWindowFocus: false,

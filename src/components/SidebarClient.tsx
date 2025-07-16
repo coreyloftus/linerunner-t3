@@ -106,68 +106,18 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
               <NewScriptSelect projects={projects} allData={allData} />
             </div>
 
-            {/* Data Source Configuration */}
+            {/* Refresh Button */}
             <div className="mt-4 px-1">
-              <p className="mb-2 font-bold">Data Source</p>
+              <p className="mb-2 font-bold">Data Management</p>
               <div className="space-y-2">
-                {/* Public Scripts Option - Available to all users */}
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="public-scripts" className="text-sm">
-                    Public Scripts
-                  </Label>
-                  <Switch
-                    id="public-scripts"
-                    checked={userConfig.dataSource === "public"}
-                    onCheckedChange={(checked) => {
-                      setUserConfig({
-                        ...userConfig,
-                        dataSource: checked ? "public" : "local",
-                      });
-                    }}
+                  <Label className="text-sm">Refresh Data</Label>
+                  <RefreshButton
+                    onClick={refreshData}
+                    isLoading={isDataLoading}
+                    size="sm"
                   />
                 </div>
-
-                {session?.user && (
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="data-source" className="text-sm">
-                      Use Database
-                    </Label>
-                    <Switch
-                      id="data-source"
-                      checked={userConfig.dataSource === "firestore"}
-                      onCheckedChange={(checked) => {
-                        setUserConfig({
-                          ...userConfig,
-                          dataSource: checked ? "firestore" : "local",
-                        });
-                      }}
-                      disabled={!session?.user}
-                    />
-                  </div>
-                )}
-                {!session?.user && (
-                  <p className="text-xs text-gray-500">
-                    Sign in to use Database
-                  </p>
-                )}
-
-                {/* Refresh Button - only show when using Firestore */}
-                {session?.user && userConfig.dataSource === "firestore" && (
-                  <div className="flex items-center justify-between">
-                    <Label className="text-sm">Refresh Data</Label>
-                    <RefreshButton
-                      onClick={refreshData}
-                      isLoading={isDataLoading}
-                      size="sm"
-                    />
-                  </div>
-                )}
-
-                {/* <p className="text-xs text-gray-500">
-                  {userConfig.dataSource === "local"
-                    ? "Using local demo files"
-                    : "Using Firestore database"}
-                </p> */}
               </div>
             </div>
 

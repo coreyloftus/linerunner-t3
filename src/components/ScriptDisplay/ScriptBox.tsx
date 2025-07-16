@@ -36,9 +36,9 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     setCurrentLineSplit,
   } = useContext(ScriptContext);
 
-  // Dynamic data fetching based on data source with optimized caching
+  // Always fetch public data with optimized caching
   const { data: dynamicData, isLoading: isDataLoading } = useScriptData({
-    dataSource: userConfig.dataSource,
+    dataSource: "public",
     enableAutoRefresh: false, // Disable auto-refresh to reduce Firestore calls
     cacheTime: 10 * 60 * 1000, // 10 minutes cache
   });
