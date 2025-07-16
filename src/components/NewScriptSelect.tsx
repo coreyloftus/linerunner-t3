@@ -75,8 +75,31 @@ export default function NewScriptSelect({
     })),
   ];
 
-  // Combine all data for scene/character lookup
-  const currentAllData = [...publicAllData, ...userAllData];
+  // Determine which data source to use for scene lookup based on selected project
+  const getSceneData = () => {
+    if (!selectedProject) return [];
+
+    // Check if it's a public project
+    if (publicProjects.includes(selectedProject)) {
+      const project = publicAllData.find(
+        (project) => project.project === selectedProject,
+      );
+      return project?.scenes ?? [];
+    }
+
+    // Check if it's a user project
+    if (userProjects.includes(selectedProject)) {
+      const project = userAllData.find(
+        (project) => project.project === selectedProject,
+      );
+      project?.scenes.sort((a, b) => a.title.localeCompare(b.title));
+      return project?.scenes ?? [];
+    }
+
+    return [];
+  };
+
+  const sceneList = getSceneData();
 
   const handleProjectChange = (newProject: string) => {
     setSelectedProject(newProject);
@@ -94,21 +117,40 @@ export default function NewScriptSelect({
     router.push(newQPs);
   };
 
-  const sceneList = selectedProject
-    ? currentAllData.find((project) => project.project === selectedProject)
-        ?.scenes
-    : [];
+  // Get character list based on selected project and scene
+  const getCharacterData = () => {
+    if (!selectedProject || !selectedScene) return [];
 
-  const characterList = selectedScene
-    ? Array.from(
-        new Set(
-          currentAllData
-            .find((project) => project.project === selectedProject)
-            ?.scenes.find((scene) => scene.title === selectedScene)
-            ?.lines.map((line) => line.character),
-        ),
-      )
-    : [];
+    // Check if it's a public project
+    if (publicProjects.includes(selectedProject)) {
+      const project = publicAllData.find(
+        (project) => project.project === selectedProject,
+      );
+      const scene = project?.scenes.find(
+        (scene) => scene.title === selectedScene,
+      );
+      return Array.from(
+        new Set(scene?.lines.map((line) => line.character) ?? []),
+      );
+    }
+
+    // Check if it's a user project
+    if (userProjects.includes(selectedProject)) {
+      const project = userAllData.find(
+        (project) => project.project === selectedProject,
+      );
+      const scene = project?.scenes.find(
+        (scene) => scene.title === selectedScene,
+      );
+      return Array.from(
+        new Set(scene?.lines.map((line) => line.character) ?? []),
+      );
+    }
+
+    return [];
+  };
+
+  const characterList = getCharacterData();
 
   useEffect(() => {
     if (project) {

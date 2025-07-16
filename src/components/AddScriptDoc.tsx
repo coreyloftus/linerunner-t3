@@ -37,11 +37,20 @@ export const AddScriptDoc = () => {
   const { toast } = useToast();
 
   // Fetch existing projects from public data
-  const { data: scriptData, isLoading: isLoadingProjects } =
+  const { data: publicData, isLoading: isLoadingPublicProjects } =
     api.scriptData.getAll.useQuery(
       { dataSource: "public" },
       {
         enabled: true,
+      },
+    );
+
+  // Fetch existing projects from user data
+  const { data: userData, isLoading: isLoadingUserProjects } =
+    api.scriptData.getAll.useQuery(
+      { dataSource: "firestore" },
+      {
+        enabled: !!session?.user,
       },
     );
 
@@ -161,7 +170,9 @@ export const AddScriptDoc = () => {
       setProjectName("");
     } else {
       setIsNewProject(false);
-      setProjectName(value);
+      // Remove the icon prefix if present
+      const cleanProjectName = value.replace(/^[👤📁]\s*/, "");
+      setProjectName(cleanProjectName);
     }
   };
 
@@ -214,6 +225,12 @@ export const AddScriptDoc = () => {
       return;
     }
 
+    // Determine data source based on selected project
+    const userProjects = userData?.projects ?? [];
+    const publicProjects = publicData?.projects ?? [];
+    const isUserProject = userProjects.includes(projectName.trim());
+    const isPublicProject = publicProjects.includes(projectName.trim());
+
     // Use admin mutation if in admin mode
     if (isAdminMode) {
       if (
@@ -240,12 +257,29 @@ export const AddScriptDoc = () => {
         adminEmail: session?.user?.email ?? "",
       });
     } else {
-      // Call the regular mutation to save the script to firestore
+      // Determine data source based on project type
+      let dataSource: "firestore" | "public" = "firestore";
+
+      if (isPublicProject) {
+        // Only allow adding to public projects in admin mode
+        toast({
+          title: "Error",
+          description: "You can only add to public projects in admin mode",
+          variant: "destructive",
+        });
+        return;
+      } else if (isUserProject) {
+        dataSource = "firestore";
+      } else {
+        // New project - default to firestore
+        dataSource = "firestore";
+      }
+
       createScriptMutation.mutate({
         projectName: projectName.trim(),
         sceneTitle: sceneTitle.trim(),
         lines: parsedLines,
-        dataSource: "firestore",
+        dataSource: dataSource,
       });
     }
   };
@@ -455,11 +489,19 @@ export const AddScriptDoc = () => {
                         <SelectValue placeholder="Select existing project or add new..." />
                       </SelectTrigger>
                       <SelectContent>
-                        {scriptData?.projects.map((project) => (
+                        {/* Show user projects (always available to user) */}
+                        {userData?.projects.map((project) => (
                           <SelectItem key={project} value={project}>
-                            {project}
+                            👤 {project}
                           </SelectItem>
                         ))}
+                        {/* Show public projects only in admin mode */}
+                        {isAdminMode &&
+                          publicData?.projects.map((project) => (
+                            <SelectItem key={project} value={project}>
+                              📁 {project}
+                            </SelectItem>
+                          ))}
                         <SelectItem value="new">+ Add New Project</SelectItem>
                       </SelectContent>
                     </Select>
@@ -486,10 +528,10 @@ export const AddScriptDoc = () => {
             {/* inputs for character names */}
             <div className="flex flex-col gap-2 p-2">
               <p className="text-sm text-stone-100">
-                Enter character names separated by commas:
+                Character names separated by commas:
               </p>
               <Input
-                placeholder="Mulder, Scully, etc."
+                placeholder="Rosenkrantz, Guildenstern, etc."
                 value={scriptCharacterNames.join(", ")}
                 onChange={(e) => handleAddCharacters(e)}
               />
@@ -501,7 +543,19 @@ export const AddScriptDoc = () => {
                 value={newScriptBox}
                 onChange={(e) => setNewScriptBox(e.target.value)}
                 className="h-full w-full resize-none overflow-y-auto border-0 bg-transparent text-sm leading-relaxed text-stone-100 focus-visible:ring-0 dark:text-stone-100"
-                placeholder="Copy/paste your raw script here..."
+                placeholder={`Copy/paste your raw script here.
+
+Character names should be in all caps.
+Ex: 
+STANLEY
+Stella!!!
+
+Sung lines should be in all caps between two character names.
+Ex:
+MARIA
+THE HILLS ARE ALIVE WITH THE SOUND OF MUSIC
+WITH SONGS THEY HAVE SUNG FOR A THOUSAND YEARS
+`}
               />
             </div>
             <div className="p-2">
@@ -512,8 +566,7 @@ export const AddScriptDoc = () => {
                 disabled={
                   createScriptMutation.isPending ||
                   createAdminScriptMutation.isPending ||
-                  (userConfig.dataSource === "firestore" &&
-                    isLoadingProjects) ||
+                  isLoadingUserProjects ||
                   (isAdminMode &&
                     (isLoadingCollections ||
                       isLoadingSubcollections ||

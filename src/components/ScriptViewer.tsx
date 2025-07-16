@@ -4,6 +4,7 @@ import { ScriptContext } from "~/app/context";
 import { type ProjectJSON } from "../server/api/routers/scriptData";
 import { Textarea } from "./ui/textarea";
 import { api } from "~/trpc/react";
+import { useSession } from "next-auth/react";
 
 interface ScriptViewerProps {
   data: {
@@ -13,6 +14,7 @@ interface ScriptViewerProps {
 }
 
 export default function ScriptViewer({ data }: ScriptViewerProps) {
+  const { data: session } = useSession();
   const {
     selectedProject,
     selectedScene,
@@ -23,8 +25,8 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
     userConfig,
   } = useContext(ScriptContext);
 
-  // Always fetch public data
-  const { data: dynamicData } = api.scriptData.getAll.useQuery(
+  // Fetch both public and user data
+  const { data: publicData } = api.scriptData.getAll.useQuery(
     { dataSource: "public" },
     {
       enabled: true,
@@ -32,8 +34,33 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
     },
   );
 
-  // Use dynamic data if available, otherwise fall back to static data
-  const currentData = dynamicData ?? data;
+  const { data: userData } = api.scriptData.getAll.useQuery(
+    { dataSource: "firestore" },
+    {
+      enabled: !!session?.user,
+      refetchOnWindowFocus: false,
+    },
+  );
+
+  // Determine which data to use based on selected project
+  const getCurrentData = () => {
+    if (!selectedProject) return data;
+
+    const publicProjects = publicData?.projects ?? [];
+    const userProjects = userData?.projects ?? [];
+
+    if (publicProjects.includes(selectedProject)) {
+      return publicData ?? data;
+    }
+
+    if (userProjects.includes(selectedProject)) {
+      return userData ?? data;
+    }
+
+    return data;
+  };
+
+  const currentData = getCurrentData();
 
   const script = currentData.allData
     .find((project) => project.project === selectedProject)
