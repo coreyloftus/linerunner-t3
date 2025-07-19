@@ -9,7 +9,7 @@ import { ScriptData } from "~/components/ScriptData";
 import { AddScriptDoc } from "~/components/AddScriptDoc";
 
 export default async function Home() {
-  const projectData = await api.scriptData.getAll({ dataSource: "local" });
+  const projectData = await api.scriptData.getAll({ dataSource: "public" });
   return (
     <div>
       <ScriptProvider>

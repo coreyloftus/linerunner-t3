@@ -25,16 +25,12 @@ export const AuthButton = () => {
   }
 
   if (session) {
-    console.log(session);
     return (
       <DropdownMenu
         trigger={
-          <Button
-            variant="outline"
-            className="rounded-md border border-gray-300 bg-gray-50/50 px-3 py-2 shadow-lg transition-colors hover:bg-gray-50"
-          >
+          <div className="rounded-md border border-gray-300 bg-gray-50/50 px-3 py-2 shadow-lg transition-colors hover:bg-gray-50">
             {session.user?.email ?? "User"}
-          </Button>
+          </div>
         }
       >
         <DropdownMenuItem
@@ -52,10 +48,14 @@ export const AuthButton = () => {
   return (
     <DropdownMenu
       className="flex w-full min-w-[200px]"
-      trigger={<Button variant="outline">Sign In</Button>}
+      trigger={
+        <div className="inline-flex h-9 flex-grow items-center justify-center whitespace-nowrap rounded-md border border-stone-200 px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:cursor-pointer  hover:bg-yellow-400 hover:text-stone-900 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-stone-950 disabled:pointer-events-none disabled:opacity-50 dark:border-stone-800 dark:bg-stone-950 dark:hover:bg-stone-800 dark:hover:text-stone-50 dark:focus-visible:ring-stone-300">
+          Sign In
+        </div>
+      }
     >
       <DropdownMenuItem
-        className="w-full whitespace-nowrap bg-gray-50/75 p-2 hover:bg-white"
+        className="w-full whitespace-nowrap bg-gray-50 p-2 hover:bg-yellow-400"
         onClick={() => signIn("google")}
       >
         <svg
@@ -86,7 +86,7 @@ export const AuthButton = () => {
         Sign in with Google
       </DropdownMenuItem>
       <DropdownMenuItem
-        className="w-full whitespace-nowrap bg-gray-50/75 p-2 hover:bg-white"
+        className="w-full whitespace-nowrap bg-gray-50 p-2 hover:bg-yellow-400"
         onClick={() => signIn("discord")}
       >
         <svg

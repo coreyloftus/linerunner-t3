@@ -36,12 +36,21 @@ export const AddScriptDoc = () => {
   const [isAdminMode, setIsAdminMode] = useState(false);
   const { toast } = useToast();
 
-  // Fetch existing projects
-  const { data: scriptData, isLoading: isLoadingProjects } =
+  // Fetch existing projects from public data
+  const { data: publicData, isLoading: isLoadingPublicProjects } =
     api.scriptData.getAll.useQuery(
-      { dataSource: userConfig.dataSource },
+      { dataSource: "public" },
       {
-        enabled: !!session?.user && userConfig.dataSource === "firestore",
+        enabled: true,
+      },
+    );
+
+  // Fetch existing projects from user data
+  const { data: userData, isLoading: isLoadingUserProjects } =
+    api.scriptData.getAll.useQuery(
+      { dataSource: "firestore" },
+      {
+        enabled: !!session?.user,
       },
     );
 
@@ -161,7 +170,9 @@ export const AddScriptDoc = () => {
       setProjectName("");
     } else {
       setIsNewProject(false);
-      setProjectName(value);
+      // Remove the icon prefix if present
+      const cleanProjectName = value.replace(/^[👤📁]\s*/, "");
+      setProjectName(cleanProjectName);
     }
   };
 
@@ -214,6 +225,12 @@ export const AddScriptDoc = () => {
       return;
     }
 
+    // Determine data source based on selected project
+    const userProjects = userData?.projects ?? [];
+    const publicProjects = publicData?.projects ?? [];
+    const isUserProject = userProjects.includes(projectName.trim());
+    const isPublicProject = publicProjects.includes(projectName.trim());
+
     // Use admin mutation if in admin mode
     if (isAdminMode) {
       if (
@@ -240,15 +257,29 @@ export const AddScriptDoc = () => {
         adminEmail: session?.user?.email ?? "",
       });
     } else {
-      // Call the regular mutation to save the script
-      // Note: Public scripts are read-only, so we default to local for saving
-      const saveDataSource =
-        userConfig.dataSource === "public" ? "local" : userConfig.dataSource;
+      // Determine data source based on project type
+      let dataSource: "firestore" | "public" = "firestore";
+
+      if (isPublicProject) {
+        // Only allow adding to public projects in admin mode
+        toast({
+          title: "Error",
+          description: "You can only add to public projects in admin mode",
+          variant: "destructive",
+        });
+        return;
+      } else if (isUserProject) {
+        dataSource = "firestore";
+      } else {
+        // New project - default to firestore
+        dataSource = "firestore";
+      }
+
       createScriptMutation.mutate({
         projectName: projectName.trim(),
         sceneTitle: sceneTitle.trim(),
         lines: parsedLines,
-        dataSource: saveDataSource,
+        dataSource: dataSource,
       });
     }
   };
@@ -449,39 +480,39 @@ export const AddScriptDoc = () => {
               <div className="flex gap-2">
                 <div className="flex-1">
                   <p className="mb-1 text-sm text-stone-100">Project Name:</p>
-                  {userConfig.dataSource === "firestore" ? (
-                    <div className="space-y-2">
-                      <Select
-                        onValueChange={handleProjectChange}
-                        value={isNewProject ? "new" : projectName}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select existing project or add new..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {scriptData?.projects.map((project) => (
+                  <div className="space-y-2">
+                    <Select
+                      onValueChange={handleProjectChange}
+                      value={isNewProject ? "new" : projectName}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select existing project or add new..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {/* Show user projects (always available to user) */}
+                        {userData?.projects.map((project) => (
+                          <SelectItem key={project} value={project}>
+                            👤 {project}
+                          </SelectItem>
+                        ))}
+                        {/* Show public projects only in admin mode */}
+                        {isAdminMode &&
+                          publicData?.projects.map((project) => (
                             <SelectItem key={project} value={project}>
-                              {project}
+                              📁 {project}
                             </SelectItem>
                           ))}
-                          <SelectItem value="new">+ Add New Project</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      {isNewProject && (
-                        <Input
-                          placeholder="Enter new project name..."
-                          value={projectName}
-                          onChange={(e) => setProjectName(e.target.value)}
-                        />
-                      )}
-                    </div>
-                  ) : (
-                    <Input
-                      placeholder="Enter project name..."
-                      value={projectName}
-                      onChange={(e) => setProjectName(e.target.value)}
-                    />
-                  )}
+                        <SelectItem value="new">+ Add New Project</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {isNewProject && (
+                      <Input
+                        placeholder="Enter new project name..."
+                        value={projectName}
+                        onChange={(e) => setProjectName(e.target.value)}
+                      />
+                    )}
+                  </div>
                 </div>
                 <div className="flex-1">
                   <p className="mb-1 text-sm text-stone-100">Scene Title:</p>
@@ -497,10 +528,10 @@ export const AddScriptDoc = () => {
             {/* inputs for character names */}
             <div className="flex flex-col gap-2 p-2">
               <p className="text-sm text-stone-100">
-                Enter character names separated by commas:
+                Character names separated by commas:
               </p>
               <Input
-                placeholder="Mulder, Scully, etc."
+                placeholder="Rosenkrantz, Guildenstern, etc."
                 value={scriptCharacterNames.join(", ")}
                 onChange={(e) => handleAddCharacters(e)}
               />
@@ -512,7 +543,19 @@ export const AddScriptDoc = () => {
                 value={newScriptBox}
                 onChange={(e) => setNewScriptBox(e.target.value)}
                 className="h-full w-full resize-none overflow-y-auto border-0 bg-transparent text-sm leading-relaxed text-stone-100 focus-visible:ring-0 dark:text-stone-100"
-                placeholder="Copy/paste your raw script here..."
+                placeholder={`Copy/paste your raw script here.
+
+Character names should be in all caps.
+Ex: 
+STANLEY
+Stella!!!
+
+Sung lines should be in all caps between two character names.
+Ex:
+MARIA
+THE HILLS ARE ALIVE WITH THE SOUND OF MUSIC
+WITH SONGS THEY HAVE SUNG FOR A THOUSAND YEARS
+`}
               />
             </div>
             <div className="p-2">
@@ -523,8 +566,7 @@ export const AddScriptDoc = () => {
                 disabled={
                   createScriptMutation.isPending ||
                   createAdminScriptMutation.isPending ||
-                  (userConfig.dataSource === "firestore" &&
-                    isLoadingProjects) ||
+                  isLoadingUserProjects ||
                   (isAdminMode &&
                     (isLoadingCollections ||
                       isLoadingSubcollections ||

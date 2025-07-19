@@ -2,7 +2,7 @@
 import { api } from "~/trpc/server";
 
 export const getAllProjects = async (
-  dataSource: "local" | "firestore" = "local",
+  dataSource: "local" | "firestore" | "public" = "public",
 ) => {
   const projects = await api.scriptData.getAll({ dataSource });
   // console.log("getAllProjects actions hit");
