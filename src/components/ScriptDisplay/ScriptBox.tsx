@@ -333,7 +333,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
   });
 
   return (
-    <div className="flex h-[90dvh] w-[80dvw] flex-col rounded-md border-2 border-stone-200">
+    <div className="flex h-[90dvh] w-[90dvw] flex-col rounded-md border-2 border-stone-200">
       <div className="flex h-[90%] flex-col rounded-md ">
         <div className="pt-safe-top pb-safe-bottom flex-grow overflow-hidden">
           <ul className="overscroll-bounce h-full overflow-y-auto px-2">

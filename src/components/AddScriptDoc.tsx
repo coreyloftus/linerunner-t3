@@ -308,42 +308,57 @@ export const AddScriptDoc = () => {
       const trimmedLine = line.trim();
       if (!trimmedLine) continue; // Skip empty lines
 
-      // Check if this line contains a character name (normalized comparison)
-      const foundCharacter = characterNames.find((name) => {
+      // First check if this is a sung line (all caps) - but exclude simple character names
+      const isCharacterNameOnly = characterNames.some((name) => {
         const normalizedName = normalizeText(name);
         const normalizedLine = normalizeText(trimmedLine);
-        return normalizedLine.includes(normalizedName);
+        return (
+          normalizedLine === normalizedName ||
+          normalizedLine === normalizedName + ":" ||
+          normalizedLine.replace(/[^a-z]/g, "") === normalizedName
+        );
       });
 
-      if (foundCharacter) {
-        // If we have a previous character and line, save it
+      if (!isCharacterNameOnly && isSungLine(trimmedLine)) {
+        // If we have a previous character and line, save it first
         if (currentCharacter && currentLine.trim()) {
           parsedLines.push({
             character: currentCharacter,
             line: currentLine.trim(),
           });
         }
-        // Start new character
-        currentCharacter = foundCharacter;
+        // Add the sung line as a separate line object
+        if (currentCharacter) {
+          parsedLines.push({
+            character: currentCharacter,
+            line: trimmedLine,
+            sung: true,
+          });
+        }
         currentLine = "";
       } else {
-        // Check if this is a sung line (all caps)
-        if (isSungLine(trimmedLine)) {
-          // If we have a previous character and line, save it first
+        // Check if this line is a character name (should be at the start of the line)
+        const foundCharacter = characterNames.find((name) => {
+          const normalizedName = normalizeText(name);
+          const normalizedLine = normalizeText(trimmedLine);
+          // Check if line starts with character name or is exactly the character name
+          return (
+            normalizedLine === normalizedName ||
+            normalizedLine.startsWith(normalizedName + ":") ||
+            normalizedLine.startsWith(normalizedName + " ")
+          );
+        });
+
+        if (foundCharacter) {
+          // If we have a previous character and line, save it
           if (currentCharacter && currentLine.trim()) {
             parsedLines.push({
               character: currentCharacter,
               line: currentLine.trim(),
             });
           }
-          // Add the sung line as a separate line object
-          if (currentCharacter) {
-            parsedLines.push({
-              character: currentCharacter,
-              line: trimmedLine,
-              sung: true,
-            });
-          }
+          // Start new character
+          currentCharacter = foundCharacter;
           currentLine = "";
         } else {
           // This line is regular dialogue for the current character
@@ -385,7 +400,7 @@ export const AddScriptDoc = () => {
   return (
     <div>
       <>
-        <div className="flex h-[90dvh] w-[80dvw] flex-col rounded-md border-2 border-stone-200">
+        <div className="flex h-[90dvh] w-[90dvw] flex-col rounded-md border-2 border-stone-200">
           <div className="flex h-full flex-col rounded-md">
             <div className="flex items-center justify-between border-b border-stone-200 bg-stone-50 px-4 py-3 dark:border-stone-700 dark:bg-stone-800">
               <div className="flex items-center gap-4">
@@ -477,7 +492,7 @@ export const AddScriptDoc = () => {
 
             {/* Project and Scene inputs */}
             <div className="flex flex-col gap-2 p-2">
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row">
                 <div className="flex-1">
                   <p className="mb-1 text-sm text-stone-100">Project Name:</p>
                   <div className="space-y-2">

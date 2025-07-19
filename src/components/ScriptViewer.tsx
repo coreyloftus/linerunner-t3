@@ -106,17 +106,35 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
     const currentLine = script.lines[currentLineIndex];
 
     if (!playScene)
-      return `Ready - Line ${currentLineIndex + 1} of ${totalLines}`;
+      return (
+        <p>
+          Ready - Line {currentLineIndex + 1} of {totalLines}
+        </p>
+      );
 
     if (currentLine && currentLineSplit.length > 0) {
-      return `Playing - Line ${currentLineIndex + 1} of ${totalLines} (Word ${wordIndex + 1} of ${currentLineSplit.length})`;
+      return (
+        <>
+          <p>
+            Line {currentLineIndex + 1} of {totalLines}
+          </p>
+          <p>
+            {" "}
+            Word {wordIndex + 1} of {currentLineSplit.length}
+          </p>
+        </>
+      );
     }
 
-    return `Playing - Line ${currentLineIndex + 1} of ${totalLines}`;
+    return (
+      <p>
+        Line {currentLineIndex + 1} of {totalLines}
+      </p>
+    );
   };
 
   return (
-    <div className="flex h-[90dvh] w-[80dvw] flex-col rounded-md border-2 border-stone-200">
+    <div className="flex h-[90dvh] w-[90dvw] flex-col rounded-md border-2 border-stone-200">
       <div className="flex h-full flex-col rounded-md">
         <div className="flex items-center justify-between border-b border-stone-200 bg-stone-50 px-4 py-3 dark:border-stone-700 dark:bg-stone-800">
           <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">
@@ -127,7 +145,7 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
           </div>
         </div>
 
-        <div className="flex-1 p-4">
+        <div className="p-y-2 flex-1">
           <Textarea
             value={formatScriptForDisplay()}
             readOnly
