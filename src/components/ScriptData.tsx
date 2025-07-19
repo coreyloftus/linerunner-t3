@@ -17,7 +17,7 @@ interface ScriptDataProps {
 }
 export const ScriptData = ({ data }: ScriptDataProps) => {
   const { data: session } = useSession();
-  const { selectedProject, selectedScene, userConfig } =
+  const { selectedProject, selectedScene, selectedCharacter, userConfig } =
     useContext(ScriptContext);
   const { toast } = useToast();
 
@@ -25,8 +25,8 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
   const [editedScript, setEditedScript] = useState<string>("");
   const [originalScript, setOriginalScript] = useState<string>("");
 
-  // Always fetch public data
-  const { data: dynamicData, refetch } = api.scriptData.getAll.useQuery(
+  // Fetch public data (always available)
+  const { data: publicData, refetch } = api.scriptData.getAll.useQuery(
     { dataSource: "public" },
     {
       enabled: true,
@@ -35,12 +35,56 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
     },
   );
 
-  // Use dynamic data if available, otherwise fall back to static data
-  const currentData = dynamicData ?? data;
+  // Fetch user data (only if authenticated)
+  const { data: userData } = api.scriptData.getAll.useQuery(
+    { dataSource: "firestore" },
+    {
+      enabled: !!session?.user,
+      refetchOnWindowFocus: false,
+      refetchOnMount: true,
+    },
+  );
 
-  const script = currentData.allData
-    .find((project) => project.project === selectedProject)
-    ?.scenes.find((scene) => scene.title === selectedScene);
+  // Determine which data source to use based on selected project
+  const getCurrentData = () => {
+    if (!selectedProject) return data;
+
+    const publicProjects = publicData?.projects ?? [];
+    const userProjects = userData?.projects ?? [];
+
+    if (publicProjects.includes(selectedProject)) {
+      return publicData ?? data;
+    }
+
+    if (userProjects.includes(selectedProject)) {
+      return userData ?? data;
+    }
+
+    return data;
+  };
+
+  const currentData = getCurrentData();
+
+  // Only find script if all required context values are present
+  const script =
+    selectedProject && selectedScene && selectedCharacter
+      ? currentData.allData
+          .find((project) => project.project === selectedProject)
+          ?.scenes.find((scene) => scene.title === selectedScene)
+      : null;
+
+  // Debug logging (temporary)
+  console.log("ScriptData Debug:", {
+    selectedProject,
+    selectedScene,
+    selectedCharacter,
+    hasAllValues: !!(selectedProject && selectedScene && selectedCharacter),
+    currentDataProjects: currentData.projects,
+    foundProject: currentData.allData.find(
+      (project) => project.project === selectedProject,
+    ),
+    script,
+  });
 
   const updateScriptMutation = api.scriptData.updateScript.useMutation({
     onSuccess: (data) => {
@@ -134,7 +178,7 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
 
   return (
     <>
-      <div className="flex h-[90dvh] w-[80dvw] flex-col rounded-md border-2 border-stone-200">
+      <div className="flex h-[90dvh] w-[90dvw] flex-col rounded-md border-2 border-stone-200">
         <div className="flex h-full flex-col rounded-md">
           <div className="flex items-center justify-between border-b border-stone-200 bg-stone-50 px-4 py-3 dark:border-stone-700 dark:bg-stone-800">
             <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">
@@ -174,13 +218,23 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
           </div>
           <div className="flex-1 p-4">
             <Textarea
-              value={isEditing ? editedScript : JSON.stringify(script, null, 2)}
+              value={
+                isEditing
+                  ? editedScript
+                  : script
+                    ? JSON.stringify(script, null, 2)
+                    : ""
+              }
               onChange={
                 isEditing ? (e) => setEditedScript(e.target.value) : undefined
               }
               readOnly={!isEditing}
               className="h-full min-h-[60px] resize-none border-0 bg-transparent text-sm leading-relaxed text-stone-100 focus-visible:ring-0 dark:text-stone-100"
-              placeholder="No script selected..."
+              placeholder={
+                !selectedProject || !selectedScene || !selectedCharacter
+                  ? "Please select a project, scene, and character to view script data..."
+                  : "No script data found..."
+              }
             />
           </div>
         </div>
