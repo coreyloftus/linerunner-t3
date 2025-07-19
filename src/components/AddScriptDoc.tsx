@@ -36,12 +36,21 @@ export const AddScriptDoc = () => {
   const [isAdminMode, setIsAdminMode] = useState(false);
   const { toast } = useToast();
 
-  // Fetch existing projects
-  const { data: scriptData, isLoading: isLoadingProjects } =
+  // Fetch existing projects from public data
+  const { data: publicData, isLoading: isLoadingPublicProjects } =
     api.scriptData.getAll.useQuery(
-      { dataSource: userConfig.dataSource },
+      { dataSource: "public" },
       {
-        enabled: !!session?.user && userConfig.dataSource === "firestore",
+        enabled: true,
+      },
+    );
+
+  // Fetch existing projects from user data
+  const { data: userData, isLoading: isLoadingUserProjects } =
+    api.scriptData.getAll.useQuery(
+      { dataSource: "firestore" },
+      {
+        enabled: !!session?.user,
       },
     );
 
@@ -161,7 +170,9 @@ export const AddScriptDoc = () => {
       setProjectName("");
     } else {
       setIsNewProject(false);
-      setProjectName(value);
+      // Remove the icon prefix if present
+      const cleanProjectName = value.replace(/^[👤📁]\s*/, "");
+      setProjectName(cleanProjectName);
     }
   };
 
@@ -214,6 +225,12 @@ export const AddScriptDoc = () => {
       return;
     }
 
+    // Determine data source based on selected project
+    const userProjects = userData?.projects ?? [];
+    const publicProjects = publicData?.projects ?? [];
+    const isUserProject = userProjects.includes(projectName.trim());
+    const isPublicProject = publicProjects.includes(projectName.trim());
+
     // Use admin mutation if in admin mode
     if (isAdminMode) {
       if (
@@ -240,15 +257,29 @@ export const AddScriptDoc = () => {
         adminEmail: session?.user?.email ?? "",
       });
     } else {
-      // Call the regular mutation to save the script
-      // Note: Public scripts are read-only, so we default to local for saving
-      const saveDataSource =
-        userConfig.dataSource === "public" ? "local" : userConfig.dataSource;
+      // Determine data source based on project type
+      let dataSource: "firestore" | "public" = "firestore";
+
+      if (isPublicProject) {
+        // Only allow adding to public projects in admin mode
+        toast({
+          title: "Error",
+          description: "You can only add to public projects in admin mode",
+          variant: "destructive",
+        });
+        return;
+      } else if (isUserProject) {
+        dataSource = "firestore";
+      } else {
+        // New project - default to firestore
+        dataSource = "firestore";
+      }
+
       createScriptMutation.mutate({
         projectName: projectName.trim(),
         sceneTitle: sceneTitle.trim(),
         lines: parsedLines,
-        dataSource: saveDataSource,
+        dataSource: dataSource,
       });
     }
   };
@@ -277,42 +308,57 @@ export const AddScriptDoc = () => {
       const trimmedLine = line.trim();
       if (!trimmedLine) continue; // Skip empty lines
 
-      // Check if this line contains a character name (normalized comparison)
-      const foundCharacter = characterNames.find((name) => {
+      // First check if this is a sung line (all caps) - but exclude simple character names
+      const isCharacterNameOnly = characterNames.some((name) => {
         const normalizedName = normalizeText(name);
         const normalizedLine = normalizeText(trimmedLine);
-        return normalizedLine.includes(normalizedName);
+        return (
+          normalizedLine === normalizedName ||
+          normalizedLine === normalizedName + ":" ||
+          normalizedLine.replace(/[^a-z]/g, "") === normalizedName
+        );
       });
 
-      if (foundCharacter) {
-        // If we have a previous character and line, save it
+      if (!isCharacterNameOnly && isSungLine(trimmedLine)) {
+        // If we have a previous character and line, save it first
         if (currentCharacter && currentLine.trim()) {
           parsedLines.push({
             character: currentCharacter,
             line: currentLine.trim(),
           });
         }
-        // Start new character
-        currentCharacter = foundCharacter;
+        // Add the sung line as a separate line object
+        if (currentCharacter) {
+          parsedLines.push({
+            character: currentCharacter,
+            line: trimmedLine,
+            sung: true,
+          });
+        }
         currentLine = "";
       } else {
-        // Check if this is a sung line (all caps)
-        if (isSungLine(trimmedLine)) {
-          // If we have a previous character and line, save it first
+        // Check if this line is a character name (should be at the start of the line)
+        const foundCharacter = characterNames.find((name) => {
+          const normalizedName = normalizeText(name);
+          const normalizedLine = normalizeText(trimmedLine);
+          // Check if line starts with character name or is exactly the character name
+          return (
+            normalizedLine === normalizedName ||
+            normalizedLine.startsWith(normalizedName + ":") ||
+            normalizedLine.startsWith(normalizedName + " ")
+          );
+        });
+
+        if (foundCharacter) {
+          // If we have a previous character and line, save it
           if (currentCharacter && currentLine.trim()) {
             parsedLines.push({
               character: currentCharacter,
               line: currentLine.trim(),
             });
           }
-          // Add the sung line as a separate line object
-          if (currentCharacter) {
-            parsedLines.push({
-              character: currentCharacter,
-              line: trimmedLine,
-              sung: true,
-            });
-          }
+          // Start new character
+          currentCharacter = foundCharacter;
           currentLine = "";
         } else {
           // This line is regular dialogue for the current character
@@ -354,7 +400,7 @@ export const AddScriptDoc = () => {
   return (
     <div>
       <>
-        <div className="flex h-[90dvh] w-[80dvw] flex-col rounded-md border-2 border-stone-200">
+        <div className="flex h-[90dvh] w-[90dvw] flex-col rounded-md border-2 border-stone-200">
           <div className="flex h-full flex-col rounded-md">
             <div className="flex items-center justify-between border-b border-stone-200 bg-stone-50 px-4 py-3 dark:border-stone-700 dark:bg-stone-800">
               <div className="flex items-center gap-4">
@@ -446,42 +492,42 @@ export const AddScriptDoc = () => {
 
             {/* Project and Scene inputs */}
             <div className="flex flex-col gap-2 p-2">
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row">
                 <div className="flex-1">
                   <p className="mb-1 text-sm text-stone-100">Project Name:</p>
-                  {userConfig.dataSource === "firestore" ? (
-                    <div className="space-y-2">
-                      <Select
-                        onValueChange={handleProjectChange}
-                        value={isNewProject ? "new" : projectName}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select existing project or add new..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {scriptData?.projects.map((project) => (
+                  <div className="space-y-2">
+                    <Select
+                      onValueChange={handleProjectChange}
+                      value={isNewProject ? "new" : projectName}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select existing project or add new..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {/* Show user projects (always available to user) */}
+                        {userData?.projects.map((project) => (
+                          <SelectItem key={project} value={project}>
+                            👤 {project}
+                          </SelectItem>
+                        ))}
+                        {/* Show public projects only in admin mode */}
+                        {isAdminMode &&
+                          publicData?.projects.map((project) => (
                             <SelectItem key={project} value={project}>
-                              {project}
+                              📁 {project}
                             </SelectItem>
                           ))}
-                          <SelectItem value="new">+ Add New Project</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      {isNewProject && (
-                        <Input
-                          placeholder="Enter new project name..."
-                          value={projectName}
-                          onChange={(e) => setProjectName(e.target.value)}
-                        />
-                      )}
-                    </div>
-                  ) : (
-                    <Input
-                      placeholder="Enter project name..."
-                      value={projectName}
-                      onChange={(e) => setProjectName(e.target.value)}
-                    />
-                  )}
+                        <SelectItem value="new">+ Add New Project</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {isNewProject && (
+                      <Input
+                        placeholder="Enter new project name..."
+                        value={projectName}
+                        onChange={(e) => setProjectName(e.target.value)}
+                      />
+                    )}
+                  </div>
                 </div>
                 <div className="flex-1">
                   <p className="mb-1 text-sm text-stone-100">Scene Title:</p>
@@ -497,10 +543,10 @@ export const AddScriptDoc = () => {
             {/* inputs for character names */}
             <div className="flex flex-col gap-2 p-2">
               <p className="text-sm text-stone-100">
-                Enter character names separated by commas:
+                Character names separated by commas:
               </p>
               <Input
-                placeholder="Mulder, Scully, etc."
+                placeholder="Rosenkrantz, Guildenstern, etc."
                 value={scriptCharacterNames.join(", ")}
                 onChange={(e) => handleAddCharacters(e)}
               />
@@ -512,7 +558,19 @@ export const AddScriptDoc = () => {
                 value={newScriptBox}
                 onChange={(e) => setNewScriptBox(e.target.value)}
                 className="h-full w-full resize-none overflow-y-auto border-0 bg-transparent text-sm leading-relaxed text-stone-100 focus-visible:ring-0 dark:text-stone-100"
-                placeholder="Copy/paste your raw script here..."
+                placeholder={`Copy/paste your raw script here.
+
+Character names should be in all caps.
+Ex: 
+STANLEY
+Stella!!!
+
+Sung lines should be in all caps between two character names.
+Ex:
+MARIA
+THE HILLS ARE ALIVE WITH THE SOUND OF MUSIC
+WITH SONGS THEY HAVE SUNG FOR A THOUSAND YEARS
+`}
               />
             </div>
             <div className="p-2">
@@ -523,8 +581,7 @@ export const AddScriptDoc = () => {
                 disabled={
                   createScriptMutation.isPending ||
                   createAdminScriptMutation.isPending ||
-                  (userConfig.dataSource === "firestore" &&
-                    isLoadingProjects) ||
+                  isLoadingUserProjects ||
                   (isAdminMode &&
                     (isLoadingCollections ||
                       isLoadingSubcollections ||

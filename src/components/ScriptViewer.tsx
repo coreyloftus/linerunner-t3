@@ -4,6 +4,7 @@ import { ScriptContext } from "~/app/context";
 import { type ProjectJSON } from "../server/api/routers/scriptData";
 import { Textarea } from "./ui/textarea";
 import { api } from "~/trpc/react";
+import { useSession } from "next-auth/react";
 
 interface ScriptViewerProps {
   data: {
@@ -13,6 +14,7 @@ interface ScriptViewerProps {
 }
 
 export default function ScriptViewer({ data }: ScriptViewerProps) {
+  const { data: session } = useSession();
   const {
     selectedProject,
     selectedScene,
@@ -23,17 +25,42 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
     userConfig,
   } = useContext(ScriptContext);
 
-  // Dynamic data fetching based on data source
-  const { data: dynamicData } = api.scriptData.getAll.useQuery(
-    { dataSource: userConfig.dataSource },
+  // Fetch both public and user data
+  const { data: publicData } = api.scriptData.getAll.useQuery(
+    { dataSource: "public" },
     {
       enabled: true,
       refetchOnWindowFocus: false,
     },
   );
 
-  // Use dynamic data if available, otherwise fall back to static data
-  const currentData = dynamicData ?? data;
+  const { data: userData } = api.scriptData.getAll.useQuery(
+    { dataSource: "firestore" },
+    {
+      enabled: !!session?.user,
+      refetchOnWindowFocus: false,
+    },
+  );
+
+  // Determine which data to use based on selected project
+  const getCurrentData = () => {
+    if (!selectedProject) return data;
+
+    const publicProjects = publicData?.projects ?? [];
+    const userProjects = userData?.projects ?? [];
+
+    if (publicProjects.includes(selectedProject)) {
+      return publicData ?? data;
+    }
+
+    if (userProjects.includes(selectedProject)) {
+      return userData ?? data;
+    }
+
+    return data;
+  };
+
+  const currentData = getCurrentData();
 
   const script = currentData.allData
     .find((project) => project.project === selectedProject)
@@ -79,17 +106,35 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
     const currentLine = script.lines[currentLineIndex];
 
     if (!playScene)
-      return `Ready - Line ${currentLineIndex + 1} of ${totalLines}`;
+      return (
+        <p>
+          Ready - Line {currentLineIndex + 1} of {totalLines}
+        </p>
+      );
 
     if (currentLine && currentLineSplit.length > 0) {
-      return `Playing - Line ${currentLineIndex + 1} of ${totalLines} (Word ${wordIndex + 1} of ${currentLineSplit.length})`;
+      return (
+        <>
+          <p>
+            Line {currentLineIndex + 1} of {totalLines}
+          </p>
+          <p>
+            {" "}
+            Word {wordIndex + 1} of {currentLineSplit.length}
+          </p>
+        </>
+      );
     }
 
-    return `Playing - Line ${currentLineIndex + 1} of ${totalLines}`;
+    return (
+      <p>
+        Line {currentLineIndex + 1} of {totalLines}
+      </p>
+    );
   };
 
   return (
-    <div className="flex h-[90dvh] w-[80dvw] flex-col rounded-md border-2 border-stone-200">
+    <div className="flex h-[90dvh] w-[90dvw] flex-col rounded-md border-2 border-stone-200">
       <div className="flex h-full flex-col rounded-md">
         <div className="flex items-center justify-between border-b border-stone-200 bg-stone-50 px-4 py-3 dark:border-stone-700 dark:bg-stone-800">
           <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">
@@ -100,7 +145,7 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
           </div>
         </div>
 
-        <div className="flex-1 p-4">
+        <div className="p-y-2 flex-1">
           <Textarea
             value={formatScriptForDisplay()}
             readOnly

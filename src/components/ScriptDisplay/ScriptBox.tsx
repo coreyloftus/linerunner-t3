@@ -7,6 +7,8 @@ import { type ProjectJSON } from "../../server/api/routers/scriptData";
 import ControlBar from "../ControlBar";
 import { CharacterLineDisplay } from "./CharacterLineDisplay";
 import { useScriptData } from "~/hooks/useScriptData";
+import { api } from "~/trpc/react";
+import { useSession } from "next-auth/react";
 
 interface ScriptBoxProps {
   data: {
@@ -17,6 +19,7 @@ interface ScriptBoxProps {
 
 export default function ScriptBox({ data }: ScriptBoxProps) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const { data: session } = useSession();
   const {
     selectedProject,
     selectedScene,
@@ -36,15 +39,44 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     setCurrentLineSplit,
   } = useContext(ScriptContext);
 
-  // Dynamic data fetching based on data source with optimized caching
-  const { data: dynamicData, isLoading: isDataLoading } = useScriptData({
-    dataSource: userConfig.dataSource,
-    enableAutoRefresh: false, // Disable auto-refresh to reduce Firestore calls
-    cacheTime: 10 * 60 * 1000, // 10 minutes cache
-  });
+  // Fetch both public and user data
+  const { data: publicData } = api.scriptData.getAll.useQuery(
+    { dataSource: "public" },
+    {
+      enabled: true,
+      refetchOnWindowFocus: false,
+      refetchOnMount: true,
+    },
+  );
 
-  // Use dynamic data if available, otherwise fall back to static data
-  const currentData = dynamicData ?? data;
+  const { data: userData } = api.scriptData.getAll.useQuery(
+    { dataSource: "firestore" },
+    {
+      enabled: !!session?.user,
+      refetchOnWindowFocus: false,
+      refetchOnMount: true,
+    },
+  );
+
+  // Determine which data to use based on selected project
+  const getCurrentData = () => {
+    if (!selectedProject) return data;
+
+    const publicProjects = publicData?.projects ?? [];
+    const userProjects = userData?.projects ?? [];
+
+    if (publicProjects.includes(selectedProject)) {
+      return publicData ?? data;
+    }
+
+    if (userProjects.includes(selectedProject)) {
+      return userData ?? data;
+    }
+
+    return data;
+  };
+
+  const currentData = getCurrentData();
 
   // Local state that doesn't need to persist across tabs
   const [userInput, setUserInput] = useState("");
@@ -301,7 +333,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
   });
 
   return (
-    <div className="flex h-[90dvh] w-[80dvw] flex-col rounded-md border-2 border-stone-200">
+    <div className="flex h-[90dvh] w-[90dvw] flex-col rounded-md border-2 border-stone-200">
       <div className="flex h-[90%] flex-col rounded-md ">
         <div className="pt-safe-top pb-safe-bottom flex-grow overflow-hidden">
           <ul className="overscroll-bounce h-full overflow-y-auto px-2">
