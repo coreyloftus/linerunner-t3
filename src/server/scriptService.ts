@@ -392,12 +392,40 @@ export class ScriptService {
         return { success: false, message: "Project not found" };
       }
 
-      // Update the document with the new script data
+      // Find the scene being updated from the updatedScript
+      const updatedScene = updatedScript.scenes[0]; // The edited scene
+      if (!updatedScene) {
+        return { success: false, message: "No scene data provided" };
+      }
+
+      // Create a new scenes array with the updated scene
+      const updatedScenes = existingProjectDoc.scenes.map((scene) => {
+        // If this is the scene being updated, replace it
+        if (scene.title.trim() === sceneTitle.trim()) {
+          return updatedScene;
+        }
+        // Otherwise, keep the existing scene unchanged
+        return scene;
+      });
+
+      // Check if the scene was found and updated
+      const sceneFound = existingProjectDoc.scenes.some(
+        (scene) => scene.title.trim() === sceneTitle.trim(),
+      );
+
+      if (!sceneFound) {
+        return {
+          success: false,
+          message: `Scene "${sceneTitle}" not found in project`,
+        };
+      }
+
+      // Update only the scenes array, preserving the project name and other properties
       await FirestoreService.updateUserDocument(
         userId,
         "uploaded_data",
         existingProjectDoc.id,
-        updatedScript,
+        { scenes: updatedScenes },
       );
 
       console.log(
@@ -406,7 +434,7 @@ export class ScriptService {
 
       return {
         success: true,
-        message: `Script "${projectName}" updated successfully`,
+        message: `Scene "${sceneTitle}" in project "${projectName}" updated successfully`,
       };
     } catch (error) {
       console.error("❌ [ScriptService.updateScript] Error:", error);

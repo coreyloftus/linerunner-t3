@@ -178,7 +178,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     if (playScene && !awaitingInput) {
       proceedWithScene();
     }
-  }, [playScene, awaitingInput, proceedWithScene]);
+  }, [playScene, awaitingInput, proceedWithScene, wordIndex]);
 
   useEffect(() => {
     if (scrollRef.current) {
