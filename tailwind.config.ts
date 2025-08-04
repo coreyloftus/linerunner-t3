@@ -70,29 +70,7 @@ const config = {
       },
     },
   },
-  plugins: [
-    require("tailwindcss-animate"),
-    // Mobile-first utilities
-    function({ addUtilities }: { addUtilities: (utilities: Record<string, any>) => void }) {
-      addUtilities({
-        '.touch-target': {
-          minHeight: '44px',
-          minWidth: '44px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        },
-        '.mobile-scroll': {
-          '-webkit-overflow-scrolling': 'touch',
-          'overscroll-behavior': 'contain',
-        },
-        '.mobile-tap': {
-          '-webkit-tap-highlight-color': 'transparent',
-          'touch-action': 'manipulation',
-        }
-      })
-    }
-  ],
+  plugins: [require("tailwindcss-animate")],
 } satisfies Config;
 
 export default config;
