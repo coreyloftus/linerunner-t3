@@ -15,7 +15,7 @@ const TabsList = React.forwardRef<
     ref={ref}
     className={cn(
       // Mobile-first design with touch targets
-      "inline-flex h-12 iphone:h-14 items-center justify-center rounded-lg bg-stone-100 p-1 text-stone-500 dark:bg-stone-800 dark:text-stone-400",
+      "inline-flex h-12 iphone:h-14 items-center justify-center rounded-lg bg-stone-100 p-1 text-stone-500 dark:bg-stone-800 dark:text-stone-400 [touch-action:manipulation]",
       // Mobile spacing and overflow handling
       "w-full max-w-md gap-2",
       // Responsive grid for equal width tabs
@@ -35,7 +35,7 @@ const TabsTrigger = React.forwardRef<
     ref={ref}
     className={cn(
       // Mobile-first touch targets and responsive design
-      "min-h-[44px] min-w-[44px] flex flex-col items-center justify-center gap-1 rounded-md transition-all",
+      "min-h-[44px] min-w-[44px] flex flex-col items-center justify-center gap-1 rounded-md transition-all [touch-action:manipulation]",
       // Mobile typography - smaller on mobile, larger on desktop
       "text-mobile-xs iphone:text-mobile-sm md:text-sm font-medium",
       // Mobile padding - more generous touch area

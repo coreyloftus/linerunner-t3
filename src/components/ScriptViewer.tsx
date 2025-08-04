@@ -135,7 +135,7 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
   };
 
   return (
-    <div className="flex h-[90dvh] w-[95dvw] flex-col rounded-md border-2 border-stone-200">
+    <div className="flex h-[90dvh] w-[95dvw] flex-col rounded-md border-2 border-stone-200 supports-[height:100svh]:h-[90svh]">
       <div className="flex h-full flex-col rounded-md">
         {/* Mobile-optimized header */}
         <div className="iphone:flex-row iphone:items-center iphone:justify-between iphone:px-4 iphone:py-3 flex flex-col border-b border-stone-200 bg-stone-50 px-3 py-2 dark:border-stone-700 dark:bg-stone-800">
@@ -156,7 +156,7 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
                       resize-none overflow-y-auto border-0 
                       bg-transparent p-3
                       font-mono leading-relaxed text-stone-100
-                      [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain]
+                      [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain] [touch-action:pan-y]
                       focus-visible:ring-0
                       dark:text-stone-100 md:text-sm"
             placeholder="No script selected..."
