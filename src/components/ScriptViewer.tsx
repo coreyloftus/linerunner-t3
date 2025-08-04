@@ -135,11 +135,11 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
   };
 
   return (
-    <div className="flex h-[90dvh] supports-[height:100svh]:h-[85svh] w-full max-w-[95vw] iphone:max-w-[90vw] md:max-w-[90vw] flex-col rounded-md border-2 border-stone-200">
+    <div className="flex h-[90dvh] w-[95dvw] flex-col rounded-md border-2 border-stone-200">
       <div className="flex h-full flex-col rounded-md">
         {/* Mobile-optimized header */}
-        <div className="flex flex-col iphone:flex-row iphone:items-center iphone:justify-between border-b border-stone-200 bg-stone-50 px-3 iphone:px-4 py-2 iphone:py-3 dark:border-stone-700 dark:bg-stone-800">
-          <h2 className="text-mobile-base iphone:text-lg font-semibold text-stone-900 dark:text-stone-100 mb-1 iphone:mb-0">
+        <div className="iphone:flex-row iphone:items-center iphone:justify-between iphone:px-4 iphone:py-3 flex flex-col border-b border-stone-200 bg-stone-50 px-3 py-2 dark:border-stone-700 dark:bg-stone-800">
+          <h2 className="text-mobile-base iphone:text-lg iphone:mb-0 mb-1 font-semibold text-stone-900 dark:text-stone-100">
             Script Viewer
           </h2>
           <div className="text-mobile-xs iphone:text-sm text-stone-600 dark:text-stone-400">
@@ -152,13 +152,13 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
           <Textarea
             value={formatScriptForDisplay()}
             readOnly
-            className="h-full min-h-[60px] resize-none border-0 bg-transparent font-mono 
-                      text-mobile-sm iphone:text-mobile-base md:text-sm 
-                      leading-relaxed iphone:leading-loose
-                      text-stone-100 focus-visible:ring-0 dark:text-stone-100
-                      p-3 iphone:p-4
-                      overflow-y-auto
-                      [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain]"
+            className="text-mobile-sm iphone:text-mobile-base iphone:leading-loose iphone:p-4 h-full min-h-[60px] 
+                      resize-none overflow-y-auto border-0 
+                      bg-transparent p-3
+                      font-mono leading-relaxed text-stone-100
+                      [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain]
+                      focus-visible:ring-0
+                      dark:text-stone-100 md:text-sm"
             placeholder="No script selected..."
           />
         </div>

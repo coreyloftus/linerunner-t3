@@ -384,7 +384,7 @@ export const AddScriptDoc = () => {
   // If user is not authenticated, show message
   if (!session?.user) {
     return (
-      <div className="flex h-[90dvh] w-[80dvw] flex-col items-center justify-center rounded-md border-2 border-stone-200">
+      <div className="flex h-[90dvh] w-[95dvw] flex-col items-center justify-center rounded-md border-2 border-stone-200">
         <div className="text-center">
           <h2 className="mb-4 text-lg font-semibold text-stone-900 dark:text-stone-100">
             Authentication Required
