@@ -83,39 +83,49 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
 
   return (
     <>
+      {/* Backdrop overlay for mobile */}
+      {navOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 transition-opacity duration-300 iphone:bg-black/40 md:hidden"
+          style={{ zIndex: 40 }}
+          onClick={() => setNavOpen(false)}
+        />
+      )}
+
       {/* sidebar */}
       <div
         ref={sidebarRef}
-        className={`fixed left-0 top-0 h-full transform border-r-2 border-stone-200 bg-stone-400 transition-all duration-500 ease-in-out ${
+        className={`fixed left-0 top-0 h-full transform border-r-2 border-stone-200 bg-stone-400 transition-all duration-300 ease-out ${
           navOpen
-            ? "w-[75vw] translate-x-0 opacity-100 sm:w-[75vw] md:w-[33vw]"
-            : "w-[75vw] -translate-x-full opacity-100 sm:w-[75vw] md:w-[33vw]"
+            ? "w-[85vw] translate-x-0 opacity-100 xs:w-[80vw] iphone:w-[75vw] md:w-[33vw]"
+            : "w-[85vw] -translate-x-full opacity-100 xs:w-[80vw] iphone:w-[75vw] md:w-[33vw]"
         }`}
         style={{ zIndex: 50 }}
       >
         {/* Content area - only visible when open */}
         <div
-          className={`h-full transition-opacity duration-300 ${navOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
+          className={`h-full transition-opacity duration-200 ${navOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
         >
-          <div className="pt-2">
+          <div className="pt-3 iphone:pt-2">
             <div className="flex justify-end p-2">
               <AuthButton />
             </div>
-            <div className="px-1">
-              <p className="mb-2 font-bold">Script Select</p>
+            <div className="px-2 iphone:px-1">
+              <p className="mb-2 text-mobile-base iphone:text-base font-bold">Script Select</p>
               <NewScriptSelect projects={projects} allData={allData} />
             </div>
 
             {/* Refresh Button */}
-            <div className="mt-4 px-1">
-              <p className="mb-2 font-bold">Data Management</p>
+            <div className="mt-4 px-2 iphone:px-1">
+              <p className="mb-2 text-mobile-base iphone:text-base font-bold">Data Management</p>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label className="text-sm">Refresh Data</Label>
+                  <Label className="text-mobile-sm iphone:text-sm">Refresh Data</Label>
                   <RefreshButton
                     onClick={refreshData}
                     isLoading={isDataLoading}
                     size="sm"
+                    className="min-h-[44px] min-w-[44px] iphone:min-h-[36px] iphone:min-w-[36px] touch-manipulation"
                   />
                 </div>
               </div>
@@ -140,7 +150,7 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
             </div>
           </div>
 
-          <div className="fixed bottom-0 mb-16 pl-2 font-mono text-sm">
+          <div className="fixed bottom-0 mb-16 pl-2 font-mono text-mobile-xs iphone:text-sm">
             LineRunner by Corey -- ©2025
           </div>
         </div>
@@ -153,10 +163,10 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
       >
         <Button
           onClick={() => setNavOpen(!navOpen)}
-          className="h-full w-full rounded-md bg-stone-500 p-0 text-white hover:bg-stone-600"
+          className="h-full w-full min-h-[48px] min-w-[48px] touch-manipulation rounded-md bg-stone-500 p-0 text-white hover:bg-stone-600 active:bg-stone-700 transition-colors duration-200"
         >
           <IoChevronForward
-            className={`h-8 w-8 transition-transform duration-300 ${
+            className={`h-8 w-8 transition-transform duration-200 ${
               navOpen ? "rotate-180" : "rotate-0"
             } ${!selectedProject.length && !selectedScene.length && !selectedCharacter.length ? "blink-on-and-off" : ""}`}
           />
