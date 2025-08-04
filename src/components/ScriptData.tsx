@@ -609,7 +609,7 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
   // If user is not authenticated, show message
   if (!session?.user) {
     return (
-      <div className="flex h-[90dvh] w-[95dvw] flex-col items-center justify-center rounded-md border-2 border-stone-700 bg-stone-900 supports-[height:100svh]:h-[90svh]">
+      <div className="flex h-[90dvh] w-[95dvw] flex-col justify-center rounded-md border-2 border-stone-700 bg-stone-900 supports-[height:100svh]:h-[90svh]">
         <div className="px-4 text-center">
           <h2 className="text-mobile-lg iphone:text-lg mb-4 font-semibold text-stone-100">
             Authentication Required
@@ -623,7 +623,7 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
   }
 
   return (
-    <div className="flex h-[90dvh] w-[95dvw] flex-col rounded-md border-2 border-stone-700 bg-stone-900 supports-[height:100svh]:h-[90svh]">
+    <div className="flex h-[90dvh] w-[95dvw] flex-col rounded-md border-2 border-stone-700 bg-stone-900 font-mono supports-[height:100svh]:h-[90svh]">
       <div className="flex h-full flex-col rounded-md">
         {/* Header */}
         <div className="iphone:flex-row iphone:items-center iphone:justify-between iphone:space-y-0 iphone:px-4 iphone:py-3 flex flex-col space-y-2 border-b border-stone-700 bg-stone-800 px-3 py-2">
@@ -644,10 +644,10 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
         {/* Form Content */}
         <div className="iphone:p-4 flex-1 overflow-auto p-3 [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain] [touch-action:pan-y]">
           {!script ? (
-            <div className="flex h-full items-center justify-center text-center">
+            <div className="flex h-full">
               <p className="text-stone-400">
                 Please select a project, scene, and character to edit script
-                data...
+                data.
               </p>
             </div>
           ) : (
