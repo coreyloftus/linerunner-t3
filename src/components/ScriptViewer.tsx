@@ -73,9 +73,10 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
 
     return script.lines
       .map((line, index) => {
-        const lineNumber = (index + 1).toString().padStart(3, " ");
+        // Mobile-optimized line number formatting - shorter on mobile
+        const lineNumber = (index + 1).toString().padStart(2, " ");
         const isCurrentLine = index === currentLineIndex;
-        const currentLineIndicator = isCurrentLine ? "▶ " : "   ";
+        const currentLineIndicator = isCurrentLine ? "▶ " : "  ";
 
         let lineText = `${lineNumber} | ${line.character}: ${line.line}`;
 
@@ -134,22 +135,30 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
   };
 
   return (
-    <div className="flex h-[90dvh] w-[90dvw] flex-col rounded-md border-2 border-stone-200">
+    <div className="flex h-[90dvh] supports-[height:100svh]:h-[85svh] w-full max-w-[95vw] iphone:max-w-[90vw] md:max-w-[90vw] flex-col rounded-md border-2 border-stone-200">
       <div className="flex h-full flex-col rounded-md">
-        <div className="flex items-center justify-between border-b border-stone-200 bg-stone-50 px-4 py-3 dark:border-stone-700 dark:bg-stone-800">
-          <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">
+        {/* Mobile-optimized header */}
+        <div className="flex flex-col iphone:flex-row iphone:items-center iphone:justify-between border-b border-stone-200 bg-stone-50 px-3 iphone:px-4 py-2 iphone:py-3 dark:border-stone-700 dark:bg-stone-800">
+          <h2 className="text-mobile-base iphone:text-lg font-semibold text-stone-900 dark:text-stone-100 mb-1 iphone:mb-0">
             Script Viewer
           </h2>
-          <div className="text-sm text-stone-600 dark:text-stone-400">
+          <div className="text-mobile-xs iphone:text-sm text-stone-600 dark:text-stone-400">
             {getStatusText()}
           </div>
         </div>
 
-        <div className="p-y-2 flex-1">
+        {/* Mobile-optimized content area */}
+        <div className="flex-1 overflow-hidden">
           <Textarea
             value={formatScriptForDisplay()}
             readOnly
-            className="h-full min-h-[60px] resize-none border-0 bg-transparent font-mono text-sm leading-relaxed text-stone-100 focus-visible:ring-0 dark:text-stone-100"
+            className="h-full min-h-[60px] resize-none border-0 bg-transparent font-mono 
+                      text-mobile-sm iphone:text-mobile-base md:text-sm 
+                      leading-relaxed iphone:leading-loose
+                      text-stone-100 focus-visible:ring-0 dark:text-stone-100
+                      p-3 iphone:p-4
+                      overflow-y-auto
+                      [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain]"
             placeholder="No script selected..."
           />
         </div>
