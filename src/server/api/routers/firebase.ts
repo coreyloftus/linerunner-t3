@@ -31,6 +31,7 @@ export const firebaseRouter = createTRPCRouter({
   getDocuments: publicProcedure
     .input(z.object({ collectionName: z.string() }))
     .query(async ({ input }) => {
+      console.log("🧪 [debug] getDocuments");
       try {
         const documents = await FirestoreService.getDocuments(
           input.collectionName,

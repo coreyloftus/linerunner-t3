@@ -5,8 +5,8 @@ import { TRPCReactProvider } from "~/trpc/react";
 import { Toaster } from "../components/ui/toaster";
 import { Providers } from "~/components/Providers";
 export const metadata = {
-  title: "LineRunner T3",
-  description: "LineRunner T3",
+  title: "LineRunner",
+  description: "LineRunner",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 

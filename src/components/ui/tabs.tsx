@@ -14,7 +14,12 @@ const TabsList = React.forwardRef<
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      "inline-flex h-9 items-center justify-center rounded-lg bg-stone-100 p-1 text-stone-500 dark:bg-stone-800 dark:text-stone-400",
+      // Mobile-first design with touch targets
+      "inline-flex h-12 iphone:h-14 items-center justify-center rounded-lg bg-stone-100 p-1 text-stone-500 dark:bg-stone-800 dark:text-stone-400 [touch-action:manipulation]",
+      // Mobile spacing and overflow handling
+      "w-full max-w-md gap-2",
+      // Responsive grid for equal width tabs
+      "grid grid-cols-4",
       className,
     )}
     {...props}
@@ -29,7 +34,22 @@ const TabsTrigger = React.forwardRef<
   <TabsPrimitive.Trigger
     ref={ref}
     className={cn(
-      "data-[state=active]:bg-newStyle-accent-color dark:data-[state=active]:bg-newStyle-accent-color inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-white transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:text-stone-950 data-[state=active]:shadow dark:ring-offset-stone-950 dark:focus-visible:ring-stone-300 dark:data-[state=active]:text-stone-950",
+      // Mobile-first touch targets and responsive design
+      "min-h-[44px] min-w-[44px] flex flex-col items-center justify-center gap-1 rounded-md transition-all [touch-action:manipulation]",
+      // Mobile typography - smaller on mobile, larger on desktop
+      "text-mobile-xs iphone:text-mobile-sm md:text-sm font-medium",
+      // Mobile padding - more generous touch area
+      "px-1 py-2 iphone:px-2 md:px-3",
+      // Active state styling
+      "data-[state=active]:bg-newStyle-accent-color dark:data-[state=active]:bg-newStyle-accent-color",
+      "data-[state=active]:text-stone-950 data-[state=active]:shadow",
+      // Focus and accessibility
+      "ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-950 focus-visible:ring-offset-2",
+      "dark:ring-offset-stone-950 dark:focus-visible:ring-stone-300 dark:data-[state=active]:text-stone-950",
+      // Disabled state
+      "disabled:pointer-events-none disabled:opacity-50",
+      // Responsive behavior
+      "whitespace-nowrap overflow-hidden text-ellipsis",
       className,
     )}
     {...props}
