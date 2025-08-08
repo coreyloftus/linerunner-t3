@@ -17,7 +17,7 @@ export function ControlButton({
   className = "",
 }: ControlButtonProps) {
   const baseClasses =
-    "border-0 bg-white shadow-sm transition-all duration-200 hover:bg-gray-50 hover:shadow-md";
+    "border border-stone-300 bg-stone-50 shadow-sm transition-all duration-200 hover:bg-stone-200 hover:shadow-md hover:scale-105 active:scale-95 dark:border-stone-600 dark:bg-stone-700 dark:hover:bg-stone-600";
 
   const sizeClasses = {
     small: "h-10 w-10 rounded-full",
@@ -30,8 +30,8 @@ export function ControlButton({
   };
 
   const iconSizeClasses = {
-    small: "text-lg text-gray-700",
-    large: "text-xl text-gray-600 sm:text-2xl",
+    small: "text-lg text-stone-700 dark:text-stone-200",
+    large: "text-xl text-stone-700 sm:text-2xl dark:text-stone-200",
   };
 
   return (
