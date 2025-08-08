@@ -3,7 +3,7 @@ import { type ProjectJSON } from "~/server/api/routers/scriptData";
 import NewScriptSelect from "./NewScriptSelect";
 import { Button } from "./ui/button";
 import { useContext, useEffect, useState, useRef } from "react";
-import { IoChevronForward } from "react-icons/io5";
+import { IoMenu, IoClose } from "react-icons/io5";
 import { ScriptContext } from "~/app/context";
 import { AuthButton } from "./AuthButton";
 import { Switch } from "./ui/switch";
@@ -99,7 +99,18 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
           className={`h-full transition-opacity duration-300 ${navOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
         >
           <div className="pt-2">
-            <div className="flex justify-end p-2">
+            <div className="flex items-center justify-between p-2">
+              {/* Close button for mobile */}
+              <Button
+                onClick={() => setNavOpen(false)}
+                variant="ghost"
+                size="sm"
+                className="p-2 text-stone-600 hover:bg-stone-200 dark:text-stone-400 dark:hover:bg-stone-700 md:hidden"
+                aria-label="Close sidebar"
+              >
+                <IoClose className="h-5 w-5" />
+              </Button>
+              <div className="md:hidden" /> {/* Spacer for mobile */}
               <AuthButton />
             </div>
             <div className="px-1">
@@ -159,19 +170,20 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
         </div>
       </div>
 
-      {/* Arrow button - always visible, positioned outside sidebar */}
+      {/* Hamburger menu button - always visible, positioned at top-right */}
       <div
         ref={arrowButtonRef}
-        className="fixed bottom-1 left-1 z-[60] flex h-12 w-12 items-center justify-center"
+        className="fixed top-4 right-4 z-[60] flex h-12 w-12 items-center justify-center"
       >
         <Button
           onClick={() => setNavOpen(!navOpen)}
-          className="h-full w-full rounded-md bg-stone-700 p-0 text-white hover:bg-stone-800 dark:bg-stone-600 dark:hover:bg-stone-700"
+          className="h-full w-full rounded-lg bg-stone-100/90 p-0 text-stone-700 shadow-lg backdrop-blur-sm hover:bg-stone-200 dark:bg-stone-800/90 dark:text-stone-200 dark:hover:bg-stone-700"
+          aria-label={navOpen ? "Close menu" : "Open menu"}
         >
-          <IoChevronForward
-            className={`h-8 w-8 transition-transform duration-300 ${
-              navOpen ? "rotate-180" : "rotate-0"
-            } ${!selectedProject.length && !selectedScene.length && !selectedCharacter.length ? "blink-on-and-off" : ""}`}
+          <IoMenu
+            className={`h-6 w-6 transition-all duration-300 ${
+              !selectedProject.length && !selectedScene.length && !selectedCharacter.length ? "blink-on-and-off" : ""
+            }`}
           />
         </Button>
       </div>
