@@ -13,6 +13,13 @@
   --foreground: 0 0% 95%;
 }
 
+/* Apply theme colors to document */
+html,
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
 .scrollbar-custom {
   scrollbar-width: thin; /* Firefox */
   scrollbar-color: #a1a097 #a1a097; /* Color for Firefox */

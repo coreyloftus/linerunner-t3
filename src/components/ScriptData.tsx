@@ -576,10 +576,10 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
   }
 
   return (
-    <div className="flex h-[90dvh] w-[90dvw] flex-col rounded-md border-2 border-stone-700 bg-stone-900">
+    <div className="flex h-[90dvh] w-[90dvw] flex-col rounded-md border-2 border-stone-900 bg-stone-100 dark:bg-stone-900">
       <div className="flex h-full flex-col rounded-md">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-stone-700 bg-stone-800 px-4 py-3">
+        <div className="flex items-center justify-between border-b border-stone-700 bg-stone-900 px-4 py-3">
           <h2 className="text-lg font-semibold text-stone-100">
             Script Data Editor
           </h2>
@@ -598,7 +598,7 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
         <div className="flex-1 overflow-auto p-4">
           {!script ? (
             <div className="flex h-full items-center justify-center text-center">
-              <p className="text-stone-400">
+              <p className="text-stone-900 dark:text-stone-400">
                 Please select a project, scene, and character to edit script
                 data...
               </p>
@@ -608,7 +608,10 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
               {/* Project and Scene Row */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="projectName" className="text-stone-200">
+                  <Label
+                    htmlFor="projectName"
+                    className="text-stone-900 dark:text-stone-200"
+                  >
                     Project Name
                   </Label>
                   <Input
@@ -622,7 +625,10 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="sceneTitle" className="text-stone-200">
+                  <Label
+                    htmlFor="sceneTitle"
+                    className="text-stone-900 dark:text-stone-200"
+                  >
                     Scene Title
                   </Label>
                   <Input

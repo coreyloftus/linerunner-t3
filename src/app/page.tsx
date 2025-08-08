@@ -16,7 +16,7 @@ export default async function Home() {
         <div className="fixed left-0 top-0 z-10">
           <Sidebar />
         </div>
-        <div className="flex min-h-[100dvh] flex-col items-center justify-center bg-[#1e1e1e] p-4 text-white">
+        <div className="flex min-h-[100dvh] flex-col items-center justify-center bg-[hsl(var(--background))] p-4 text-[hsl(var(--foreground))] transition-colors">
           <Tabs
             defaultValue="runner"
             className="flex w-full flex-1 flex-col items-center justify-center"

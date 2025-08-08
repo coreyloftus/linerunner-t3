@@ -87,7 +87,7 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
       {/* sidebar */}
       <div
         ref={sidebarRef}
-        className={`fixed left-0 top-0 h-full transform border-r-2 border-stone-200 bg-stone-400 transition-all duration-500 ease-in-out dark:border-stone-700 dark:bg-stone-800 ${
+        className={`fixed left-0 top-0 h-full transform border-r border-stone-200 bg-stone-50/95 backdrop-blur-sm transition-all duration-500 ease-in-out dark:border-stone-800 dark:bg-stone-900/90 ${
           navOpen
             ? "w-[75vw] translate-x-0 opacity-100 sm:w-[75vw] md:w-[33vw]"
             : "w-[75vw] -translate-x-full opacity-100 sm:w-[75vw] md:w-[33vw]"
@@ -103,20 +103,28 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
               <AuthButton />
             </div>
             <div className="px-1">
-              <p className="mb-2 font-bold text-stone-900 dark:text-stone-100">Script Select</p>
+              <p className="mb-2 font-bold text-stone-900 dark:text-stone-100">
+                Script Select
+              </p>
               <NewScriptSelect projects={projects} allData={allData} />
             </div>
 
             {/* Refresh Button */}
             <div className="mt-4 px-1">
-              <p className="mb-2 font-bold text-stone-900 dark:text-stone-100">Settings</p>
+              <p className="mb-2 font-bold text-stone-900 dark:text-stone-100">
+                Settings
+              </p>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label className="text-sm text-stone-800 dark:text-stone-200">Theme</Label>
+                  <Label className="text-sm text-stone-800 dark:text-stone-200">
+                    Theme
+                  </Label>
                   <ThemeToggle />
                 </div>
                 <div className="flex items-center justify-between">
-                  <Label className="text-sm text-stone-800 dark:text-stone-200">Refresh Data</Label>
+                  <Label className="text-sm text-stone-800 dark:text-stone-200">
+                    Refresh Data
+                  </Label>
                   <RefreshButton
                     onClick={refreshData}
                     isLoading={isDataLoading}
@@ -145,7 +153,7 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
             </div>
           </div>
 
-          <div className="fixed bottom-0 mb-16 pl-2 font-mono text-sm text-stone-700 dark:text-stone-400">
+          <div className="fixed bottom-0 mb-16 pl-2 font-mono text-sm text-stone-600 dark:text-stone-400">
             LineRunner by Corey -- ©2025
           </div>
         </div>
@@ -158,7 +166,7 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
       >
         <Button
           onClick={() => setNavOpen(!navOpen)}
-          className="h-full w-full rounded-md bg-stone-500 p-0 text-white hover:bg-stone-600 dark:bg-stone-600 dark:hover:bg-stone-700"
+          className="h-full w-full rounded-md bg-stone-700 p-0 text-white hover:bg-stone-800 dark:bg-stone-600 dark:hover:bg-stone-700"
         >
           <IoChevronForward
             className={`h-8 w-8 transition-transform duration-300 ${

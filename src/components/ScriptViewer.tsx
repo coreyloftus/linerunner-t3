@@ -22,7 +22,6 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
     wordIndex,
     playScene,
     currentLineSplit,
-    userConfig,
   } = useContext(ScriptContext);
 
   // Fetch both public and user data
@@ -107,7 +106,7 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
 
     if (!playScene)
       return (
-        <p>
+        <p className="text-stone-900 dark:text-stone-100">
           Ready - Line {currentLineIndex + 1} of {totalLines}
         </p>
       );
@@ -115,10 +114,10 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
     if (currentLine && currentLineSplit.length > 0) {
       return (
         <>
-          <p>
+          <p className="text-stone-900 dark:text-stone-100">
             Line {currentLineIndex + 1} of {totalLines}
           </p>
-          <p>
+          <p className="text-stone-900 dark:text-stone-100">
             {" "}
             Word {wordIndex + 1} of {currentLineSplit.length}
           </p>
@@ -127,20 +126,20 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
     }
 
     return (
-      <p>
+      <p className="text-stone-900 dark:text-stone-100">
         Line {currentLineIndex + 1} of {totalLines}
       </p>
     );
   };
 
   return (
-    <div className="flex h-[90dvh] w-[90dvw] flex-col rounded-md border-2 border-stone-200">
+    <div className="flex h-[90dvh] w-[90dvw] flex-col rounded-md border-2 border-stone-900 bg-stone-100 dark:bg-stone-900">
       <div className="flex h-full flex-col rounded-md">
-        <div className="flex items-center justify-between border-b border-stone-200 bg-stone-50 px-4 py-3 dark:border-stone-700 dark:bg-stone-800">
-          <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">
+        <div className="flex items-center justify-between border-b border-stone-900 bg-stone-900 px-4 py-3">
+          <h2 className="text-lg font-semibold text-stone-100 dark:text-stone-900">
             Script Viewer
           </h2>
-          <div className="text-sm text-stone-600 dark:text-stone-400">
+          <div className="text-sm text-stone-100 dark:text-stone-900">
             {getStatusText()}
           </div>
         </div>
@@ -149,7 +148,7 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
           <Textarea
             value={formatScriptForDisplay()}
             readOnly
-            className="h-full min-h-[60px] resize-none border-0 bg-transparent font-mono text-sm leading-relaxed text-stone-100 focus-visible:ring-0 dark:text-stone-100"
+            className="h-full min-h-[60px] resize-none border-0 bg-transparent font-mono text-sm leading-relaxed text-stone-900 focus-visible:ring-0 dark:text-stone-100"
             placeholder="No script selected..."
           />
         </div>
