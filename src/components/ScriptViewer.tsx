@@ -133,7 +133,7 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
   };
 
   return (
-    <div className="flex h-[90dvh] w-[90dvw] flex-col rounded-md border-2 border-stone-900 bg-stone-100 dark:bg-stone-900">
+    <div className="flex h-[90dvh] w-[90dvw] flex-col rounded-md border-2 border-stone-200 bg-stone-100 dark:bg-stone-900">
       <div className="flex h-full flex-col rounded-md">
         <div className="flex items-center justify-between rounded-md border-b border-stone-200 bg-stone-50 px-4 py-3 dark:border-stone-700 dark:bg-stone-800">
           <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">

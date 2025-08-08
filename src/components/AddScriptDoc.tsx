@@ -426,12 +426,14 @@ export const AddScriptDoc = () => {
             {/* Admin Mode Configuration */}
             {isAdmin && isAdminMode && (
               <div className="flex flex-col gap-2 border-b border-stone-200 p-2">
-                <p className="text-sm font-semibold text-stone-100">
+                <p className="text-sm font-semibold text-stone-900 dark:text-stone-100">
                   Admin Configuration:
                 </p>
                 <div className="grid grid-cols-3 gap-2">
                   <div>
-                    <p className="mb-1 text-xs text-stone-100">Collection:</p>
+                    <p className="mb-1 text-xs text-stone-900 dark:text-stone-100">
+                      Collection:
+                    </p>
                     <Select
                       onValueChange={setSelectedCollection}
                       value={selectedCollection}
@@ -449,7 +451,9 @@ export const AddScriptDoc = () => {
                     </Select>
                   </div>
                   <div>
-                    <p className="mb-1 text-xs text-stone-100">Document ID:</p>
+                    <p className="mb-1 text-xs text-stone-900 dark:text-stone-100">
+                      Document ID:
+                    </p>
                     <Select
                       onValueChange={setSelectedDocumentId}
                       value={selectedDocumentId}
@@ -467,7 +471,7 @@ export const AddScriptDoc = () => {
                     </Select>
                   </div>
                   <div>
-                    <p className="mb-1 text-xs text-stone-100">
+                    <p className="mb-1 text-xs text-stone-900 dark:text-stone-100">
                       Subcollection:
                     </p>
                     <Select

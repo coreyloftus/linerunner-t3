@@ -84,7 +84,7 @@ const SortableLineItem = ({
     <div
       ref={setNodeRef}
       style={style}
-      className="grid grid-cols-12 items-start gap-2 rounded-md border border-stone-700 bg-stone-800 p-3"
+      className="grid grid-cols-12 items-start gap-2 rounded-md border border-stone-200 bg-stone-100 p-3 dark:border-stone-700 dark:bg-stone-800"
     >
       {/* Drag Handle */}
       <div
@@ -92,11 +92,15 @@ const SortableLineItem = ({
         {...attributes}
         {...listeners}
       >
-        <div className="text-sm text-stone-400 hover:text-stone-300">⋮⋮</div>
+        <div className="text-sm text-stone-900 hover:text-stone-300 dark:text-stone-600 dark:hover:text-stone-500">
+          ⋮⋮
+        </div>
       </div>
 
       {/* Line Number */}
-      <div className="col-span-1 pt-2 text-sm text-stone-400">{index + 1}</div>
+      <div className="col-span-1 pt-2 text-sm text-stone-900 dark:text-stone-600">
+        {index + 1}
+      </div>
 
       {/* Character Name */}
       <div className="col-span-3 space-y-1">
@@ -105,7 +109,7 @@ const SortableLineItem = ({
             placeholder="Character"
             value={line.character}
             onChange={(e) => onUpdate(line.id, "character", e.target.value)}
-            className={`border-stone-600 bg-stone-700 text-stone-100 placeholder:text-stone-400 focus:border-stone-500 ${errors[`character-${line.id}`] ? "border-red-500" : ""}`}
+            className={`border-stone-200 bg-stone-100 text-stone-900 placeholder:text-stone-400 focus:border-stone-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 ${errors[`character-${line.id}`] ? "border-red-500" : ""}`}
           />
           {characterSuggestion && (
             <div className="absolute left-0 right-0 top-full z-10 rounded-b-md border border-yellow-600 bg-yellow-900 p-2 text-xs text-yellow-200">
@@ -140,7 +144,7 @@ const SortableLineItem = ({
           placeholder="Line text"
           value={line.line}
           onChange={(e) => onUpdate(line.id, "line", e.target.value)}
-          className={`border-stone-600 bg-stone-700 text-stone-100 placeholder:text-stone-400 focus:border-stone-500 ${errors[`line-${line.id}`] ? "border-red-500" : warnings[`line-${line.id}`] ? "border-yellow-500" : ""}`}
+          className={`border-stone-200 bg-stone-100 text-stone-900 placeholder:text-stone-400 focus:border-stone-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 ${errors[`line-${line.id}`] ? "border-red-500" : warnings[`line-${line.id}`] ? "border-yellow-500" : ""}`}
         />
         {errors[`line-${line.id}`] && (
           <p className="text-xs text-red-400">{errors[`line-${line.id}`]}</p>
@@ -159,7 +163,9 @@ const SortableLineItem = ({
             checked={line.sung}
             onCheckedChange={(checked) => onUpdate(line.id, "sung", checked)}
           />
-          <Label className="text-xs text-stone-300">Sung</Label>
+          <Label className="text-xs text-stone-900 dark:text-stone-600">
+            Sung
+          </Label>
         </div>
       </div>
 
@@ -169,7 +175,7 @@ const SortableLineItem = ({
           variant="outline"
           size="sm"
           onClick={() => onRemove(line.id)}
-          className="h-8 w-8 border-red-600 bg-red-900 p-0 text-red-300 hover:bg-red-800 hover:text-red-200"
+          className="h-8 w-8 border-red-600 bg-red-900 p-0 text-red-300 hover:bg-red-800 hover:text-red-200 dark:border-red-600 dark:bg-red-900 dark:text-red-300 dark:hover:bg-red-800 dark:hover:text-red-200"
         >
           ×
         </Button>
@@ -576,7 +582,7 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
   }
 
   return (
-    <div className="flex h-[90dvh] w-[90dvw] flex-col rounded-md border-2 border-stone-900 bg-stone-100 dark:bg-stone-900">
+    <div className="flex h-[90dvh] w-[90dvw] flex-col rounded-md border-2 border-stone-200 bg-stone-100 dark:bg-stone-900">
       <div className="flex h-full flex-col rounded-md">
         {/* Header */}
         <div className="flex items-center justify-between rounded-md border-b border-stone-200 bg-stone-50 px-4 py-3 dark:border-stone-700 dark:bg-stone-800">
@@ -618,7 +624,7 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
                     id="projectName"
                     value={formData.projectName}
                     onChange={(e) => handleProjectNameChange(e.target.value)}
-                    className={`border-stone-600 bg-stone-800 text-stone-100 placeholder:text-stone-400 focus:border-stone-500 ${errors.projectName ? "border-red-500" : ""}`}
+                    className={`border-stone-600 bg-stone-100 text-stone-900 placeholder:text-stone-400 focus:border-stone-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 ${errors.projectName ? "border-red-500" : ""}`}
                   />
                   {errors.projectName && (
                     <p className="text-sm text-red-400">{errors.projectName}</p>
@@ -635,7 +641,7 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
                     id="sceneTitle"
                     value={formData.sceneTitle}
                     onChange={(e) => handleSceneTitleChange(e.target.value)}
-                    className={`border-stone-600 bg-stone-800 text-stone-100 placeholder:text-stone-400 focus:border-stone-500 ${errors.sceneTitle ? "border-red-500" : ""}`}
+                    className={`border-stone-600 bg-stone-100 text-stone-900 placeholder:text-stone-400 focus:border-stone-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 ${errors.sceneTitle ? "border-red-500" : ""}`}
                   />
                   {errors.sceneTitle && (
                     <p className="text-sm text-red-400">{errors.sceneTitle}</p>
