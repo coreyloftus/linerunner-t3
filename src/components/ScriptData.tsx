@@ -84,11 +84,25 @@ const SortableLineItem = ({
     <div
       ref={setNodeRef}
       style={style}
-      className="grid grid-cols-12 items-start gap-2 rounded-md border border-stone-200 bg-stone-100 p-3 dark:border-stone-700 dark:bg-stone-800"
+      className="iphone:grid iphone:grid-cols-12 iphone:items-start iphone:gap-2 flex flex-col gap-3 rounded-md border border-stone-200 bg-stone-100 p-3 dark:border-stone-700 dark:bg-stone-800"
     >
-      {/* Drag Handle */}
+      {/* Mobile: Top Row with Line Number and Drag Handle */}
+      <div className="iphone:hidden flex items-center justify-between">
+        <div className="text-mobile-sm font-medium text-stone-400">
+          Line {index + 1}
+        </div>
+        <div
+          className="flex h-8 w-8 cursor-grab touch-manipulation items-center justify-center rounded bg-stone-700 hover:bg-stone-600 active:bg-stone-600"
+          {...attributes}
+          {...listeners}
+        >
+          <div className="text-lg text-stone-400 hover:text-stone-300">⋮⋮</div>
+        </div>
+      </div>
+
+      {/* Desktop: Drag Handle */}
       <div
-        className="col-span-1 cursor-grab pt-2"
+        className="iphone:block iphone:col-span-1 hidden cursor-grab pt-2"
         {...attributes}
         {...listeners}
       >
@@ -97,19 +111,24 @@ const SortableLineItem = ({
         </div>
       </div>
 
-      {/* Line Number */}
-      <div className="col-span-1 pt-2 text-sm text-stone-900 dark:text-stone-600">
+      {/* Desktop: Line Number */}
+      <div className="iphone:block iphone:col-span-1 hidden pt-2 text-sm text-stone-900 dark:text-stone-600">
         {index + 1}
       </div>
 
       {/* Character Name */}
-      <div className="col-span-3 space-y-1">
+      <div className="iphone:col-span-3 space-y-1">
+        <div className="iphone:hidden">
+          <label className="text-mobile-xs font-medium text-stone-300">
+            Character
+          </label>
+        </div>
         <div className="relative">
           <Input
             placeholder="Character"
             value={line.character}
             onChange={(e) => onUpdate(line.id, "character", e.target.value)}
-            className={`border-stone-200 bg-stone-100 text-stone-900 placeholder:text-stone-400 focus:border-stone-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 ${errors[`character-${line.id}`] ? "border-red-500" : ""}`}
+            className={`text-mobile-base iphone:text-sm iphone:min-h-[36px] min-h-[44px] border-stone-200 bg-stone-100 text-stone-900 placeholder:text-stone-400 focus:border-stone-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 ${errors[`character-${line.id}`] ? "border-red-500" : ""}`}
           />
           {characterSuggestion && (
             <div className="absolute left-0 right-0 top-full z-10 rounded-b-md border border-yellow-600 bg-yellow-900 p-2 text-xs text-yellow-200">
@@ -139,12 +158,17 @@ const SortableLineItem = ({
       </div>
 
       {/* Line Text */}
-      <div className="col-span-5 space-y-1">
+      <div className="iphone:col-span-5 space-y-1">
+        <div className="iphone:hidden">
+          <label className="text-mobile-xs font-medium text-stone-300">
+            Line Text
+          </label>
+        </div>
         <Input
           placeholder="Line text"
           value={line.line}
           onChange={(e) => onUpdate(line.id, "line", e.target.value)}
-          className={`border-stone-200 bg-stone-100 text-stone-900 placeholder:text-stone-400 focus:border-stone-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 ${errors[`line-${line.id}`] ? "border-red-500" : warnings[`line-${line.id}`] ? "border-yellow-500" : ""}`}
+          className={`text-mobile-base iphone:text-sm iphone:min-h-[36px] min-h-[44px] border-stone-200 bg-stone-100 text-stone-900 placeholder:text-stone-400 focus:border-stone-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 ${errors[`line-${line.id}`] ? "border-red-500" : warnings[`line-${line.id}`] ? "border-yellow-500" : ""}`}
         />
         {errors[`line-${line.id}`] && (
           <p className="text-xs text-red-400">{errors[`line-${line.id}`]}</p>
@@ -156,8 +180,27 @@ const SortableLineItem = ({
         )}
       </div>
 
-      {/* Sung Checkbox */}
-      <div className="col-span-1 flex items-center justify-center pt-2">
+      {/* Mobile: Bottom Row with Sung and Remove */}
+      <div className="iphone:hidden flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <Switch
+            checked={line.sung}
+            onCheckedChange={(checked) => onUpdate(line.id, "sung", checked)}
+          />
+          <Label className="text-mobile-sm text-stone-300">Sung</Label>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onRemove(line.id)}
+          className="h-10 min-h-[44px] w-10 min-w-[44px] touch-manipulation border-red-600 bg-red-900 p-0 text-red-300 hover:bg-red-800 hover:text-red-200 active:bg-red-800"
+        >
+          ×
+        </Button>
+      </div>
+
+      {/* Desktop: Sung Checkbox */}
+      <div className="iphone:flex iphone:col-span-1 hidden items-center justify-center pt-2">
         <div className="flex flex-col items-center space-y-1">
           <Switch
             checked={line.sung}
@@ -169,8 +212,8 @@ const SortableLineItem = ({
         </div>
       </div>
 
-      {/* Remove Button */}
-      <div className="col-span-1 pt-2">
+      {/* Desktop: Remove Button */}
+      <div className="iphone:block iphone:col-span-1 hidden pt-2">
         <Button
           variant="outline"
           size="sm"
@@ -570,23 +613,25 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
   // If user is not authenticated, show message
   if (!session?.user) {
     return (
-      <div className="flex h-[90dvh] w-[80dvw] flex-col items-center justify-center rounded-md border-2 border-stone-700 bg-stone-900">
-        <div className="text-center">
-          <h2 className="mb-4 text-lg font-semibold text-stone-100">
+      <div className="flex h-[90dvh] w-[95dvw] flex-col justify-center rounded-md border-2 border-stone-700 bg-stone-900 supports-[height:100svh]:h-[90svh]">
+        <div className="px-4 text-center">
+          <h2 className="text-mobile-lg iphone:text-lg mb-4 font-semibold text-stone-100">
             Authentication Required
           </h2>
-          <p className="text-stone-400">Please sign in to edit scripts.</p>
+          <p className="text-mobile-base iphone:text-base text-stone-400">
+            Please sign in to edit scripts.
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-[90dvh] w-[90dvw] flex-col rounded-md border-2 border-stone-200 bg-stone-100 dark:bg-stone-900">
+    <div className="flex h-[90dvh] w-[95dvw] flex-col rounded-md border-2 border-stone-200 bg-stone-100 font-mono supports-[height:100svh]:h-[90svh] dark:border-stone-700 dark:bg-stone-900">
       <div className="flex h-full flex-col rounded-md">
         {/* Header */}
-        <div className="flex items-center justify-between rounded-md border-b border-stone-200 bg-stone-50 px-4 py-3 dark:border-stone-700 dark:bg-stone-800">
-          <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">
+        <div className="iphone:flex-row iphone:items-center iphone:justify-between iphone:space-y-0 iphone:px-4 iphone:py-3 flex flex-col space-y-2 border-b border-stone-200 bg-stone-50 px-3 py-2 dark:border-stone-700 dark:bg-stone-800">
+          <h2 className="text-mobile-base iphone:text-lg font-semibold text-stone-900 dark:text-stone-100">
             Script Data Editor
           </h2>
           <Button
@@ -594,29 +639,29 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
             disabled={!hasChanges || updateScriptMutation.isPending || !script}
             variant="outline"
             size="sm"
-            className="border-stone-600 bg-stone-700 text-stone-100 hover:bg-stone-600 dark:border-stone-600 dark:bg-stone-700 dark:text-stone-100 dark:hover:bg-stone-600"
+            className="iphone:min-h-[36px] min-h-[44px] touch-manipulation border-stone-600 bg-stone-700 text-stone-100 hover:bg-stone-600 active:bg-stone-600 dark:border-stone-600 dark:bg-stone-700 dark:text-stone-100 dark:hover:bg-stone-600"
           >
             {updateScriptMutation.isPending ? "Saving..." : "Save Script"}
           </Button>
         </div>
 
         {/* Form Content */}
-        <div className="flex-1 overflow-auto p-4">
+        <div className="iphone:p-4 flex-1 overflow-auto p-3 [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain] [touch-action:pan-y]">
           {!script ? (
             <div className="flex h-full items-center justify-center text-center">
               <p className="text-stone-900 dark:text-stone-400">
                 Please select a project, scene, and character to edit script
-                data...
+                data.
               </p>
             </div>
           ) : (
             <div className="space-y-6">
               {/* Project and Scene Row */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="iphone:grid iphone:grid-cols-2 iphone:gap-4 iphone:space-y-0 flex flex-col space-y-4">
                 <div className="space-y-2">
                   <Label
                     htmlFor="projectName"
-                    className="text-stone-900 dark:text-stone-200"
+                    className="text-mobile-sm iphone:text-sm text-stone-900 dark:text-stone-200"
                   >
                     Project Name
                   </Label>
@@ -624,16 +669,18 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
                     id="projectName"
                     value={formData.projectName}
                     onChange={(e) => handleProjectNameChange(e.target.value)}
-                    className={`border-stone-600 bg-stone-100 text-stone-900 placeholder:text-stone-400 focus:border-stone-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 ${errors.projectName ? "border-red-500" : ""}`}
+                    className={`iphone:min-h-[36px] text-mobile-base iphone:text-sm min-h-[44px] border-stone-200 bg-stone-100 text-stone-900 placeholder:text-stone-400 focus:border-stone-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 ${errors.projectName ? "border-red-500" : ""}`}
                   />
                   {errors.projectName && (
-                    <p className="text-sm text-red-400">{errors.projectName}</p>
+                    <p className="text-mobile-xs iphone:text-sm text-red-400">
+                      {errors.projectName}
+                    </p>
                   )}
                 </div>
                 <div className="space-y-2">
                   <Label
                     htmlFor="sceneTitle"
-                    className="text-stone-900 dark:text-stone-200"
+                    className="text-mobile-sm iphone:text-sm text-stone-900 dark:text-stone-200"
                   >
                     Scene Title
                   </Label>
@@ -641,25 +688,27 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
                     id="sceneTitle"
                     value={formData.sceneTitle}
                     onChange={(e) => handleSceneTitleChange(e.target.value)}
-                    className={`border-stone-600 bg-stone-100 text-stone-900 placeholder:text-stone-400 focus:border-stone-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 ${errors.sceneTitle ? "border-red-500" : ""}`}
+                    className={`iphone:min-h-[36px] text-mobile-base iphone:text-sm min-h-[44px] border-stone-200 bg-stone-100 text-stone-900 placeholder:text-stone-400 focus:border-stone-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 ${errors.sceneTitle ? "border-red-500" : ""}`}
                   />
                   {errors.sceneTitle && (
-                    <p className="text-sm text-red-400">{errors.sceneTitle}</p>
+                    <p className="text-mobile-xs iphone:text-sm text-red-400">
+                      {errors.sceneTitle}
+                    </p>
                   )}
                 </div>
               </div>
 
               {/* Lines Section */}
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-medium text-stone-100">
+                <div className="iphone:flex-row iphone:items-center iphone:justify-between iphone:space-y-0 flex flex-col space-y-2">
+                  <h3 className="text-mobile-lg iphone:text-lg font-medium text-stone-100">
                     Lines ({formData.lines.length})
                   </h3>
                   <Button
                     onClick={addLine}
                     variant="outline"
                     size="sm"
-                    className="border-stone-600 bg-stone-700 text-stone-100 hover:bg-stone-600"
+                    className="iphone:min-h-[36px] min-h-[44px] touch-manipulation border-stone-600 bg-stone-700 text-stone-100 hover:bg-stone-600 active:bg-stone-600"
                   >
                     Add Line
                   </Button>
@@ -704,7 +753,7 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
                       onClick={addLine}
                       variant="outline"
                       size="sm"
-                      className="border-stone-600 bg-stone-700 text-stone-100 hover:bg-stone-600"
+                      className="iphone:min-h-[36px] min-h-[44px] touch-manipulation border-stone-600 bg-stone-700 text-stone-100 hover:bg-stone-600 active:bg-stone-600"
                     >
                       Add Line
                     </Button>
@@ -717,7 +766,7 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
                 <Button
                   onClick={handleSave}
                   disabled={!hasChanges || updateScriptMutation.isPending}
-                  className="bg-blue-600 px-8 text-white hover:bg-blue-700 disabled:bg-stone-600 disabled:text-stone-400"
+                  className="min-h-[44px] touch-manipulation bg-blue-600 px-8 text-white hover:bg-blue-700 active:bg-blue-800 disabled:bg-stone-600 disabled:text-stone-400"
                 >
                   {updateScriptMutation.isPending ? "Saving..." : "Save Script"}
                 </Button>

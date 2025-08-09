@@ -84,21 +84,30 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
 
   return (
     <>
+      {/* Backdrop overlay for mobile */}
+      {navOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 transition-opacity duration-300 iphone:bg-black/40 md:hidden"
+          style={{ zIndex: 40 }}
+          onClick={() => setNavOpen(false)}
+        />
+      )}
+
       {/* sidebar */}
       <div
         ref={sidebarRef}
         className={`fixed left-0 top-0 h-full transform border-r border-stone-200 bg-stone-50/95 backdrop-blur-sm transition-all duration-500 ease-in-out dark:border-stone-800 dark:bg-stone-900/90 ${
           navOpen
-            ? "w-[75vw] translate-x-0 opacity-100 sm:w-[75vw] md:w-[33vw]"
-            : "w-[75vw] -translate-x-full opacity-100 sm:w-[75vw] md:w-[33vw]"
+            ? "w-[85vw] translate-x-0 opacity-100 xs:w-[80vw] iphone:w-[75vw] md:w-[33vw]"
+            : "w-[85vw] -translate-x-full opacity-100 xs:w-[80vw] iphone:w-[75vw] md:w-[33vw]"
         }`}
         style={{ zIndex: 50 }}
       >
         {/* Content area - only visible when open */}
         <div
-          className={`h-full transition-opacity duration-300 ${navOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
+          className={`h-full transition-opacity duration-200 ${navOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
         >
-          <div className="pt-2">
+          <div className="pt-3 iphone:pt-2">
             <div className="flex items-center justify-between p-2">
               {/* Close button for mobile */}
               <Button
@@ -113,33 +122,34 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
               <div className="md:hidden" /> {/* Spacer for mobile */}
               <AuthButton />
             </div>
-            <div className="px-1">
-              <p className="mb-2 font-bold text-stone-900 dark:text-stone-100">
+            <div className="px-2 iphone:px-1">
+              <p className="mb-2 text-mobile-base iphone:text-base font-bold text-stone-900 dark:text-stone-100">
                 Script Select
               </p>
               <NewScriptSelect projects={projects} allData={allData} />
             </div>
 
-            {/* Refresh Button */}
-            <div className="mt-4 px-1">
-              <p className="mb-2 font-bold text-stone-900 dark:text-stone-100">
+            {/* Settings */}
+            <div className="mt-4 px-2 iphone:px-1">
+              <p className="mb-2 text-mobile-base iphone:text-base font-bold text-stone-900 dark:text-stone-100">
                 Settings
               </p>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label className="text-sm text-stone-800 dark:text-stone-200">
+                  <Label className="text-mobile-sm iphone:text-sm text-stone-800 dark:text-stone-200">
                     Theme
                   </Label>
                   <ThemeToggle />
                 </div>
                 <div className="flex items-center justify-between">
-                  <Label className="text-sm text-stone-800 dark:text-stone-200">
+                  <Label className="text-mobile-sm iphone:text-sm text-stone-800 dark:text-stone-200">
                     Refresh Data
                   </Label>
                   <RefreshButton
                     onClick={refreshData}
                     isLoading={isDataLoading}
                     size="sm"
+                    className="min-h-[44px] min-w-[44px] iphone:min-h-[36px] iphone:min-w-[36px] touch-manipulation"
                   />
                 </div>
               </div>
@@ -164,7 +174,7 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
             </div>
           </div>
 
-          <div className="fixed bottom-0 mb-16 pl-2 font-mono text-sm text-stone-600 dark:text-stone-400">
+          <div className="fixed bottom-0 mb-16 pl-2 font-mono text-mobile-xs iphone:text-sm text-stone-600 dark:text-stone-400">
             LineRunner by Corey -- ©2025
           </div>
         </div>
@@ -177,7 +187,7 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
       >
         <Button
           onClick={() => setNavOpen(!navOpen)}
-          className="h-full w-full rounded-lg bg-stone-100/90 p-0 text-stone-700 shadow-lg backdrop-blur-sm hover:bg-stone-200 dark:bg-stone-800/90 dark:text-stone-200 dark:hover:bg-stone-700"
+          className="h-full w-full min-h-[48px] min-w-[48px] touch-manipulation rounded-lg bg-stone-100/90 p-0 text-stone-700 shadow-lg backdrop-blur-sm hover:bg-stone-200 dark:bg-stone-800/90 dark:text-stone-200 dark:hover:bg-stone-700 transition-colors duration-200"
           aria-label={navOpen ? "Close menu" : "Open menu"}
         >
           <IoMenu
