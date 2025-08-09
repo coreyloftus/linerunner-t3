@@ -16,7 +16,7 @@ export default async function Home() {
         <div className="fixed left-0 top-0 z-10">
           <Sidebar />
         </div>
-        <div className="flex min-h-[100dvh] flex-col items-center justify-center bg-[#1e1e1e] p-2 text-white supports-[height:100svh]:min-h-[100svh] [touch-action:manipulation] pt-safe-top pb-safe-bottom">
+        <div className="flex min-h-[100dvh] flex-col items-center justify-center bg-[hsl(var(--background))] p-2 text-[hsl(var(--foreground))] supports-[height:100svh]:min-h-[100svh] [touch-action:manipulation] transition-colors pt-safe-top pb-safe-bottom">
           <Tabs
             defaultValue="runner"
             className="flex w-full flex-1 flex-col items-center justify-center"

@@ -402,7 +402,7 @@ export const AddScriptDoc = () => {
       <>
         <div className="flex h-[90dvh] w-[95dvw] flex-col rounded-md border-2 border-stone-200 supports-[height:100svh]:h-[90svh]">
           <div className="flex h-full flex-col rounded-md">
-            <div className="flex items-center justify-between border-b border-stone-200 bg-stone-50 px-4 py-3 dark:border-stone-700 dark:bg-stone-800">
+            <div className="flex items-center justify-between rounded-md border-b border-stone-200 bg-stone-50 px-4 py-3 dark:border-stone-700 dark:bg-stone-800">
               <div className="flex items-center gap-4">
                 <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">
                   Add Script
@@ -426,12 +426,14 @@ export const AddScriptDoc = () => {
             {/* Admin Mode Configuration */}
             {isAdmin && isAdminMode && (
               <div className="flex flex-col gap-2 border-b border-stone-200 p-2">
-                <p className="text-sm font-semibold text-stone-100">
+                <p className="text-sm font-semibold text-stone-900 dark:text-stone-100">
                   Admin Configuration:
                 </p>
                 <div className="grid grid-cols-3 gap-2">
                   <div>
-                    <p className="mb-1 text-xs text-stone-100">Collection:</p>
+                    <p className="mb-1 text-xs text-stone-900 dark:text-stone-100">
+                      Collection:
+                    </p>
                     <Select
                       onValueChange={setSelectedCollection}
                       value={selectedCollection}
@@ -449,7 +451,9 @@ export const AddScriptDoc = () => {
                     </Select>
                   </div>
                   <div>
-                    <p className="mb-1 text-xs text-stone-100">Document ID:</p>
+                    <p className="mb-1 text-xs text-stone-900 dark:text-stone-100">
+                      Document ID:
+                    </p>
                     <Select
                       onValueChange={setSelectedDocumentId}
                       value={selectedDocumentId}
@@ -467,7 +471,7 @@ export const AddScriptDoc = () => {
                     </Select>
                   </div>
                   <div>
-                    <p className="mb-1 text-xs text-stone-100">
+                    <p className="mb-1 text-xs text-stone-900 dark:text-stone-100">
                       Subcollection:
                     </p>
                     <Select
@@ -494,7 +498,9 @@ export const AddScriptDoc = () => {
             <div className="flex flex-col gap-2 p-2">
               <div className="flex flex-col gap-2 sm:flex-row">
                 <div className="flex-1">
-                  <p className="mb-1 text-sm text-stone-100">Project Name:</p>
+                  <p className="mb-1 text-sm text-stone-900 dark:text-stone-100">
+                    Project Name:
+                  </p>
                   <div className="space-y-2">
                     <Select
                       onValueChange={handleProjectChange}
@@ -530,7 +536,9 @@ export const AddScriptDoc = () => {
                   </div>
                 </div>
                 <div className="flex-1">
-                  <p className="mb-1 text-sm text-stone-100">Scene Title:</p>
+                  <p className="mb-1 text-sm text-stone-900 dark:text-stone-100">
+                    Scene Title:
+                  </p>
                   <Input
                     placeholder="Enter scene title..."
                     value={sceneTitle}
@@ -542,7 +550,7 @@ export const AddScriptDoc = () => {
 
             {/* inputs for character names */}
             <div className="flex flex-col gap-2 p-2">
-              <p className="text-sm text-stone-100">
+              <p className="text-sm text-stone-900 dark:text-stone-100">
                 Character names separated by commas:
               </p>
               <Input
@@ -557,7 +565,7 @@ export const AddScriptDoc = () => {
               <Textarea
                 value={newScriptBox}
                 onChange={(e) => setNewScriptBox(e.target.value)}
-                className="h-full w-full resize-none overflow-y-auto border-0 bg-transparent text-sm leading-relaxed text-stone-100 focus-visible:ring-0 dark:text-stone-100 [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain] [touch-action:pan-y]"
+                className="h-full w-full resize-none overflow-y-auto border-0 bg-transparent text-sm leading-relaxed text-stone-900 focus-visible:ring-0 dark:text-stone-100 [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain] [touch-action:pan-y]"
                 placeholder={`Copy/paste your raw script here.
 
 Character names should be in all caps.
