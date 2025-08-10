@@ -308,6 +308,42 @@ export const AddScriptDoc = () => {
       const trimmedLine = line.trim();
       if (!trimmedLine) continue; // Skip empty lines
 
+      // Check for character:line format first
+      const colonIndex = trimmedLine.indexOf(':');
+      if (colonIndex > 0) {
+        const potentialCharacter = trimmedLine.substring(0, colonIndex).trim();
+        const potentialLine = trimmedLine.substring(colonIndex + 1).trim();
+        
+        // Check if the part before the colon matches any character name
+        const foundCharacter = characterNames.find((name) => {
+          const normalizedName = normalizeText(name);
+          const normalizedPotentialCharacter = normalizeText(potentialCharacter);
+          return normalizedName === normalizedPotentialCharacter;
+        });
+
+        if (foundCharacter && potentialLine) {
+          // If we have a previous character and line, save it first
+          if (currentCharacter && currentLine.trim()) {
+            parsedLines.push({
+              character: currentCharacter,
+              line: currentLine.trim(),
+            });
+          }
+          
+          // Add the new character line
+          const isSung = isSungLine(potentialLine);
+          parsedLines.push({
+            character: foundCharacter,
+            line: potentialLine,
+            ...(isSung && { sung: true }),
+          });
+          
+          currentCharacter = foundCharacter;
+          currentLine = "";
+          continue;
+        }
+      }
+
       // First check if this is a sung line (all caps) - but exclude simple character names
       const isCharacterNameOnly = characterNames.some((name) => {
         const normalizedName = normalizeText(name);
