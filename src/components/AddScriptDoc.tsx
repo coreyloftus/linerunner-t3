@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { FileDropZone } from "./FileDropZone";
 
 export const AddScriptDoc = () => {
   const { data: session } = useSession();
@@ -34,6 +35,7 @@ export const AddScriptDoc = () => {
   const [selectedDocumentId, setSelectedDocumentId] = useState("");
   const [selectedSubcollection, setSelectedSubcollection] = useState("");
   const [isAdminMode, setIsAdminMode] = useState(false);
+  const [inputMethod, setInputMethod] = useState<"text" | "file">("text");
   const { toast } = useToast();
 
   // Fetch existing projects from public data
@@ -174,6 +176,14 @@ export const AddScriptDoc = () => {
       const cleanProjectName = value.replace(/^[👤📁]\s*/, "");
       setProjectName(cleanProjectName);
     }
+  };
+
+  const handleFileContent = (content: string) => {
+    setNewScriptBox(content);
+    toast({
+      title: "File Loaded",
+      description: "Script content has been loaded from file.",
+    });
   };
 
   const handleAddScript = (script: string) => {
@@ -596,18 +606,49 @@ export const AddScriptDoc = () => {
               />
             </div>
 
-            {/* textarea container that takes remaining space */}
-            <div className="flex-1 p-2">
-              <Textarea
-                value={newScriptBox}
-                onChange={(e) => setNewScriptBox(e.target.value)}
-                className="h-full w-full resize-none overflow-y-auto border-0 bg-transparent text-sm leading-relaxed text-stone-900 focus-visible:ring-0 dark:text-stone-100 [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain] [touch-action:pan-y]"
-                placeholder={`Copy/paste your raw script here.
+            {/* Input method tabs and content */}
+            <div className="flex-1 flex flex-col">
+              {/* Tabs */}
+              <div className="flex border-b border-stone-200 dark:border-stone-700">
+                <button
+                  className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                    inputMethod === "text"
+                      ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                      : "border-transparent text-stone-600 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"
+                  }`}
+                  onClick={() => setInputMethod("text")}
+                >
+                  Text Input
+                </button>
+                <button
+                  className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                    inputMethod === "file"
+                      ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                      : "border-transparent text-stone-600 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"
+                  }`}
+                  onClick={() => setInputMethod("file")}
+                >
+                  File Upload
+                </button>
+              </div>
 
-Character names should be in all caps.
+              {/* Tab content */}
+              <div className="flex-1 p-2">
+                {inputMethod === "text" ? (
+                  <Textarea
+                    value={newScriptBox}
+                    onChange={(e) => setNewScriptBox(e.target.value)}
+                    className="h-full w-full resize-none overflow-y-auto border-0 bg-transparent text-sm leading-relaxed text-stone-900 focus-visible:ring-0 dark:text-stone-100 [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain] [touch-action:pan-y]"
+                    placeholder={`Copy/paste your raw script here.
+
+Character names should be in all caps or use CHARACTER: line format.
 Ex: 
 STANLEY
 Stella!!!
+
+Or:
+SOLO: DIXIT DOMINUS DOMINO MEO: SEDE A DEXTRIS MEIS.
+RESPONSE: DONEC PONAM INIMICOS TUOS, SCABELLEUM PEDUM TUORUM.
 
 Sung lines should be in all caps between two character names.
 Ex:
@@ -615,7 +656,36 @@ MARIA
 THE HILLS ARE ALIVE WITH THE SOUND OF MUSIC
 WITH SONGS THEY HAVE SUNG FOR A THOUSAND YEARS
 `}
-              />
+                  />
+                ) : (
+                  <div className="h-full flex flex-col">
+                    <FileDropZone
+                      onFileContent={handleFileContent}
+                      acceptedTypes={[".txt", ".md", ".rtf"]}
+                      className="mb-4"
+                    />
+                    {newScriptBox && (
+                      <div className="flex-1 border border-stone-200 dark:border-stone-700 rounded-md p-3 bg-stone-50 dark:bg-stone-900">
+                        <p className="text-xs text-stone-500 dark:text-stone-400 mb-2">
+                          Loaded content preview:
+                        </p>
+                        <div className="text-sm text-stone-700 dark:text-stone-300 max-h-40 overflow-y-auto">
+                          {newScriptBox.split('\n').slice(0, 10).map((line, idx) => (
+                            <div key={idx} className="whitespace-pre-wrap">
+                              {line || '\u00A0'}
+                            </div>
+                          ))}
+                          {newScriptBox.split('\n').length > 10 && (
+                            <div className="text-stone-400 italic mt-2">
+                              ... and {newScriptBox.split('\n').length - 10} more lines
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
             <div className="p-2">
               <Button
