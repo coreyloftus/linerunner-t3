@@ -658,31 +658,73 @@ WITH SONGS THEY HAVE SUNG FOR A THOUSAND YEARS
 `}
                   />
                 ) : (
-                  <div className="h-full flex flex-col">
-                    <FileDropZone
-                      onFileContent={handleFileContent}
-                      acceptedTypes={[".txt", ".md", ".rtf"]}
-                      className="mb-4"
-                    />
-                    {newScriptBox && (
-                      <div className="flex-1 border border-stone-200 dark:border-stone-700 rounded-md p-3 bg-stone-50 dark:bg-stone-900">
-                        <p className="text-xs text-stone-500 dark:text-stone-400 mb-2">
-                          Loaded content preview:
-                        </p>
-                        <div className="text-sm text-stone-700 dark:text-stone-300 max-h-40 overflow-y-auto">
-                          {newScriptBox.split('\n').slice(0, 10).map((line, idx) => (
-                            <div key={idx} className="whitespace-pre-wrap">
-                              {line || '\u00A0'}
+                  <div className="h-full flex flex-col gap-4">
+                    <div className="flex-shrink-0">
+                      <FileDropZone
+                        onFileContent={handleFileContent}
+                        acceptedTypes={[".txt", ".md", ".rtf"]}
+                      />
+                    </div>
+                    
+                    <div className="flex-1 flex gap-4">
+                      {/* Format Instructions */}
+                      <div className="flex-1 border border-stone-200 dark:border-stone-700 rounded-md p-4 bg-stone-50 dark:bg-stone-900">
+                        <h3 className="text-sm font-semibold text-stone-900 dark:text-stone-100 mb-3">
+                          Required File Format
+                        </h3>
+                        <div className="text-xs text-stone-600 dark:text-stone-400 space-y-3">
+                          <div>
+                            <p className="font-medium mb-1">Option 1: Character: Line format</p>
+                            <div className="bg-white dark:bg-stone-800 border rounded p-2 font-mono text-xs">
+                              <div>SOLO: DIXIT DOMINUS DOMINO MEO: SEDE A DEXTRIS MEIS.</div>
+                              <div>RESPONSE: DONEC PONAM INIMICOS TUOS, SCABELLEUM PEDUM TUORUM.</div>
+                              <div>NUNS: Have you seen Maria? Isn&apos;t Maria back yet?</div>
                             </div>
-                          ))}
-                          {newScriptBox.split('\n').length > 10 && (
-                            <div className="text-stone-400 italic mt-2">
-                              ... and {newScriptBox.split('\n').length - 10} more lines
+                          </div>
+                          
+                          <div>
+                            <p className="font-medium mb-1">Option 2: Character names on separate lines</p>
+                            <div className="bg-white dark:bg-stone-800 border rounded p-2 font-mono text-xs">
+                              <div>STANLEY</div>
+                              <div>Stella!!!</div>
+                              <div></div>
+                              <div>BLANCHE</div>
+                              <div>I have always depended on the kindness of strangers.</div>
                             </div>
-                          )}
+                          </div>
+                          
+                          <div>
+                            <p className="font-medium mb-1">Sung lines (all caps between characters)</p>
+                            <div className="bg-white dark:bg-stone-800 border rounded p-2 font-mono text-xs">
+                              <div>MARIA</div>
+                              <div>THE HILLS ARE ALIVE WITH THE SOUND OF MUSIC</div>
+                              <div>WITH SONGS THEY HAVE SUNG FOR A THOUSAND YEARS</div>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    )}
+                      
+                      {/* Content Preview */}
+                      {newScriptBox && (
+                        <div className="flex-1 border border-stone-200 dark:border-stone-700 rounded-md p-4 bg-stone-50 dark:bg-stone-900">
+                          <h3 className="text-sm font-semibold text-stone-900 dark:text-stone-100 mb-3">
+                            Loaded Content Preview
+                          </h3>
+                          <div className="text-sm text-stone-700 dark:text-stone-300 max-h-64 overflow-y-auto">
+                            {newScriptBox.split('\n').slice(0, 15).map((line, idx) => (
+                              <div key={idx} className="whitespace-pre-wrap font-mono text-xs leading-relaxed">
+                                {line || '\u00A0'}
+                              </div>
+                            ))}
+                            {newScriptBox.split('\n').length > 15 && (
+                              <div className="text-stone-400 italic mt-2 text-xs">
+                                ... and {newScriptBox.split('\n').length - 15} more lines
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
