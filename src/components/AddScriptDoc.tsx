@@ -35,6 +35,9 @@ export const AddScriptDoc = () => {
   const [selectedSubcollection, setSelectedSubcollection] = useState("");
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [inputMethod, setInputMethod] = useState<"text" | "file">("text");
+  const [copySourceUserId, setCopySourceUserId] = useState("");
+  const [copyTargetUserId, setCopyTargetUserId] = useState("");
+  const [copyProjectName, setCopyProjectName] = useState("");
   const { toast } = useToast();
 
   // Fetch existing projects from public data
@@ -119,6 +122,34 @@ export const AddScriptDoc = () => {
     },
   });
 
+  const copyProjectMutation = api.scriptData.copyProjectBetweenUsers.useMutation({
+    onSuccess: (data) => {
+      if (data.success) {
+        toast({
+          title: "Success!",
+          description: data.message,
+        });
+        // Clear the form
+        setCopySourceUserId("");
+        setCopyTargetUserId("");
+        setCopyProjectName("");
+      } else {
+        toast({
+          title: "Error",
+          description: data.message,
+          variant: "destructive",
+        });
+      }
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const createAdminScriptMutation =
     api.scriptData.createAdminScript.useMutation({
       onSuccess: (data) => {
@@ -181,6 +212,42 @@ export const AddScriptDoc = () => {
     toast({
       title: "File Loaded",
       description: "Script content has been loaded from file.",
+    });
+  };
+
+  const handleCopyProject = () => {
+    if (!copySourceUserId.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter source user ID",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!copyTargetUserId.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter target user ID",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!copyProjectName.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter project name",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    copyProjectMutation.mutate({
+      sourceUserId: copySourceUserId.trim(),
+      targetUserId: copyTargetUserId.trim(),
+      projectName: copyProjectName.trim(),
+      adminEmail: session?.user?.email ?? "",
     });
   };
 
@@ -533,6 +600,58 @@ export const AddScriptDoc = () => {
                         ))}
                       </SelectContent>
                     </Select>
+                  </div>
+                </div>
+
+                {/* Copy Project Between Users */}
+                <div className="mt-4 border-t border-stone-200 pt-4 dark:border-stone-700">
+                  <p className="mb-2 text-sm font-semibold text-stone-900 dark:text-stone-100">
+                    Copy Project Between Users:
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <p className="mb-1 text-xs text-stone-900 dark:text-stone-100">
+                        Source User ID:
+                      </p>
+                      <Input
+                        placeholder="user@example.com"
+                        value={copySourceUserId}
+                        onChange={(e) => setCopySourceUserId(e.target.value)}
+                        className="h-8"
+                      />
+                    </div>
+                    <div>
+                      <p className="mb-1 text-xs text-stone-900 dark:text-stone-100">
+                        Target User ID:
+                      </p>
+                      <Input
+                        placeholder="user@example.com"
+                        value={copyTargetUserId}
+                        onChange={(e) => setCopyTargetUserId(e.target.value)}
+                        className="h-8"
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <p className="mb-1 text-xs text-stone-900 dark:text-stone-100">
+                        Project Name:
+                      </p>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Project name to copy"
+                          value={copyProjectName}
+                          onChange={(e) => setCopyProjectName(e.target.value)}
+                          className="h-8 flex-1"
+                        />
+                        <Button
+                          size="sm"
+                          onClick={handleCopyProject}
+                          disabled={copyProjectMutation.isPending}
+                          className="h-8"
+                        >
+                          {copyProjectMutation.isPending ? "Copying..." : "Copy"}
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
