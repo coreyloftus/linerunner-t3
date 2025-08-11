@@ -6,9 +6,7 @@ import { useContext, useEffect, useState, useRef } from "react";
 import { IoMenu, IoClose } from "react-icons/io5";
 import { ScriptContext } from "~/app/context";
 import { AuthButton } from "./AuthButton";
-import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
-import { useSession } from "next-auth/react";
 import { RefreshButton } from "./ui/refresh-button";
 import { useScriptData } from "~/hooks/useScriptData";
 import { ThemeToggle } from "./ui/theme-toggle";
@@ -19,10 +17,9 @@ type SidebarClientProps = {
 };
 export function SidebarClient({ projects, allData }: SidebarClientProps) {
   const [navOpen, setNavOpen] = useState(false);
-  const { userConfig, setUserConfig } = useContext(ScriptContext);
+  const { userConfig } = useContext(ScriptContext);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const arrowButtonRef = useRef<HTMLDivElement>(null);
-  const { data: session } = useSession();
 
   // Get refresh functionality from the optimized hook
   const { refreshData, isLoading: isDataLoading } = useScriptData({

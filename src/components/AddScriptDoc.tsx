@@ -24,7 +24,6 @@ export const AddScriptDoc = () => {
     setScriptCharacterNames,
     newScriptBox,
     setNewScriptBox,
-    userConfig,
     isAdmin,
   } = useContext(ScriptContext);
 
@@ -39,13 +38,12 @@ export const AddScriptDoc = () => {
   const { toast } = useToast();
 
   // Fetch existing projects from public data
-  const { data: publicData, isLoading: isLoadingPublicProjects } =
-    api.scriptData.getAll.useQuery(
-      { dataSource: "public" },
-      {
-        enabled: true,
-      },
-    );
+  const { data: publicData } = api.scriptData.getAll.useQuery(
+    { dataSource: "public" },
+    {
+      enabled: true,
+    },
+  );
 
   // Fetch existing projects from user data
   const { data: userData, isLoading: isLoadingUserProjects } =

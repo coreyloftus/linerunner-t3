@@ -6,7 +6,6 @@ import { ScriptContext } from "~/app/context";
 import { type ProjectJSON } from "../../server/api/routers/scriptData";
 import ControlBar from "../ControlBar";
 import { CharacterLineDisplay } from "./CharacterLineDisplay";
-import { useScriptData } from "~/hooks/useScriptData";
 import { api } from "~/trpc/react";
 import { useSession } from "next-auth/react";
 

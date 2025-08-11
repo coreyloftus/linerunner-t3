@@ -15,8 +15,8 @@ import { api } from "~/trpc/react";
 import { useSession } from "next-auth/react";
 
 export default function NewScriptSelect({
-  projects,
-  allData,
+  projects: _projects,
+  allData: _allData,
 }: {
   projects: string[];
   allData: ProjectJSON[];
@@ -33,7 +33,6 @@ export default function NewScriptSelect({
     selectedCharacter,
     setSelectedCharacter,
     queryParams,
-    userConfig,
   } = useContext(ScriptContext);
   const { project, scene, character } = queryParams;
 

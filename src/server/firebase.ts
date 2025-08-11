@@ -314,10 +314,10 @@ export class FirestoreService {
   // Query documents with filters (simplified for now)
   static async queryDocuments<T = DocumentData>(
     collectionName: string,
-    filters?: Array<{ field: string; operator: WhereFilterOp; value: unknown }>,
-    orderByField?: string,
-    orderDirection?: "asc" | "desc",
-    limitCount?: number,
+    _filters?: Array<{ field: string; operator: WhereFilterOp; value: unknown }>,
+    _orderByField?: string,
+    _orderDirection?: "asc" | "desc",
+    _limitCount?: number,
   ): Promise<T[]> {
     try {
       // For now, just get all documents from the collection
