@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { FileDropZone } from "./FileDropZone";
 
 export const AddScriptDoc = () => {
   const { data: session } = useSession();
@@ -23,7 +24,6 @@ export const AddScriptDoc = () => {
     setScriptCharacterNames,
     newScriptBox,
     setNewScriptBox,
-    userConfig,
     isAdmin,
   } = useContext(ScriptContext);
 
@@ -34,16 +34,19 @@ export const AddScriptDoc = () => {
   const [selectedDocumentId, setSelectedDocumentId] = useState("");
   const [selectedSubcollection, setSelectedSubcollection] = useState("");
   const [isAdminMode, setIsAdminMode] = useState(false);
+  const [inputMethod, setInputMethod] = useState<"text" | "file">("text");
+  const [copySourceUserId, setCopySourceUserId] = useState("");
+  const [copyTargetUserId, setCopyTargetUserId] = useState("");
+  const [copyProjectName, setCopyProjectName] = useState("");
   const { toast } = useToast();
 
   // Fetch existing projects from public data
-  const { data: publicData, isLoading: isLoadingPublicProjects } =
-    api.scriptData.getAll.useQuery(
-      { dataSource: "public" },
-      {
-        enabled: true,
-      },
-    );
+  const { data: publicData } = api.scriptData.getAll.useQuery(
+    { dataSource: "public" },
+    {
+      enabled: true,
+    },
+  );
 
   // Fetch existing projects from user data
   const { data: userData, isLoading: isLoadingUserProjects } =
@@ -119,6 +122,34 @@ export const AddScriptDoc = () => {
     },
   });
 
+  const copyProjectMutation = api.scriptData.copyProjectBetweenUsers.useMutation({
+    onSuccess: (data) => {
+      if (data.success) {
+        toast({
+          title: "Success!",
+          description: data.message,
+        });
+        // Clear the form
+        setCopySourceUserId("");
+        setCopyTargetUserId("");
+        setCopyProjectName("");
+      } else {
+        toast({
+          title: "Error",
+          description: data.message,
+          variant: "destructive",
+        });
+      }
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const createAdminScriptMutation =
     api.scriptData.createAdminScript.useMutation({
       onSuccess: (data) => {
@@ -174,6 +205,50 @@ export const AddScriptDoc = () => {
       const cleanProjectName = value.replace(/^[👤📁]\s*/, "");
       setProjectName(cleanProjectName);
     }
+  };
+
+  const handleFileContent = (content: string) => {
+    setNewScriptBox(content);
+    toast({
+      title: "File Loaded",
+      description: "Script content has been loaded from file.",
+    });
+  };
+
+  const handleCopyProject = () => {
+    if (!copySourceUserId.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter source user ID",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!copyTargetUserId.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter target user ID",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!copyProjectName.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter project name",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    copyProjectMutation.mutate({
+      sourceUserId: copySourceUserId.trim(),
+      targetUserId: copyTargetUserId.trim(),
+      projectName: copyProjectName.trim(),
+      adminEmail: session?.user?.email ?? "",
+    });
   };
 
   const handleAddScript = (script: string) => {
@@ -307,6 +382,42 @@ export const AddScriptDoc = () => {
     for (const line of lines) {
       const trimmedLine = line.trim();
       if (!trimmedLine) continue; // Skip empty lines
+
+      // Check for character:line format first
+      const colonIndex = trimmedLine.indexOf(':');
+      if (colonIndex > 0) {
+        const potentialCharacter = trimmedLine.substring(0, colonIndex).trim();
+        const potentialLine = trimmedLine.substring(colonIndex + 1).trim();
+        
+        // Check if the part before the colon matches any character name
+        const foundCharacter = characterNames.find((name) => {
+          const normalizedName = normalizeText(name);
+          const normalizedPotentialCharacter = normalizeText(potentialCharacter);
+          return normalizedName === normalizedPotentialCharacter;
+        });
+
+        if (foundCharacter && potentialLine) {
+          // If we have a previous character and line, save it first
+          if (currentCharacter && currentLine.trim()) {
+            parsedLines.push({
+              character: currentCharacter,
+              line: currentLine.trim(),
+            });
+          }
+          
+          // Add the new character line
+          const isSung = isSungLine(potentialLine);
+          parsedLines.push({
+            character: foundCharacter,
+            line: potentialLine,
+            ...(isSung && { sung: true }),
+          });
+          
+          currentCharacter = foundCharacter;
+          currentLine = "";
+          continue;
+        }
+      }
 
       // First check if this is a sung line (all caps) - but exclude simple character names
       const isCharacterNameOnly = characterNames.some((name) => {
@@ -491,6 +602,58 @@ export const AddScriptDoc = () => {
                     </Select>
                   </div>
                 </div>
+
+                {/* Copy Project Between Users */}
+                <div className="mt-4 border-t border-stone-200 pt-4 dark:border-stone-700">
+                  <p className="mb-2 text-sm font-semibold text-stone-900 dark:text-stone-100">
+                    Copy Project Between Users:
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <p className="mb-1 text-xs text-stone-900 dark:text-stone-100">
+                        Source User ID:
+                      </p>
+                      <Input
+                        placeholder="user@example.com"
+                        value={copySourceUserId}
+                        onChange={(e) => setCopySourceUserId(e.target.value)}
+                        className="h-8"
+                      />
+                    </div>
+                    <div>
+                      <p className="mb-1 text-xs text-stone-900 dark:text-stone-100">
+                        Target User ID:
+                      </p>
+                      <Input
+                        placeholder="user@example.com"
+                        value={copyTargetUserId}
+                        onChange={(e) => setCopyTargetUserId(e.target.value)}
+                        className="h-8"
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <p className="mb-1 text-xs text-stone-900 dark:text-stone-100">
+                        Project Name:
+                      </p>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Project name to copy"
+                          value={copyProjectName}
+                          onChange={(e) => setCopyProjectName(e.target.value)}
+                          className="h-8 flex-1"
+                        />
+                        <Button
+                          size="sm"
+                          onClick={handleCopyProject}
+                          disabled={copyProjectMutation.isPending}
+                          className="h-8"
+                        >
+                          {copyProjectMutation.isPending ? "Copying..." : "Copy"}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -560,18 +723,49 @@ export const AddScriptDoc = () => {
               />
             </div>
 
-            {/* textarea container that takes remaining space */}
-            <div className="flex-1 p-2">
-              <Textarea
-                value={newScriptBox}
-                onChange={(e) => setNewScriptBox(e.target.value)}
-                className="h-full w-full resize-none overflow-y-auto border-0 bg-transparent text-sm leading-relaxed text-stone-900 focus-visible:ring-0 dark:text-stone-100 [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain] [touch-action:pan-y]"
-                placeholder={`Copy/paste your raw script here.
+            {/* Input method tabs and content */}
+            <div className="flex-1 flex flex-col">
+              {/* Tabs */}
+              <div className="flex border-b border-stone-200 dark:border-stone-700">
+                <button
+                  className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                    inputMethod === "text"
+                      ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                      : "border-transparent text-stone-600 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"
+                  }`}
+                  onClick={() => setInputMethod("text")}
+                >
+                  Text Input
+                </button>
+                <button
+                  className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                    inputMethod === "file"
+                      ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                      : "border-transparent text-stone-600 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"
+                  }`}
+                  onClick={() => setInputMethod("file")}
+                >
+                  File Upload
+                </button>
+              </div>
 
-Character names should be in all caps.
+              {/* Tab content */}
+              <div className="flex-1 p-2">
+                {inputMethod === "text" ? (
+                  <Textarea
+                    value={newScriptBox}
+                    onChange={(e) => setNewScriptBox(e.target.value)}
+                    className="h-full w-full resize-none overflow-y-auto border-0 bg-transparent text-sm leading-relaxed text-stone-900 focus-visible:ring-0 dark:text-stone-100 [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain] [touch-action:pan-y]"
+                    placeholder={`Copy/paste your raw script here.
+
+Character names should be in all caps or use CHARACTER: line format.
 Ex: 
 STANLEY
 Stella!!!
+
+Or:
+SOLO: DIXIT DOMINUS DOMINO MEO: SEDE A DEXTRIS MEIS.
+RESPONSE: DONEC PONAM INIMICOS TUOS, SCABELLEUM PEDUM TUORUM.
 
 Sung lines should be in all caps between two character names.
 Ex:
@@ -579,7 +773,78 @@ MARIA
 THE HILLS ARE ALIVE WITH THE SOUND OF MUSIC
 WITH SONGS THEY HAVE SUNG FOR A THOUSAND YEARS
 `}
-              />
+                  />
+                ) : (
+                  <div className="h-full flex flex-col gap-4">
+                    <div className="flex-shrink-0">
+                      <FileDropZone
+                        onFileContent={handleFileContent}
+                        acceptedTypes={[".txt", ".md", ".rtf"]}
+                      />
+                    </div>
+                    
+                    <div className="flex-1 flex gap-4">
+                      {/* Format Instructions */}
+                      <div className="flex-1 border border-stone-200 dark:border-stone-700 rounded-md p-4 bg-stone-50 dark:bg-stone-900">
+                        <h3 className="text-sm font-semibold text-stone-900 dark:text-stone-100 mb-3">
+                          Required File Format
+                        </h3>
+                        <div className="text-xs text-stone-600 dark:text-stone-400 space-y-3">
+                          <div>
+                            <p className="font-medium mb-1">Option 1: Character: Line format</p>
+                            <div className="bg-white dark:bg-stone-800 border rounded p-2 font-mono text-xs">
+                              <div>SOLO: DIXIT DOMINUS DOMINO MEO: SEDE A DEXTRIS MEIS.</div>
+                              <div>RESPONSE: DONEC PONAM INIMICOS TUOS, SCABELLEUM PEDUM TUORUM.</div>
+                              <div>NUNS: Have you seen Maria? Isn&apos;t Maria back yet?</div>
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <p className="font-medium mb-1">Option 2: Character names on separate lines</p>
+                            <div className="bg-white dark:bg-stone-800 border rounded p-2 font-mono text-xs">
+                              <div>STANLEY</div>
+                              <div>Stella!!!</div>
+                              <div></div>
+                              <div>BLANCHE</div>
+                              <div>I have always depended on the kindness of strangers.</div>
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <p className="font-medium mb-1">Sung lines (all caps between characters)</p>
+                            <div className="bg-white dark:bg-stone-800 border rounded p-2 font-mono text-xs">
+                              <div>MARIA</div>
+                              <div>THE HILLS ARE ALIVE WITH THE SOUND OF MUSIC</div>
+                              <div>WITH SONGS THEY HAVE SUNG FOR A THOUSAND YEARS</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Content Preview */}
+                      {newScriptBox && (
+                        <div className="flex-1 border border-stone-200 dark:border-stone-700 rounded-md p-4 bg-stone-50 dark:bg-stone-900">
+                          <h3 className="text-sm font-semibold text-stone-900 dark:text-stone-100 mb-3">
+                            Loaded Content Preview
+                          </h3>
+                          <div className="text-sm text-stone-700 dark:text-stone-300 max-h-64 overflow-y-auto">
+                            {newScriptBox.split('\n').slice(0, 15).map((line, idx) => (
+                              <div key={idx} className="whitespace-pre-wrap font-mono text-xs leading-relaxed">
+                                {line || '\u00A0'}
+                              </div>
+                            ))}
+                            {newScriptBox.split('\n').length > 15 && (
+                              <div className="text-stone-400 italic mt-2 text-xs">
+                                ... and {newScriptBox.split('\n').length - 15} more lines
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
             <div className="p-2">
               <Button

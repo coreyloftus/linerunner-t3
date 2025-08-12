@@ -229,4 +229,25 @@ export const scriptData = createTRPCRouter({
         throw new Error("Local script updates not supported");
       }
     }),
+
+  copyProjectBetweenUsers: protectedProcedure
+    .input(
+      z.object({
+        sourceUserId: z.string().min(1, "Source user ID is required"),
+        targetUserId: z.string().min(1, "Target user ID is required"),
+        projectName: z.string().min(1, "Project name is required"),
+        adminEmail: z.string().email("Valid admin email is required"),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      // Import the FirestoreService
+      const { FirestoreService } = await import("~/server/firebase");
+      
+      return FirestoreService.copyProjectBetweenUsers(
+        input.sourceUserId,
+        input.targetUserId,
+        input.projectName,
+        input.adminEmail,
+      );
+    }),
 });

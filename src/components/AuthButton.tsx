@@ -5,7 +5,6 @@ import { Button } from "./ui/button";
 import { DropdownMenu, DropdownMenuItem } from "./ui/dropdown-menu";
 import { ScriptContext } from "~/app/context";
 import { useContext, useEffect } from "react";
-import Image from "next/image";
 
 export const AuthButton = () => {
   const { data: session, status } = useSession();
