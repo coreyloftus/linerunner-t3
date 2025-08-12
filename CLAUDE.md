@@ -15,6 +15,7 @@ LineRunner is a theatre/script line-running application built with Next.js 14 an
 - **UI**: React with Tailwind CSS and Radix UI components
 - **Cloud Storage**: Firebase/Firestore for user scripts
 - **State Management**: React Context (ScriptContext)
+- **Icons**: React Icons
 
 ## Development Commands
 
@@ -39,13 +40,17 @@ npm install
 ## Architecture Overview
 
 ### Data Sources
+
 The application supports three data sources:
+
 - **local**: JSON files in `public/sceneData/`
 - **public**: Shared scripts in Firestore public collection
 - **firestore**: User-specific scripts requiring authentication
 
 ### Core Data Structure
+
 Scripts follow this JSON schema:
+
 ```typescript
 interface ProjectJSON {
   project: string;
@@ -65,31 +70,37 @@ interface SceneJSON {
 ### Application Architecture
 
 **Frontend Structure:**
+
 - `src/app/page.tsx` - Main app with tabbed interface (Line Runner, Line Viewer, Script Data, Add Script)
 - `src/app/context.tsx` - Global state management via React Context
 - `src/components/` - Reusable UI components
 - `src/hooks/useScriptData.ts` - Custom hook for data fetching with caching
 
 **Backend Structure:**
+
 - `src/server/api/routers/scriptData.ts` - tRPC router for script operations
 - `src/server/scriptService.ts` - Business logic for script data management
 - `src/server/firebase.ts` - Firestore integration
 - `prisma/schema.prisma` - Database schema with NextAuth models
 
 **Key Components:**
+
 - `ScriptBox` - Main script runner with line-by-line playback
 - `ScriptViewer` - Full script viewing mode
 - `ScriptData` - Script editing interface with drag-and-drop
 - `AddScriptDoc` - Interface for creating new scripts
 
 ### State Management
+
 The `ScriptContext` manages:
+
 - Script selection (project, scene, character)
 - Playback state (current line, word index, playing status)
 - User configuration (data source, playback settings)
 - Script creation state
 
 ### Authentication & Data Access
+
 - NextAuth.js handles user authentication
 - Firestore access requires authenticated users
 - Admin functions restricted to specific email (`coreyloftus@gmail.com`)
@@ -113,6 +124,7 @@ The `ScriptContext` manages:
 ## Testing & Quality
 
 Run linting before commits:
+
 ```bash
 npm run lint
 ```

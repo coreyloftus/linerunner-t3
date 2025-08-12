@@ -22,7 +22,6 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
     wordIndex,
     playScene,
     currentLineSplit,
-    userConfig,
   } = useContext(ScriptContext);
 
   // Fetch both public and user data
@@ -108,7 +107,7 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
 
     if (!playScene)
       return (
-        <p>
+        <p className="text-stone-900 dark:text-stone-100">
           Ready - Line {currentLineIndex + 1} of {totalLines}
         </p>
       );
@@ -116,10 +115,10 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
     if (currentLine && currentLineSplit.length > 0) {
       return (
         <>
-          <p>
+          <p className="text-stone-900 dark:text-stone-100">
             Line {currentLineIndex + 1} of {totalLines}
           </p>
-          <p>
+          <p className="text-stone-900 dark:text-stone-100">
             {" "}
             Word {wordIndex + 1} of {currentLineSplit.length}
           </p>
@@ -128,14 +127,14 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
     }
 
     return (
-      <p>
+      <p className="text-stone-900 dark:text-stone-100">
         Line {currentLineIndex + 1} of {totalLines}
       </p>
     );
   };
 
   return (
-    <div className="flex h-[90dvh] w-[95dvw] flex-col rounded-md border-2 border-stone-200 supports-[height:100svh]:h-[90svh]">
+    <div className="flex h-[90dvh] w-[95dvw] flex-col rounded-md border-2 border-stone-200 bg-stone-100 supports-[height:100svh]:h-[90svh] dark:bg-stone-900">
       <div className="flex h-full flex-col rounded-md">
         {/* Mobile-optimized header */}
         <div className="iphone:flex-row iphone:items-center iphone:justify-between iphone:px-4 iphone:py-3 flex flex-col border-b border-stone-200 bg-stone-50 px-3 py-2 dark:border-stone-700 dark:bg-stone-800">
@@ -155,7 +154,7 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
             className="text-mobile-sm iphone:text-mobile-base iphone:leading-loose iphone:p-4 h-full min-h-[60px] 
                       resize-none overflow-y-auto border-0 
                       bg-transparent p-3
-                      font-mono leading-relaxed text-stone-100
+                      font-mono leading-relaxed text-stone-900
                       [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain] [touch-action:pan-y]
                       focus-visible:ring-0
                       dark:text-stone-100 md:text-sm"

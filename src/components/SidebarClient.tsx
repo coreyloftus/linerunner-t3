@@ -2,26 +2,47 @@
 import { type ProjectJSON } from "~/server/api/routers/scriptData";
 import NewScriptSelect from "./NewScriptSelect";
 import { Button } from "./ui/button";
-import { useContext, useEffect, useState, useRef } from "react";
-import { IoChevronForward } from "react-icons/io5";
+import { useContext, useEffect, useState, useRef, useCallback } from "react";
+import { IoClose } from "react-icons/io5";
 import { ScriptContext } from "~/app/context";
 import { AuthButton } from "./AuthButton";
-import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
-import { useSession } from "next-auth/react";
 import { RefreshButton } from "./ui/refresh-button";
 import { useScriptData } from "~/hooks/useScriptData";
+import { ThemeToggle } from "./ui/theme-toggle";
+import Link from "next/link";
 
 type SidebarClientProps = {
   projects: string[];
   allData: ProjectJSON[];
+  isOpen?: boolean;
+  onToggle?: (open: boolean) => void;
 };
-export function SidebarClient({ projects, allData }: SidebarClientProps) {
-  const [navOpen, setNavOpen] = useState(false);
-  const { userConfig, setUserConfig } = useContext(ScriptContext);
+export function SidebarClient({
+  projects,
+  allData,
+  isOpen,
+  onToggle,
+}: SidebarClientProps) {
+  const [internalNavOpen, setInternalNavOpen] = useState(false);
+
+  // Use external state if provided, otherwise use internal state
+  const navOpen = isOpen ?? internalNavOpen;
+  const setNavOpenStable = useCallback(
+    (open: boolean | ((prev: boolean) => boolean)) => {
+      if (onToggle) {
+        const newValue = typeof open === "function" ? open(navOpen) : open;
+        onToggle(newValue);
+      } else {
+        setInternalNavOpen(open);
+      }
+    },
+    [onToggle, navOpen],
+  );
+
+  const setNavOpen = setNavOpenStable;
+  const { userConfig } = useContext(ScriptContext);
   const sidebarRef = useRef<HTMLDivElement>(null);
-  const arrowButtonRef = useRef<HTMLDivElement>(null);
-  const { data: session } = useSession();
 
   // Get refresh functionality from the optimized hook
   const { refreshData, isLoading: isDataLoading } = useScriptData({
@@ -29,9 +50,6 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
     enableAutoRefresh: false,
     cacheTime: 1000 * 60 * 60 * 24, // 24 hours cache
   });
-
-  const { selectedProject, selectedScene, selectedCharacter } =
-    useContext(ScriptContext);
 
   // Handle escape key press
   useEffect(() => {
@@ -45,16 +63,15 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
     return () => {
       document.removeEventListener("keydown", handleEscapeKey);
     };
-  }, [navOpen]);
+  }, [navOpen, setNavOpen]);
 
   // Handle click outside sidebar
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element;
 
-      // Check if click is on sidebar or arrow button
+      // Check if click is on sidebar
       const isOnSidebar = sidebarRef.current?.contains(target);
-      const isOnArrowButton = arrowButtonRef.current?.contains(target);
 
       // Check if click is on any dropdown content (Select components)
       const isOnDropdown =
@@ -62,10 +79,9 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
       const isOnSelectTrigger = target.closest("[data-radix-trigger]") !== null;
       const isOnSelectContent = target.closest("[data-radix-content]") !== null;
 
-      // Only close sidebar if click is outside sidebar, arrow button, and not on any dropdown
+      // Only close sidebar if click is outside sidebar and not on any dropdown
       if (
         !isOnSidebar &&
-        !isOnArrowButton &&
         !isOnDropdown &&
         !isOnSelectTrigger &&
         !isOnSelectContent &&
@@ -79,14 +95,14 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [navOpen]);
+  }, [navOpen, setNavOpen]);
 
   return (
     <>
       {/* Backdrop overlay for mobile */}
       {navOpen && (
         <div
-          className="fixed inset-0 bg-black/50 transition-opacity duration-300 iphone:bg-black/40 md:hidden"
+          className="iphone:bg-black/40 fixed inset-0 bg-black/50 transition-opacity duration-300 md:hidden"
           style={{ zIndex: 40 }}
           onClick={() => setNavOpen(false)}
         />
@@ -95,10 +111,10 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
       {/* sidebar */}
       <div
         ref={sidebarRef}
-        className={`fixed left-0 top-0 h-full transform border-r-2 border-stone-200 bg-stone-400 transition-all duration-300 ease-out ${
+        className={`fixed left-0 top-0 h-full transform border-r border-stone-200 bg-stone-50/95 backdrop-blur-sm transition-all duration-500 ease-in-out dark:border-stone-800 dark:bg-stone-900/90 ${
           navOpen
-            ? "w-[85vw] translate-x-0 opacity-100 xs:w-[80vw] iphone:w-[75vw] md:w-[33vw]"
-            : "w-[85vw] -translate-x-full opacity-100 xs:w-[80vw] iphone:w-[75vw] md:w-[33vw]"
+            ? "xs:w-[80vw] iphone:w-[75vw] w-[85vw] translate-x-0 opacity-100 md:w-[33vw]"
+            : "xs:w-[80vw] iphone:w-[75vw] w-[85vw] -translate-x-full opacity-100 md:w-[33vw]"
         }`}
         style={{ zIndex: 50 }}
       >
@@ -106,26 +122,49 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
         <div
           className={`h-full transition-opacity duration-200 ${navOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
         >
-          <div className="pt-3 iphone:pt-2">
-            <div className="flex justify-end p-2">
+          <div className="iphone:pt-2 pt-3">
+            <div className="flex items-center justify-between p-2">
+              {/* Close button for mobile */}
+              <Button
+                onClick={() => setNavOpen(false)}
+                variant="ghost"
+                size="sm"
+                className="p-2 text-stone-600 hover:bg-stone-200 dark:text-stone-400 dark:hover:bg-stone-700 md:hidden"
+                aria-label="Close sidebar"
+              >
+                <IoClose className="h-5 w-5" />
+              </Button>
+              <div className="md:hidden" /> {/* Spacer for mobile */}
               <AuthButton />
             </div>
-            <div className="px-2 iphone:px-1">
-              <p className="mb-2 text-mobile-base iphone:text-base font-bold">Script Select</p>
+            <div className=" px-2">
+              <p className="text-mobile-base iphone:text-base mb-2 font-bold text-stone-900 dark:text-stone-100">
+                Script Select
+              </p>
               <NewScriptSelect projects={projects} allData={allData} />
             </div>
 
-            {/* Refresh Button */}
-            <div className="mt-4 px-2 iphone:px-1">
-              <p className="mb-2 text-mobile-base iphone:text-base font-bold">Data Management</p>
+            {/* Settings */}
+            <div className="mt-4 px-2">
+              <p className="text-mobile-base iphone:text-base mb-2 font-bold text-stone-900 dark:text-stone-100">
+                Settings
+              </p>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label className="text-mobile-sm iphone:text-sm">Refresh Data</Label>
+                  <Label className="text-mobile-sm iphone:text-sm text-stone-800 dark:text-stone-200">
+                    Theme
+                  </Label>
+                  <ThemeToggle />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label className="text-mobile-sm iphone:text-sm text-stone-800 dark:text-stone-200">
+                    Refresh Data
+                  </Label>
                   <RefreshButton
                     onClick={refreshData}
                     isLoading={isDataLoading}
                     size="sm"
-                    className="min-h-[44px] min-w-[44px] iphone:min-h-[36px] iphone:min-w-[36px] touch-manipulation"
+                    className="iphone:min-h-[36px] iphone:min-w-[36px] min-h-[44px] min-w-[44px] touch-manipulation"
                   />
                 </div>
               </div>
@@ -149,28 +188,18 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
               </div> */}
             </div>
           </div>
-
-          <div className="fixed bottom-0 mb-16 pl-2 font-mono text-mobile-xs iphone:text-sm">
-            LineRunner by Corey -- ©2025
+          <div className="fixed bottom-[.5rem] pl-2">
+            <Link href="https://www.coreyloftus.com" target="_blank">
+              <div className="text-mobile-xs iphone:text-sm font-mono text-stone-600 dark:text-stone-400">
+                LineRunner by Corey -- ©2025
+                <span className="text-stone-600 dark:text-stone-400">
+                  {" "}
+                  coreyloftus.com
+                </span>
+              </div>
+            </Link>
           </div>
         </div>
-      </div>
-
-      {/* Arrow button - always visible, positioned outside sidebar */}
-      <div
-        ref={arrowButtonRef}
-        className="fixed bottom-1 left-1 z-[60] flex h-12 w-12 items-center justify-center"
-      >
-        <Button
-          onClick={() => setNavOpen(!navOpen)}
-          className="h-full w-full min-h-[48px] min-w-[48px] touch-manipulation rounded-md bg-stone-500 p-0 text-white hover:bg-stone-600 active:bg-stone-700 transition-colors duration-200"
-        >
-          <IoChevronForward
-            className={`h-8 w-8 transition-transform duration-200 ${
-              navOpen ? "rotate-180" : "rotate-0"
-            } ${!selectedProject.length && !selectedScene.length && !selectedCharacter.length ? "blink-on-and-off" : ""}`}
-          />
-        </Button>
       </div>
     </>
   );

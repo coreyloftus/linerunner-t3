@@ -1,5 +1,6 @@
 import { adminDb } from "~/lib/firebase-admin";
 import type { DocumentData, WhereFilterOp } from "firebase-admin/firestore";
+import type { ProjectJSON } from "./scriptService";
 
 // Generic CRUD operations for Firestore using Admin SDK
 export class FirestoreService {
@@ -311,13 +312,80 @@ export class FirestoreService {
     }
   }
 
+  // Copy a project from one user to another (Admin function)
+  static async copyProjectBetweenUsers(
+    sourceUserId: string,
+    targetUserId: string,
+    projectName: string,
+    adminEmail: string,
+  ): Promise<{ success: boolean; message: string; copiedScenes?: number }> {
+    try {
+      // Validate admin access
+      if (adminEmail !== "coreyloftus@gmail.com") {
+        return {
+          success: false,
+          message: "Admin access required for this operation",
+        };
+      }
+
+      // Get source user's project documents
+      const sourceDocuments = await this.getUserDocuments<
+        ProjectJSON & { id: string }
+      >(sourceUserId, "users", "uploaded_data");
+
+      // Filter documents for the specific project
+      const projectDocuments = sourceDocuments.filter(
+        (doc) => doc.project === projectName,
+      );
+
+      if (projectDocuments.length === 0) {
+        return {
+          success: false,
+          message: `Project "${projectName}" not found for source user`,
+        };
+      }
+
+      // Copy each document to the target user
+      let copiedScenes = 0;
+      for (const doc of projectDocuments) {
+        // Remove the id field and copy the rest
+        const { id, ...docData } = doc;
+        void id; // Acknowledge we're intentionally ignoring this
+        
+        await this.addDocumentToSubcollection(
+          "users",
+          targetUserId,
+          "uploaded_data",
+          docData,
+        );
+        copiedScenes++;
+      }
+
+      return {
+        success: true,
+        message: `Successfully copied ${copiedScenes} scenes from project "${projectName}" to target user`,
+        copiedScenes,
+      };
+    } catch (error) {
+      console.error(
+        "🔥 [FirestoreService.copyProjectBetweenUsers] Error:",
+        error,
+      );
+      return {
+        success: false,
+        message:
+          error instanceof Error ? error.message : "Unknown error occurred",
+      };
+    }
+  }
+
   // Query documents with filters (simplified for now)
   static async queryDocuments<T = DocumentData>(
     collectionName: string,
-    filters?: Array<{ field: string; operator: WhereFilterOp; value: unknown }>,
-    orderByField?: string,
-    orderDirection?: "asc" | "desc",
-    limitCount?: number,
+    _filters?: Array<{ field: string; operator: WhereFilterOp; value: unknown }>,
+    _orderByField?: string,
+    _orderDirection?: "asc" | "desc",
+    _limitCount?: number,
   ): Promise<T[]> {
     try {
       // For now, just get all documents from the collection

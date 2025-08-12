@@ -2,6 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Theme Variables */
+:root {
+  --background: 0 0% 100%;
+  --foreground: 20 14.3% 4.1%;
+}
+
+.dark {
+  --background: 20 14.3% 4.1%;
+  --foreground: 0 0% 95%;
+}
+
+/* Apply theme colors to document */
+html,
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
 .scrollbar-custom {
   scrollbar-width: thin; /* Firefox */
   scrollbar-color: #a1a097 #a1a097; /* Color for Firefox */
@@ -20,6 +38,20 @@
   background-color: #a1a097;
   border-radius: 10px;
   border: 2px solid #a1a097;
+}
+
+/* Dark mode scrollbar */
+.dark .scrollbar-custom {
+  scrollbar-color: #57534e #292524; /* Color for Firefox */
+}
+
+.dark .scrollbar-custom::-webkit-scrollbar-track {
+  background: #292524;
+}
+
+.dark .scrollbar-custom::-webkit-scrollbar-thumb {
+  background-color: #57534e;
+  border: 2px solid #57534e;
 }
 
 @keyframes blink-on-and-off {

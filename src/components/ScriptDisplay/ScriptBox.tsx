@@ -6,7 +6,6 @@ import { ScriptContext } from "~/app/context";
 import { type ProjectJSON } from "../../server/api/routers/scriptData";
 import ControlBar from "../ControlBar";
 import { CharacterLineDisplay } from "./CharacterLineDisplay";
-import { useScriptData } from "~/hooks/useScriptData";
 import { api } from "~/trpc/react";
 import { useSession } from "next-auth/react";
 
@@ -336,7 +335,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     <div className="flex h-[90dvh] w-[95dvw] flex-col rounded-md border-2 border-stone-200 supports-[height:100svh]:h-[90svh]">
       <div className="flex h-[90%] flex-col rounded-md ">
         <div className="pt-safe-top pb-safe-bottom flex-grow overflow-hidden">
-          <ul className="overscroll-bounce h-full overflow-y-auto px-2 [touch-action:pan-y] [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain]">
+          <ul className="overscroll-bounce h-full overflow-y-auto px-2 [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain] [touch-action:pan-y]">
             {playScene ? (
               <CharacterLineDisplay
                 script={script}
@@ -349,11 +348,16 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
             ) : (
               <div className="flex h-full items-center justify-center">
                 <div className="text-center">
-                  <h1 className="mb-4 text-4xl font-bold text-stone-700">
-                    Welcome to Line Runner
-                  </h1>
-                  <p className="text-lg text-stone-600">
-                    Select a project, scene, and character to begin
+                  <div className="mb-4">
+                    <h1 className="text-3xl font-bold text-stone-700">
+                      Welcome to Line Runner
+                    </h1>
+                    <h4 className="text-lg font-bold text-stone-700">
+                      by Corey
+                    </h4>
+                  </div>
+                  <p className="text-lg text-stone-700">
+                    Select a scene from the menu to begin
                   </p>
                 </div>
               </div>

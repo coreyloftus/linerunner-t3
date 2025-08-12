@@ -25,6 +25,9 @@ interface ScriptContextProps {
   setQueryParams: Dispatch<SetStateAction<Record<string, string>>>;
   allProjects: GetAllResponse;
   setAllProjects: Dispatch<SetStateAction<GetAllResponse>>;
+  // Theme state
+  theme: "light" | "dark";
+  setTheme: Dispatch<SetStateAction<"light" | "dark">>;
   // Script playback state
   currentLineIndex: number;
   setCurrentLineIndex: Dispatch<SetStateAction<number>>;
@@ -75,6 +78,9 @@ export const ScriptContext = createContext<ScriptContextProps>({
   setQueryParams: () => ({}),
   allProjects: { projects: [], allData: [] },
   setAllProjects: () => ({ projects: [], allData: [] }),
+  // Theme defaults
+  theme: "light",
+  setTheme: () => "light",
   // Script playback state defaults
   currentLineIndex: 0,
   setCurrentLineIndex: () => 0,
@@ -112,6 +118,19 @@ export const ScriptProvider = ({ children }: { children: ReactNode }) => {
     allData: [],
   });
 
+  // Theme state with localStorage persistence
+  const [theme, setTheme] = useState<"light" | "dark">(() => {
+    if (typeof window !== "undefined") {
+      const savedTheme = localStorage.getItem("linerunner-theme");
+      if (savedTheme === "light" || savedTheme === "dark") {
+        return savedTheme;
+      }
+      // Default to system preference
+      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    }
+    return "light";
+  });
+
   // Script playback state
   const [currentLineIndex, setCurrentLineIndex] = useState<number>(0);
   const [wordIndex, setWordIndex] = useState<number>(0);
@@ -130,6 +149,18 @@ export const ScriptProvider = ({ children }: { children: ReactNode }) => {
     setQueryParams(Object.fromEntries(searchParams));
   }, [searchParams]);
 
+  // Persist theme changes to localStorage and apply to document
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("linerunner-theme", theme);
+      if (theme === "dark") {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    }
+  }, [theme]);
+
   return (
     <ScriptContext.Provider
       value={{
@@ -147,6 +178,9 @@ export const ScriptProvider = ({ children }: { children: ReactNode }) => {
         setQueryParams,
         allProjects,
         setAllProjects,
+        // Theme state
+        theme,
+        setTheme,
         // Script playback state
         currentLineIndex,
         setCurrentLineIndex,
