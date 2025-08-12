@@ -43,9 +43,16 @@ export function AppContent({ projectData, sidebarData }: AppContentProps) {
       <div className="pt-safe-top pb-safe-bottom flex min-h-[100dvh] flex-col items-center justify-center bg-[hsl(var(--background))] p-2 text-[hsl(var(--foreground))] transition-colors [touch-action:manipulation] supports-[height:100svh]:min-h-[100svh]">
         <Tabs
           defaultValue="runner"
-          className="flex w-full flex-1 flex-col-reverse items-center justify-center md:flex-col"
+          className="flex w-full flex-1 flex-col items-center justify-center"
         >
-          <TabsList className="mb-2 mt-2 md:mt-0 w-full max-w-none grid grid-cols-5 gap-0">
+          <TabsList className="mb-2 mt-0 grid w-full max-w-none grid-cols-5 gap-0">
+            <div className="flex flex-1 items-center justify-center">
+              <SidebarToggle
+                onToggle={handleSidebarToggle}
+                isOpen={sidebarOpen}
+                className="h-full w-full"
+              />
+            </div>
             <TabsTrigger value="runner" className="flex-1">
               <span className="iphone:hidden">▶️</span>
               <span className="iphone:inline hidden md:hidden">Run</span>
@@ -66,13 +73,6 @@ export function AppContent({ projectData, sidebarData }: AppContentProps) {
               <span className="iphone:inline hidden md:hidden">Add</span>
               <span className="hidden md:inline">Add Script</span>
             </TabsTrigger>
-            <div className="flex-1 flex items-center justify-center">
-              <SidebarToggle
-                onToggle={handleSidebarToggle}
-                isOpen={sidebarOpen}
-                className="w-full h-full"
-              />
-            </div>
           </TabsList>
           <TabsContent value="runner" className="mt-0">
             <ScriptBox data={projectData} />
