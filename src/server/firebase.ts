@@ -349,7 +349,8 @@ export class FirestoreService {
       let copiedScenes = 0;
       for (const doc of projectDocuments) {
         // Remove the id field and copy the rest
-        const { id: _, ...docData } = doc;
+        const { id, ...docData } = doc;
+        void id; // Acknowledge we're intentionally ignoring this
         
         await this.addDocumentToSubcollection(
           "users",

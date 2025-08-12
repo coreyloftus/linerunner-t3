@@ -2,8 +2,8 @@
 import { type ProjectJSON } from "~/server/api/routers/scriptData";
 import NewScriptSelect from "./NewScriptSelect";
 import { Button } from "./ui/button";
-import { useContext, useEffect, useState, useRef } from "react";
-import { IoMenu, IoClose } from "react-icons/io5";
+import { useContext, useEffect, useState, useRef, useCallback } from "react";
+import { IoClose } from "react-icons/io5";
 import { ScriptContext } from "~/app/context";
 import { AuthButton } from "./AuthButton";
 import { Label } from "./ui/label";
@@ -14,12 +14,26 @@ import { ThemeToggle } from "./ui/theme-toggle";
 type SidebarClientProps = {
   projects: string[];
   allData: ProjectJSON[];
+  isOpen?: boolean;
+  onToggle?: (open: boolean) => void;
 };
-export function SidebarClient({ projects, allData }: SidebarClientProps) {
-  const [navOpen, setNavOpen] = useState(false);
+export function SidebarClient({ projects, allData, isOpen, onToggle }: SidebarClientProps) {
+  const [internalNavOpen, setInternalNavOpen] = useState(false);
+  
+  // Use external state if provided, otherwise use internal state
+  const navOpen = isOpen ?? internalNavOpen;
+  const setNavOpenStable = useCallback((open: boolean | ((prev: boolean) => boolean)) => {
+    if (onToggle) {
+      const newValue = typeof open === 'function' ? open(navOpen) : open;
+      onToggle(newValue);
+    } else {
+      setInternalNavOpen(open);
+    }
+  }, [onToggle, navOpen]);
+  
+  const setNavOpen = setNavOpenStable;
   const { userConfig } = useContext(ScriptContext);
   const sidebarRef = useRef<HTMLDivElement>(null);
-  const arrowButtonRef = useRef<HTMLDivElement>(null);
 
   // Get refresh functionality from the optimized hook
   const { refreshData, isLoading: isDataLoading } = useScriptData({
@@ -28,8 +42,6 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
     cacheTime: 1000 * 60 * 60 * 24, // 24 hours cache
   });
 
-  const { selectedProject, selectedScene, selectedCharacter } =
-    useContext(ScriptContext);
 
   // Handle escape key press
   useEffect(() => {
@@ -43,16 +55,15 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
     return () => {
       document.removeEventListener("keydown", handleEscapeKey);
     };
-  }, [navOpen]);
+  }, [navOpen, setNavOpen]);
 
   // Handle click outside sidebar
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element;
 
-      // Check if click is on sidebar or arrow button
+      // Check if click is on sidebar
       const isOnSidebar = sidebarRef.current?.contains(target);
-      const isOnArrowButton = arrowButtonRef.current?.contains(target);
 
       // Check if click is on any dropdown content (Select components)
       const isOnDropdown =
@@ -60,10 +71,9 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
       const isOnSelectTrigger = target.closest("[data-radix-trigger]") !== null;
       const isOnSelectContent = target.closest("[data-radix-content]") !== null;
 
-      // Only close sidebar if click is outside sidebar, arrow button, and not on any dropdown
+      // Only close sidebar if click is outside sidebar and not on any dropdown
       if (
         !isOnSidebar &&
-        !isOnArrowButton &&
         !isOnDropdown &&
         !isOnSelectTrigger &&
         !isOnSelectContent &&
@@ -77,7 +87,7 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [navOpen]);
+  }, [navOpen, setNavOpen]);
 
   return (
     <>
@@ -177,23 +187,6 @@ export function SidebarClient({ projects, allData }: SidebarClientProps) {
         </div>
       </div>
 
-      {/* Hamburger menu button - always visible, positioned at top-right */}
-      <div
-        ref={arrowButtonRef}
-        className="fixed top-4 right-4 z-[60] flex h-12 w-12 items-center justify-center"
-      >
-        <Button
-          onClick={() => setNavOpen(!navOpen)}
-          className="h-full w-full min-h-[48px] min-w-[48px] touch-manipulation rounded-lg bg-stone-100/90 p-0 text-stone-700 shadow-lg backdrop-blur-sm hover:bg-stone-200 dark:bg-stone-800/90 dark:text-stone-200 dark:hover:bg-stone-700 transition-colors duration-200"
-          aria-label={navOpen ? "Close menu" : "Open menu"}
-        >
-          <IoMenu
-            className={`h-6 w-6 transition-all duration-300 ${
-              !selectedProject.length && !selectedScene.length && !selectedCharacter.length ? "blink-on-and-off" : ""
-            }`}
-          />
-        </Button>
-      </div>
     </>
   );
 }
