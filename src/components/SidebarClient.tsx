@@ -10,6 +10,7 @@ import { Label } from "./ui/label";
 import { RefreshButton } from "./ui/refresh-button";
 import { useScriptData } from "~/hooks/useScriptData";
 import { ThemeToggle } from "./ui/theme-toggle";
+import Link from "next/link";
 
 type SidebarClientProps = {
   projects: string[];
@@ -17,20 +18,28 @@ type SidebarClientProps = {
   isOpen?: boolean;
   onToggle?: (open: boolean) => void;
 };
-export function SidebarClient({ projects, allData, isOpen, onToggle }: SidebarClientProps) {
+export function SidebarClient({
+  projects,
+  allData,
+  isOpen,
+  onToggle,
+}: SidebarClientProps) {
   const [internalNavOpen, setInternalNavOpen] = useState(false);
-  
+
   // Use external state if provided, otherwise use internal state
   const navOpen = isOpen ?? internalNavOpen;
-  const setNavOpenStable = useCallback((open: boolean | ((prev: boolean) => boolean)) => {
-    if (onToggle) {
-      const newValue = typeof open === 'function' ? open(navOpen) : open;
-      onToggle(newValue);
-    } else {
-      setInternalNavOpen(open);
-    }
-  }, [onToggle, navOpen]);
-  
+  const setNavOpenStable = useCallback(
+    (open: boolean | ((prev: boolean) => boolean)) => {
+      if (onToggle) {
+        const newValue = typeof open === "function" ? open(navOpen) : open;
+        onToggle(newValue);
+      } else {
+        setInternalNavOpen(open);
+      }
+    },
+    [onToggle, navOpen],
+  );
+
   const setNavOpen = setNavOpenStable;
   const { userConfig } = useContext(ScriptContext);
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -41,7 +50,6 @@ export function SidebarClient({ projects, allData, isOpen, onToggle }: SidebarCl
     enableAutoRefresh: false,
     cacheTime: 1000 * 60 * 60 * 24, // 24 hours cache
   });
-
 
   // Handle escape key press
   useEffect(() => {
@@ -94,7 +102,7 @@ export function SidebarClient({ projects, allData, isOpen, onToggle }: SidebarCl
       {/* Backdrop overlay for mobile */}
       {navOpen && (
         <div
-          className="fixed inset-0 bg-black/50 transition-opacity duration-300 iphone:bg-black/40 md:hidden"
+          className="iphone:bg-black/40 fixed inset-0 bg-black/50 transition-opacity duration-300 md:hidden"
           style={{ zIndex: 40 }}
           onClick={() => setNavOpen(false)}
         />
@@ -105,8 +113,8 @@ export function SidebarClient({ projects, allData, isOpen, onToggle }: SidebarCl
         ref={sidebarRef}
         className={`fixed left-0 top-0 h-full transform border-r border-stone-200 bg-stone-50/95 backdrop-blur-sm transition-all duration-500 ease-in-out dark:border-stone-800 dark:bg-stone-900/90 ${
           navOpen
-            ? "w-[85vw] translate-x-0 opacity-100 xs:w-[80vw] iphone:w-[75vw] md:w-[33vw]"
-            : "w-[85vw] -translate-x-full opacity-100 xs:w-[80vw] iphone:w-[75vw] md:w-[33vw]"
+            ? "xs:w-[80vw] iphone:w-[75vw] w-[85vw] translate-x-0 opacity-100 md:w-[33vw]"
+            : "xs:w-[80vw] iphone:w-[75vw] w-[85vw] -translate-x-full opacity-100 md:w-[33vw]"
         }`}
         style={{ zIndex: 50 }}
       >
@@ -114,7 +122,7 @@ export function SidebarClient({ projects, allData, isOpen, onToggle }: SidebarCl
         <div
           className={`h-full transition-opacity duration-200 ${navOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
         >
-          <div className="pt-3 iphone:pt-2">
+          <div className="iphone:pt-2 pt-3">
             <div className="flex items-center justify-between p-2">
               {/* Close button for mobile */}
               <Button
@@ -129,16 +137,16 @@ export function SidebarClient({ projects, allData, isOpen, onToggle }: SidebarCl
               <div className="md:hidden" /> {/* Spacer for mobile */}
               <AuthButton />
             </div>
-            <div className="px-2 iphone:px-1">
-              <p className="mb-2 text-mobile-base iphone:text-base font-bold text-stone-900 dark:text-stone-100">
+            <div className=" px-2">
+              <p className="text-mobile-base iphone:text-base mb-2 font-bold text-stone-900 dark:text-stone-100">
                 Script Select
               </p>
               <NewScriptSelect projects={projects} allData={allData} />
             </div>
 
             {/* Settings */}
-            <div className="mt-4 px-2 iphone:px-1">
-              <p className="mb-2 text-mobile-base iphone:text-base font-bold text-stone-900 dark:text-stone-100">
+            <div className="mt-4 px-2">
+              <p className="text-mobile-base iphone:text-base mb-2 font-bold text-stone-900 dark:text-stone-100">
                 Settings
               </p>
               <div className="space-y-2">
@@ -156,7 +164,7 @@ export function SidebarClient({ projects, allData, isOpen, onToggle }: SidebarCl
                     onClick={refreshData}
                     isLoading={isDataLoading}
                     size="sm"
-                    className="min-h-[44px] min-w-[44px] iphone:min-h-[36px] iphone:min-w-[36px] touch-manipulation"
+                    className="iphone:min-h-[36px] iphone:min-w-[36px] min-h-[44px] min-w-[44px] touch-manipulation"
                   />
                 </div>
               </div>
@@ -180,13 +188,19 @@ export function SidebarClient({ projects, allData, isOpen, onToggle }: SidebarCl
               </div> */}
             </div>
           </div>
-
-          <div className="fixed bottom-0 mb-16 pl-2 font-mono text-mobile-xs iphone:text-sm text-stone-600 dark:text-stone-400">
-            LineRunner by Corey -- ©2025
+          <div className="fixed bottom-[.5rem] pl-2">
+            <Link href="https://www.coreyloftus.com" target="_blank">
+              <div className="text-mobile-xs iphone:text-sm font-mono text-stone-600 dark:text-stone-400">
+                LineRunner by Corey -- ©2025
+                <span className="text-stone-600 dark:text-stone-400">
+                  {" "}
+                  coreyloftus.com
+                </span>
+              </div>
+            </Link>
           </div>
         </div>
       </div>
-
     </>
   );
 }
