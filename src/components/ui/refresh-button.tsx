@@ -29,7 +29,7 @@ export function RefreshButton({
       disabled={isLoading}
       className={cn(
         sizeClasses[size],
-        "rounded-full transition-all duration-200 active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
+        "rounded-lg transition-all duration-200 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 active:scale-95",
         className,
       )}
       title="Refresh data"

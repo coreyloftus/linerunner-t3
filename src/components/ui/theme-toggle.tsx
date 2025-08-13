@@ -15,9 +15,9 @@ export function ThemeToggle() {
   return (
     <Button
       onClick={toggleTheme}
-      variant="ghost"
+      variant="outline"
       size="sm"
-      className="h-8 w-8 p-0 text-stone-700 hover:bg-stone-200 dark:text-stone-200 dark:hover:bg-stone-700"
+      className="min-h-[44px] min-w-[44px] touch-manipulation rounded-lg iphone:min-h-[36px] iphone:min-w-[36px]"
       aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
     >
       {theme === "light" ? (
