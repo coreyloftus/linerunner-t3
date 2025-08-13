@@ -32,9 +32,9 @@ export default function ControlBar({
   handleWordNavigation,
 }: ControlBarProps) {
   return (
-    <div className="xs:px-4 xs:py-3 xs:gap-3 flex h-full w-full items-center justify-between gap-2 rounded-b-md border-t border-stone-200 bg-stone-100 px-3 py-2 shadow-lg dark:border-stone-700 dark:bg-stone-800 sm:px-6">
+    <div className="flex h-full w-full items-center justify-between gap-2 rounded-b-md  border-stone-200 bg-stone-100/85 px-3 py-1 shadow-lg dark:border-stone-700 dark:bg-stone-800 xs:gap-4 xs:px-1 xs:py-1 sm:px-6">
       {/* Playback Controls */}
-      <div className="xs:gap-2 flex items-center gap-1">
+      <div className="flex h-full items-center gap-1">
         <ControlButton
           variant="playback"
           onClick={() => {
@@ -58,8 +58,8 @@ export default function ControlBar({
       </div>
 
       {/* Navigation Controls */}
-      <div className="xs:gap-2 flex gap-1">
-        <div className="xs:gap-2 flex gap-1">
+      <div className="flex h-full gap-1">
+        <div className="flex h-full gap-1">
           <ControlButton
             onClick={() => {
               handleLineNavigation("up");
@@ -77,7 +77,7 @@ export default function ControlBar({
           </ControlButton>
         </div>
 
-        <div className="xs:gap-2 flex gap-1">
+        <div className="flex gap-1">
           <ControlButton
             onClick={() => {
               handleWordNavigation("left");

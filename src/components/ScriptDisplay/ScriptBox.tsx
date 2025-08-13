@@ -387,7 +387,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
           </div>
         ) : null} */}
       </div>
-      <div className="mt-2 h-[10%]">
+      <div className="h-[10%]">
         <ControlBar
           playScene={playScene}
           setPlayScene={setPlayScene}
