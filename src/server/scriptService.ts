@@ -5,6 +5,7 @@ import { FirestoreService } from "./firebase";
 export interface ProjectJSON {
   project: string;
   scenes: SceneJSON[];
+  characters?: string[]; // Optional for backward compatibility
 }
 
 export interface SceneJSON {
@@ -22,6 +23,28 @@ export interface GetAllResponse {
 }
 
 export class ScriptService {
+  // Helper function to generate characters array from scenes
+  static generateCharactersFromScenes(scenes: SceneJSON[]): string[] {
+    const charactersSet = new Set<string>();
+    scenes.forEach(scene => {
+      scene.lines.forEach(line => {
+        charactersSet.add(line.character);
+      });
+    });
+    return Array.from(charactersSet).sort();
+  }
+
+  // Helper function to ensure project has characters array
+  static ensureCharactersArray(project: ProjectJSON): ProjectJSON {
+    if (!project.characters) {
+      return {
+        ...project,
+        characters: this.generateCharactersFromScenes(project.scenes)
+      };
+    }
+    return project;
+  }
+
   // Load scripts from local files
   static async getLocalScripts(): Promise<GetAllResponse> {
     const directory = path.join(process.cwd(), "public/sceneData");
@@ -29,7 +52,8 @@ export class ScriptService {
     const allData: ProjectJSON[] = files
       .map((file) => {
         const data = fs.readFileSync(path.join(directory, file), "utf8");
-        return JSON.parse(data) as ProjectJSON;
+        const project = JSON.parse(data) as ProjectJSON;
+        return this.ensureCharactersArray(project);
       })
       .flat();
 
@@ -47,10 +71,12 @@ export class ScriptService {
         ProjectJSON & { id: string }
       >(userId, "users", "uploaded_data");
 
-      const projects = documents.map((doc) => doc.project);
+      // Ensure all projects have characters arrays
+      const allData = documents.map(doc => this.ensureCharactersArray(doc));
+      const projects = allData.map((doc) => doc.project);
       return {
         projects,
-        allData: documents,
+        allData,
       };
     } catch (error) {
       console.error("Error loading Firestore scripts:", error);
@@ -67,10 +93,12 @@ export class ScriptService {
     try {
       const documents = await FirestoreService.getPublicScripts<ProjectJSON>();
 
-      const projects = documents.map((doc) => doc.project);
+      // Ensure all projects have characters arrays
+      const allData = documents.map(doc => this.ensureCharactersArray(doc));
+      const projects = allData.map((doc) => doc.project);
       return {
         projects,
-        allData: documents,
+        allData,
       };
     } catch (error) {
       console.error("Error loading public scripts:", error);
@@ -185,6 +213,12 @@ export class ScriptService {
             lines: lines,
           },
         ],
+        characters: this.generateCharactersFromScenes([
+          {
+            title: sceneTitle,
+            lines: lines,
+          },
+        ]),
       };
 
       // Generate filename from project name
@@ -271,16 +305,23 @@ export class ScriptService {
           },
         ];
 
+        // Regenerate characters array for all scenes
+        const updatedCharacters = this.generateCharactersFromScenes(updatedScenes);
+
         console.log(
           "🔍 [ScriptService.saveFirestoreScript] Updating existing project",
         );
         console.log("  - New scenes count:", updatedScenes.length);
+        console.log("  - Updated characters:", updatedCharacters);
 
         await FirestoreService.updateUserDocument(
           userId,
           "uploaded_data",
           existingProjectDoc.id,
-          { scenes: updatedScenes },
+          { 
+            scenes: updatedScenes,
+            characters: updatedCharacters
+          },
         );
 
         console.log(
@@ -305,6 +346,12 @@ export class ScriptService {
               lines: lines,
             },
           ],
+          characters: this.generateCharactersFromScenes([
+            {
+              title: sceneTitle,
+              lines: lines,
+            },
+          ]),
         };
 
         const documentId = await FirestoreService.addUserDocument(
@@ -420,12 +467,18 @@ export class ScriptService {
         };
       }
 
-      // Update only the scenes array, preserving the project name and other properties
+      // Regenerate characters array for all scenes
+      const updatedCharacters = this.generateCharactersFromScenes(updatedScenes);
+
+      // Update scenes and characters arrays
       await FirestoreService.updateUserDocument(
         userId,
         "uploaded_data",
         existingProjectDoc.id,
-        { scenes: updatedScenes },
+        { 
+          scenes: updatedScenes,
+          characters: updatedCharacters
+        },
       );
 
       console.log(
