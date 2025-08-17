@@ -122,5 +122,10 @@
         }
       ]
     }
+  ],
+  "characters": [
+    "Algernon",
+    "Jack",
+    "Lane"
   ]
 }
