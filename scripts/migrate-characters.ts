@@ -12,8 +12,25 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-function generateCharactersFromScenes(scenes) {
-  const charactersSet = new Set();
+interface SceneData {
+  title: string;
+  lines: LineData[];
+}
+
+interface LineData {
+  character: string;
+  line: string;
+  sung?: boolean;
+}
+
+interface ProjectData {
+  project: string;
+  scenes: SceneData[];
+  characters?: string[];
+}
+
+function generateCharactersFromScenes(scenes: SceneData[]): string[] {
+  const charactersSet = new Set<string>();
   scenes.forEach(scene => {
     scene.lines.forEach(line => {
       charactersSet.add(line.character);
@@ -22,7 +39,7 @@ function generateCharactersFromScenes(scenes) {
   return Array.from(charactersSet).sort();
 }
 
-function migrateProjectFile(filePath) {
+function migrateProjectFile(filePath: string): boolean {
   console.log(`Processing: ${filePath}`);
   
   try {
@@ -30,10 +47,10 @@ function migrateProjectFile(filePath) {
     const parsedData = JSON.parse(data);
     
     // Handle both array format (existing files) and single object format
-    const projects = Array.isArray(parsedData) ? parsedData : [parsedData];
+    const projects: ProjectData[] = Array.isArray(parsedData) ? parsedData : [parsedData];
     let changesMade = false;
     
-    projects.forEach((project, index) => {
+    projects.forEach((project: ProjectData, index: number) => {
       if (!project.scenes) {
         console.log(`  ⚠ Project ${index} has no scenes property, skipping`);
         return;
@@ -62,7 +79,7 @@ function migrateProjectFile(filePath) {
     return changesMade;
     
   } catch (error) {
-    console.error(`  ✗ Error processing ${filePath}:`, error.message);
+    console.error(`  ✗ Error processing ${filePath}:`, error instanceof Error ? error.message : String(error));
     return false;
   }
 }
