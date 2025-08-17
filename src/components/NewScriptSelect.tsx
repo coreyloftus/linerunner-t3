@@ -74,8 +74,8 @@ export default function NewScriptSelect({
     })),
   ];
 
-  // Determine which data source to use for scene lookup based on selected project
-  const getSceneData = () => {
+  // Get all characters for the selected project (using new characters array)
+  const getCharacterData = () => {
     if (!selectedProject) return [];
 
     // Check if it's a public project
@@ -83,7 +83,7 @@ export default function NewScriptSelect({
       const project = publicAllData.find(
         (project) => project.project === selectedProject,
       );
-      return project?.scenes ?? [];
+      return project?.characters ?? [];
     }
 
     // Check if it's a user project
@@ -91,46 +91,24 @@ export default function NewScriptSelect({
       const project = userAllData.find(
         (project) => project.project === selectedProject,
       );
-      project?.scenes.sort((a, b) => a.title.localeCompare(b.title));
-      return project?.scenes ?? [];
+      return project?.characters ?? [];
     }
 
     return [];
   };
 
-  const sceneList = getSceneData();
-
-  const handleProjectChange = (newProject: string) => {
-    setSelectedProject(newProject);
-    const newQPs = `?project=${newProject}&scene=${selectedScene}&character=${selectedCharacter}`;
-    router.push(newQPs);
-  };
-  const handleSceneChange = (newScene: string) => {
-    setSelectedScene(newScene);
-    const newQPs = `?project=${selectedProject}&scene=${newScene}&character=${selectedCharacter}`;
-    router.push(newQPs);
-  };
-  const handleCharacterChange = (newCharacter: string) => {
-    setSelectedCharacter(newCharacter);
-    const newQPs = `?project=${selectedProject}&scene=${selectedScene}&character=${newCharacter}`;
-    router.push(newQPs);
-  };
-
-  // Get character list based on selected project and scene
-  const getCharacterData = () => {
-    if (!selectedProject || !selectedScene) return [];
+  // Get scenes that contain the selected character
+  const getScenesForCharacter = () => {
+    if (!selectedProject || !selectedCharacter) return [];
 
     // Check if it's a public project
     if (publicProjects.includes(selectedProject)) {
       const project = publicAllData.find(
         (project) => project.project === selectedProject,
       );
-      const scene = project?.scenes.find(
-        (scene) => scene.title === selectedScene,
-      );
-      return Array.from(
-        new Set(scene?.lines.map((line) => line.character) ?? []),
-      );
+      return project?.scenes.filter(scene => 
+        scene.lines.some(line => line.character === selectedCharacter)
+      ).sort((a, b) => a.title.localeCompare(b.title)) ?? [];
     }
 
     // Check if it's a user project
@@ -138,18 +116,40 @@ export default function NewScriptSelect({
       const project = userAllData.find(
         (project) => project.project === selectedProject,
       );
-      const scene = project?.scenes.find(
-        (scene) => scene.title === selectedScene,
-      );
-      return Array.from(
-        new Set(scene?.lines.map((line) => line.character) ?? []),
-      );
+      return project?.scenes.filter(scene => 
+        scene.lines.some(line => line.character === selectedCharacter)
+      ).sort((a, b) => a.title.localeCompare(b.title)) ?? [];
     }
 
     return [];
   };
 
   const characterList = getCharacterData();
+  const sceneList = getScenesForCharacter();
+
+  const handleProjectChange = (newProject: string) => {
+    setSelectedProject(newProject);
+    // Clear dependent selections when project changes
+    setSelectedCharacter("");
+    setSelectedScene("");
+    const newQPs = `?project=${newProject}`;
+    router.push(newQPs);
+  };
+
+  const handleCharacterChange = (newCharacter: string) => {
+    setSelectedCharacter(newCharacter);
+    // Clear scene selection when character changes
+    setSelectedScene("");
+    const newQPs = `?project=${selectedProject}&character=${newCharacter}`;
+    router.push(newQPs);
+  };
+
+  const handleSceneChange = (newScene: string) => {
+    setSelectedScene(newScene);
+    const newQPs = `?project=${selectedProject}&character=${selectedCharacter}&scene=${newScene}`;
+    router.push(newQPs);
+  };
+
 
   useEffect(() => {
     if (project) {
@@ -172,12 +172,12 @@ export default function NewScriptSelect({
 
   return (
     <div className="flex flex-col gap-4 px-4">
+      {/* Project Selection */}
       <Select onValueChange={handleProjectChange} value={selectedProject}>
         <Label>Project</Label>
         <SelectTrigger>
-          <SelectValue placeholder="Project">{selectedProject}</SelectValue>
+          <SelectValue placeholder="Select Project">{selectedProject}</SelectValue>
         </SelectTrigger>
-        <Label>Scene</Label>
         <SelectContent>
           {hierarchicalProjects.map((project, index) => (
             <SelectItem value={project.name} key={index}>
@@ -188,31 +188,48 @@ export default function NewScriptSelect({
           ))}
         </SelectContent>
       </Select>
-      <Select onValueChange={handleSceneChange} value={selectedScene}>
-        <SelectTrigger>
-          <SelectValue placeholder="Scene">{selectedScene}</SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          {sceneList?.map((scene, index) => (
-            <SelectItem value={scene.title} key={index}>
-              {scene.title}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <Label>Character</Label>
-      <Select onValueChange={handleCharacterChange} value={selectedCharacter}>
-        <SelectTrigger>
-          <SelectValue placeholder="Character">{selectedCharacter}</SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          {characterList?.map((char, index) => (
-            <SelectItem value={char} key={index}>
-              {char}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+
+      {/* Character Selection - only show if project is selected */}
+      {selectedProject && (
+        <Select 
+          onValueChange={handleCharacterChange} 
+          value={selectedCharacter}
+          disabled={!selectedProject}
+        >
+          <Label>Character</Label>
+          <SelectTrigger>
+            <SelectValue placeholder="Select Character">{selectedCharacter}</SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {characterList?.map((char, index) => (
+              <SelectItem value={char} key={index}>
+                {char}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+
+      {/* Scene Selection - only show if character is selected */}
+      {selectedProject && selectedCharacter && (
+        <Select 
+          onValueChange={handleSceneChange} 
+          value={selectedScene}
+          disabled={!selectedCharacter}
+        >
+          <Label>Scene</Label>
+          <SelectTrigger>
+            <SelectValue placeholder="Select Scene">{selectedScene}</SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {sceneList?.map((scene, index) => (
+              <SelectItem value={scene.title} key={index}>
+                {scene.title}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
     </div>
   );
 }
