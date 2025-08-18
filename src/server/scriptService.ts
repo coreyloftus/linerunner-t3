@@ -394,6 +394,12 @@ export class ScriptService {
             lines: lines,
           },
         ],
+        characters: this.generateCharactersFromScenes([
+          {
+            title: sceneTitle,
+            lines: lines,
+          },
+        ]),
       };
 
       const newDocumentId = await FirestoreService.addDocumentToSubcollection(
