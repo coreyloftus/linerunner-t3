@@ -8,13 +8,15 @@ export interface ProjectJSON {
   characters?: string[]; // Optional for backward compatibility
 }
 
+export interface LineJSON {
+  characters: string[];
+  line: string;
+  sung?: boolean;
+}
+
 export interface SceneJSON {
   title: string;
-  lines: {
-    character: string;
-    line: string;
-    sung?: boolean;
-  }[];
+  lines: LineJSON[];
 }
 
 export interface GetAllResponse {
@@ -146,10 +148,13 @@ export class ScriptService {
     userId?: string,
   ): Promise<{ characters: string[] | undefined }> {
     const { allData } = await this.getScripts(dataSource, userId);
-    const characters = allData
+    const lines = allData
       .find((file) => file.project === project)
       ?.scenes.find((sceneData) => sceneData.title === scene)
-      ?.lines.map((line) => line.character);
+      ?.lines;
+
+    // Flatten all characters from all lines (each line can have multiple characters)
+    const characters = lines?.flatMap((line) => line.characters);
     return { characters };
   }
 
@@ -172,7 +177,7 @@ export class ScriptService {
   static async saveScript(
     projectName: string,
     sceneTitle: string,
-    lines: { character: string; line: string }[],
+    lines: LineJSON[],
     dataSource: "local" | "firestore",
     userId?: string,
   ): Promise<{ success: boolean; message: string }> {
@@ -194,7 +199,7 @@ export class ScriptService {
   private static async saveLocalScript(
     projectName: string,
     sceneTitle: string,
-    lines: { character: string; line: string }[],
+    lines: LineJSON[],
   ): Promise<{ success: boolean; message: string }> {
     try {
       const directory = path.join(process.cwd(), "public/sceneData");
@@ -239,7 +244,7 @@ export class ScriptService {
   private static async saveFirestoreScript(
     projectName: string,
     sceneTitle: string,
-    lines: { character: string; line: string }[],
+    lines: LineJSON[],
     userId: string,
   ): Promise<{ success: boolean; message: string }> {
     try {
@@ -380,7 +385,7 @@ export class ScriptService {
   static async saveAdminScript(
     projectName: string,
     sceneTitle: string,
-    lines: { character: string; line: string }[],
+    lines: LineJSON[],
     collectionName: string,
     documentId: string,
     subcollectionName: string,

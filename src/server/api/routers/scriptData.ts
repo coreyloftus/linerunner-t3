@@ -9,6 +9,7 @@ import { ScriptService, type GetAllResponse } from "~/server/scriptService";
 export type {
   ProjectJSON,
   SceneJSON,
+  LineJSON,
   GetAllResponse,
 } from "~/server/scriptService";
 
@@ -127,8 +128,9 @@ export const scriptData = createTRPCRouter({
         sceneTitle: z.string(),
         lines: z.array(
           z.object({
-            character: z.string(),
+            characters: z.array(z.string()),
             line: z.string(),
+            sung: z.boolean().optional(),
           }),
         ),
         dataSource: z.enum(["local", "firestore"]).default("local"),
@@ -163,8 +165,9 @@ export const scriptData = createTRPCRouter({
         sceneTitle: z.string(),
         lines: z.array(
           z.object({
-            character: z.string(),
+            characters: z.array(z.string()),
             line: z.string(),
+            sung: z.boolean().optional(),
           }),
         ),
         collectionName: z.string(),
@@ -201,7 +204,7 @@ export const scriptData = createTRPCRouter({
               title: z.string(),
               lines: z.array(
                 z.object({
-                  character: z.string(),
+                  characters: z.array(z.string()),
                   line: z.string(),
                   sung: z.boolean().optional(),
                 }),

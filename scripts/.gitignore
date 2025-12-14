@@ -1,0 +1,2 @@
+# Backup files contain user data and should not be committed
+backups/

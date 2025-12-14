@@ -4,7 +4,7 @@ interface CharacterLineDisplayProps {
   script:
     | {
         lines: {
-          character: string;
+          characters: string[];
           line: string;
           sung?: boolean;
         }[];
@@ -19,6 +19,19 @@ interface CharacterLineDisplayProps {
 
 const stylingSungLine = "text-yellow-500";
 const npcLineStyling = "justify-end text-right";
+const multiCharacterStyling = "justify-center text-center";
+
+// Helper to check if user is in the line's characters
+const isUserLine = (characters: string[], selectedCharacter: string) =>
+  characters.includes(selectedCharacter);
+
+// Helper to check if line has multiple characters
+const isMultiCharacter = (characters: string[]) => characters.length > 1;
+
+// Helper to format character names for display
+const formatCharacters = (characters: string[]) =>
+  characters.map((c) => c.toUpperCase()).join(" & ");
+
 export const CharacterLineDisplay = ({
   script,
   currentLineIndex,
@@ -36,25 +49,42 @@ export const CharacterLineDisplay = ({
       });
     }
   }, [currentLineIndex, wordDisplayIndex, scrollRef]);
+  // Get alignment class based on line type
+  const getAlignmentClass = (characters: string[]) => {
+    if (isMultiCharacter(characters)) {
+      return multiCharacterStyling;
+    }
+    return isUserLine(characters, selectedCharacter) ? "" : npcLineStyling;
+  };
+
+  // Check if characters are same as previous line
+  const isSameCharactersAsPrev = (index: number) => {
+    if (index === 0) return false;
+    const prevLine = script?.lines[index - 1];
+    const currentLine = script?.lines[index];
+    if (!prevLine || !currentLine) return false;
+    return (
+      prevLine.characters.length === currentLine.characters.length &&
+      prevLine.characters.every((c) => currentLine.characters.includes(c))
+    );
+  };
+
   return (
     <div>
       {/* revealed lines */}
       {script?.lines.slice(0, currentLineIndex).map((line, index) => {
-        const isSameCharacterAsPrev =
-          index > 0 && line.character === script?.lines[index - 1]?.character;
+        const sameAsPrev = isSameCharactersAsPrev(index);
         return (
           <li key={index} className="flex flex-col justify-center gap-2 p-2">
-            <div
-              className={`flex flex-col ${line.character !== selectedCharacter && npcLineStyling}`}
-            >
-              {!isSameCharacterAsPrev && (
+            <div className={`flex flex-col ${getAlignmentClass(line.characters)}`}>
+              {!sameAsPrev && (
                 <p className="text-xl font-bold">
-                  {line.character.toUpperCase()}
+                  {formatCharacters(line.characters)}
                 </p>
               )}
               {/* sung & spoken lines have different styling */}
               {line.sung ? (
-                <p className={`text-xl ${line.sung && stylingSungLine}`}>
+                <p className={`text-xl ${stylingSungLine}`}>
                   {line.line.toUpperCase()}
                 </p>
               ) : (
@@ -68,26 +98,18 @@ export const CharacterLineDisplay = ({
         {/* current line display */}
         <li className="flex flex-col justify-center gap-2 p-2">
           <div
-            className={`flex flex-col ${lines[currentLineIndex]?.character !== selectedCharacter && npcLineStyling}`}
+            className={`flex flex-col ${lines[currentLineIndex]?.characters ? getAlignmentClass(lines[currentLineIndex]?.characters ?? []) : ""}`}
           >
-            {/* only show char name if diff character in current line  */}
-            {!(
-              lines[currentLineIndex]?.character ===
-              lines[currentLineIndex - 1]?.character
-            ) && (
-              <>
+            {/* only show char name if diff characters in current line */}
+            {!isSameCharactersAsPrev(currentLineIndex) &&
+              lines[currentLineIndex]?.characters && (
                 <p className="text-xl font-bold">
-                  {lines[currentLineIndex]?.character.toUpperCase()}
+                  {formatCharacters(lines[currentLineIndex]?.characters ?? [])}
                 </p>
-              </>
-            )}
-            {/* spoken lines */}
-            {lines[currentLineIndex] &&
-            lines[currentLineIndex]?.sung &&
-            lines[currentLineIndex]?.sung === true ? (
-              <p
-                className={`text-xl ${lines[currentLineIndex]?.sung && stylingSungLine}`}
-              >
+              )}
+            {/* sung lines */}
+            {lines[currentLineIndex]?.sung === true ? (
+              <p className={`text-xl ${stylingSungLine}`}>
                 {lines[currentLineIndex]?.line
                   .split(" ")
                   .slice(0, wordDisplayIndex)

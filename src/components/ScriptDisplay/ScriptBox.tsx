@@ -9,6 +9,12 @@ import { CharacterLineDisplay } from "./CharacterLineDisplay";
 import { api } from "~/trpc/react";
 import { useSession } from "next-auth/react";
 
+// Helper to check if user is in the line's characters (outside component for memoization)
+const checkIsUserLine = (
+  characters: string[] | undefined,
+  selectedCharacter: string,
+) => characters?.includes(selectedCharacter) ?? false;
+
 interface ScriptBoxProps {
   data: {
     projects: string[];
@@ -125,7 +131,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
         const split = currentLine.line.split(" ");
         setCurrentLineSplit(split);
         // if not user's character, auto-advance
-        if (currentLine?.character !== selectedCharacter) {
+        if (!checkIsUserLine(currentLine?.characters, selectedCharacter)) {
           if (userConfig.autoAdvanceScript) {
             setAwaitingInput(false);
             if (wordIndex <= split.length - 1) {
@@ -143,15 +149,15 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
               setWordIndex(0);
             }, 50);
           }
-        } else if (currentLine?.character === selectedCharacter) {
+        } else if (checkIsUserLine(currentLine?.characters, selectedCharacter)) {
           setAwaitingInput(true);
         }
         return;
       }
     }
     if (gameMode === "navigate") {
-      if (currentLine?.character === selectedCharacter) {
-        setCurrentLine(currentLine.line.split(""));
+      if (checkIsUserLine(currentLine?.characters, selectedCharacter)) {
+        setCurrentLine(currentLine!.line.split(""));
 
         setAwaitingInput(true);
         return;
@@ -231,7 +237,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
       setWordIndex(0);
 
       // Check if the new line is for the player character
-      if (script.lines?.[newIndex]?.character ?? "" === selectedCharacter) {
+      if (checkIsUserLine(script.lines?.[newIndex]?.characters, selectedCharacter)) {
         setAwaitingInput(true);
       } else {
         setAwaitingInput(false);
