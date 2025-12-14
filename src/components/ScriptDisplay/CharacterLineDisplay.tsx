@@ -21,6 +21,12 @@ const stylingSungLine = "text-yellow-500";
 const npcLineStyling = "justify-end text-right";
 const multiCharacterStyling = "justify-center text-center";
 
+// Styling for multi-character (ensemble/duet) lines
+const multiCharacterContainerStyling =
+  "bg-gradient-to-r from-transparent via-violet-500/10 to-transparent border-l-2 border-r-2 border-violet-400/30 px-4 py-1 rounded-md";
+const multiCharacterNameStyling = "text-violet-400";
+const multiCharacterLineStyling = "text-violet-200";
+
 // Helper to check if user is in the line's characters
 const isUserLine = (characters: string[], selectedCharacter: string) =>
   characters.includes(selectedCharacter);
@@ -74,21 +80,30 @@ export const CharacterLineDisplay = ({
       {/* revealed lines */}
       {script?.lines.slice(0, currentLineIndex).map((line, index) => {
         const sameAsPrev = isSameCharactersAsPrev(index);
+        const isMulti = isMultiCharacter(line.characters);
         return (
           <li key={index} className="flex flex-col justify-center gap-2 p-2">
-            <div className={`flex flex-col ${getAlignmentClass(line.characters)}`}>
+            <div
+              className={`flex flex-col ${getAlignmentClass(line.characters)} ${isMulti ? multiCharacterContainerStyling : ""}`}
+            >
               {!sameAsPrev && (
-                <p className="text-xl font-bold">
+                <p
+                  className={`text-xl font-bold ${isMulti ? multiCharacterNameStyling : ""}`}
+                >
                   {formatCharacters(line.characters)}
                 </p>
               )}
               {/* sung & spoken lines have different styling */}
               {line.sung ? (
-                <p className={`text-xl ${stylingSungLine}`}>
+                <p
+                  className={`text-xl ${isMulti ? multiCharacterLineStyling : ""} ${stylingSungLine}`}
+                >
                   {line.line.toUpperCase()}
                 </p>
               ) : (
-                <p className="text-xl">{line.line}</p>
+                <p className={`text-xl ${isMulti ? multiCharacterLineStyling : ""}`}>
+                  {line.line}
+                </p>
               )}
             </div>
           </li>
@@ -96,36 +111,46 @@ export const CharacterLineDisplay = ({
       })}
       <div>
         {/* current line display */}
-        <li className="flex flex-col justify-center gap-2 p-2">
-          <div
-            className={`flex flex-col ${lines[currentLineIndex]?.characters ? getAlignmentClass(lines[currentLineIndex]?.characters ?? []) : ""}`}
-          >
-            {/* only show char name if diff characters in current line */}
-            {!isSameCharactersAsPrev(currentLineIndex) &&
-              lines[currentLineIndex]?.characters && (
-                <p className="text-xl font-bold">
-                  {formatCharacters(lines[currentLineIndex]?.characters ?? [])}
-                </p>
-              )}
-            {/* sung lines */}
-            {lines[currentLineIndex]?.sung === true ? (
-              <p className={`text-xl ${stylingSungLine}`}>
-                {lines[currentLineIndex]?.line
-                  .split(" ")
-                  .slice(0, wordDisplayIndex)
-                  .join(" ")
-                  .toUpperCase() ?? ""}
-              </p>
-            ) : (
-              <p className={`text-xl`}>
-                {lines[currentLineIndex]?.line
-                  .split(" ")
-                  .slice(0, wordDisplayIndex)
-                  .join(" ") ?? ""}
-              </p>
-            )}
-          </div>
-        </li>
+        {(() => {
+          const currentChars = lines[currentLineIndex]?.characters ?? [];
+          const isMulti = isMultiCharacter(currentChars);
+          return (
+            <li className="flex flex-col justify-center gap-2 p-2">
+              <div
+                className={`flex flex-col ${currentChars.length > 0 ? getAlignmentClass(currentChars) : ""} ${isMulti ? multiCharacterContainerStyling : ""}`}
+              >
+                {/* only show char name if diff characters in current line */}
+                {!isSameCharactersAsPrev(currentLineIndex) &&
+                  currentChars.length > 0 && (
+                    <p
+                      className={`text-xl font-bold ${isMulti ? multiCharacterNameStyling : ""}`}
+                    >
+                      {formatCharacters(currentChars)}
+                    </p>
+                  )}
+                {/* sung lines */}
+                {lines[currentLineIndex]?.sung === true ? (
+                  <p
+                    className={`text-xl ${isMulti ? multiCharacterLineStyling : ""} ${stylingSungLine}`}
+                  >
+                    {lines[currentLineIndex]?.line
+                      .split(" ")
+                      .slice(0, wordDisplayIndex)
+                      .join(" ")
+                      .toUpperCase() ?? ""}
+                  </p>
+                ) : (
+                  <p className={`text-xl ${isMulti ? multiCharacterLineStyling : ""}`}>
+                    {lines[currentLineIndex]?.line
+                      .split(" ")
+                      .slice(0, wordDisplayIndex)
+                      .join(" ") ?? ""}
+                  </p>
+                )}
+              </div>
+            </li>
+          );
+        })()}
       </div>
       {/* for scrolling to bottom */}
       <div ref={scrollRef}></div>
