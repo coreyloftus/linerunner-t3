@@ -316,6 +316,11 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
     Record<string, string>
   >({});
 
+  // JSON editor mode
+  const [editorMode, setEditorMode] = useState<"form" | "json">("form");
+  const [jsonText, setJsonText] = useState<string>("");
+  const [jsonError, setJsonError] = useState<string | null>(null);
+
   // Drag and drop sensors
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -372,6 +377,49 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
           ?.scenes.find((scene) => scene.title === selectedScene)
       : null;
 
+  // Convert form data to JSON for the editor
+  const formDataToJson = (fd: FormData): string => {
+    const sceneData = {
+      title: fd.sceneTitle,
+      lines: fd.lines.map((line) => ({
+        characters: line.characters,
+        line: line.line,
+        ...(line.sung && { sung: true }),
+      })),
+    };
+    return JSON.stringify(sceneData, null, 2);
+  };
+
+  // Convert JSON to form data
+  const jsonToFormData = (
+    json: string,
+    projectName: string,
+  ): FormData | null => {
+    try {
+      const parsed = JSON.parse(json) as {
+        title: string;
+        lines: { characters: string[]; line: string; sung?: boolean }[];
+      };
+
+      if (!parsed.title || !Array.isArray(parsed.lines)) {
+        throw new Error("Invalid JSON structure");
+      }
+
+      return {
+        projectName,
+        sceneTitle: parsed.title,
+        lines: parsed.lines.map((line, index) => ({
+          id: `line-${index}-${Date.now()}`,
+          characters: line.characters ?? [],
+          line: line.line ?? "",
+          sung: line.sung ?? false,
+        })),
+      };
+    } catch {
+      return null;
+    }
+  };
+
   // Load script data into form when script changes
   useEffect(() => {
     if (script && selectedProject && selectedScene) {
@@ -388,6 +436,8 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
 
       setFormData(newFormData);
       setOriginalData(newFormData);
+      setJsonText(formDataToJson(newFormData));
+      setJsonError(null);
       setHasChanges(false);
       setErrors({});
       setWarnings({});
@@ -402,6 +452,51 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
       setHasChanges(changed);
     }
   }, [formData, originalData]);
+
+  // Sync JSON text when form data changes (if in form mode)
+  useEffect(() => {
+    if (editorMode === "form" && formData.lines.length > 0) {
+      setJsonText(formDataToJson(formData));
+    }
+  }, [formData, editorMode]);
+
+  // Handle JSON text changes
+  const handleJsonChange = (newJson: string) => {
+    setJsonText(newJson);
+
+    // Validate JSON
+    try {
+      const parsed = JSON.parse(newJson) as unknown;
+      if (
+        typeof parsed !== "object" ||
+        parsed === null ||
+        !("title" in parsed) ||
+        !("lines" in parsed)
+      ) {
+        setJsonError("JSON must have 'title' and 'lines' properties");
+        return;
+      }
+      setJsonError(null);
+
+      // Update form data from valid JSON
+      const newFormData = jsonToFormData(newJson, formData.projectName);
+      if (newFormData) {
+        setFormData(newFormData);
+      }
+    } catch (e) {
+      setJsonError(e instanceof Error ? e.message : "Invalid JSON");
+    }
+  };
+
+  // Handle mode switch
+  const handleModeSwitch = (mode: "form" | "json") => {
+    if (mode === "json") {
+      // Update JSON from current form data
+      setJsonText(formDataToJson(formData));
+      setJsonError(null);
+    }
+    setEditorMode(mode);
+  };
 
   const updateScriptMutation = api.scriptData.updateScript.useMutation({
     onSuccess: (data) => {
@@ -710,7 +805,7 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
           </h2>
           <Button
             onClick={handleSave}
-            disabled={!hasChanges || updateScriptMutation.isPending || !script}
+            disabled={!hasChanges || updateScriptMutation.isPending || !script || (editorMode === "json" && !!jsonError)}
             variant="outline"
             size="sm"
             className="iphone:min-h-[36px] min-h-[44px] touch-manipulation border-stone-600 bg-stone-700 text-stone-100 hover:bg-stone-600 active:bg-stone-600 dark:border-stone-600 dark:bg-stone-700 dark:text-stone-100 dark:hover:bg-stone-600"
@@ -778,59 +873,112 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
                   <h3 className="text-mobile-lg iphone:text-lg font-medium text-stone-100">
                     Lines ({formData.lines.length})
                   </h3>
-                  <Button
-                    onClick={addLine}
-                    variant="outline"
-                    size="sm"
-                    className="iphone:min-h-[36px] min-h-[44px] touch-manipulation border-stone-600 bg-stone-700 text-stone-100 hover:bg-stone-600 active:bg-stone-600"
-                  >
-                    Add Line
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    {/* Editor Mode Toggle */}
+                    <div className="flex rounded-md border border-stone-600 bg-stone-800">
+                      <button
+                        type="button"
+                        onClick={() => handleModeSwitch("form")}
+                        className={`px-3 py-1.5 text-sm transition-colors ${
+                          editorMode === "form"
+                            ? "bg-stone-600 text-stone-100"
+                            : "text-stone-400 hover:text-stone-200"
+                        }`}
+                      >
+                        Form
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleModeSwitch("json")}
+                        className={`px-3 py-1.5 text-sm transition-colors ${
+                          editorMode === "json"
+                            ? "bg-stone-600 text-stone-100"
+                            : "text-stone-400 hover:text-stone-200"
+                        }`}
+                      >
+                        JSON
+                      </button>
+                    </div>
+                    {editorMode === "form" && (
+                      <Button
+                        onClick={addLine}
+                        variant="outline"
+                        size="sm"
+                        className="iphone:min-h-[36px] min-h-[44px] touch-manipulation border-stone-600 bg-stone-700 text-stone-100 hover:bg-stone-600 active:bg-stone-600"
+                      >
+                        Add Line
+                      </Button>
+                    )}
+                  </div>
                 </div>
 
-                {/* Drag and Drop Context */}
-                <DndContext
-                  sensors={sensors}
-                  collisionDetection={closestCenter}
-                  onDragEnd={handleDragEnd}
-                >
-                  <SortableContext
-                    items={formData.lines.map((line) => line.id)}
-                    strategy={verticalListSortingStrategy}
-                  >
-                    <div className="space-y-2">
-                      {formData.lines.map((line, index) => (
-                        <SortableLineItem
-                          key={line.id}
-                          line={line}
-                          index={index}
-                          onUpdate={handleLineChange}
-                          onRemove={removeLine}
-                          errors={errors}
-                          warnings={warnings}
-                          characterSuggestion={characterSuggestions[line.id]}
-                        />
-                      ))}
-                    </div>
-                  </SortableContext>
-                </DndContext>
+                {/* Form Mode: Drag and Drop Context */}
+                {editorMode === "form" && (
+                  <>
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleDragEnd}
+                    >
+                      <SortableContext
+                        items={formData.lines.map((line) => line.id)}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        <div className="space-y-2">
+                          {formData.lines.map((line, index) => (
+                            <SortableLineItem
+                              key={line.id}
+                              line={line}
+                              index={index}
+                              onUpdate={handleLineChange}
+                              onRemove={removeLine}
+                              errors={errors}
+                              warnings={warnings}
+                              characterSuggestion={characterSuggestions[line.id]}
+                            />
+                          ))}
+                        </div>
+                      </SortableContext>
+                    </DndContext>
 
-                {formData.lines.length === 0 && (
-                  <div className="py-8 text-center text-stone-400">
-                    {`No lines yet. Click "Add Line" to get started.`}
-                  </div>
+                    {formData.lines.length === 0 && (
+                      <div className="py-8 text-center text-stone-400">
+                        {`No lines yet. Click "Add Line" to get started.`}
+                      </div>
+                    )}
+
+                    {formData.lines.length > 0 && (
+                      <div className="flex justify-center pt-2">
+                        <Button
+                          onClick={addLine}
+                          variant="outline"
+                          size="sm"
+                          className="iphone:min-h-[36px] min-h-[44px] touch-manipulation border-stone-600 bg-stone-700 text-stone-100 hover:bg-stone-600 active:bg-stone-600"
+                        >
+                          Add Line
+                        </Button>
+                      </div>
+                    )}
+                  </>
                 )}
 
-                {formData.lines.length > 0 && (
-                  <div className="flex justify-center pt-2">
-                    <Button
-                      onClick={addLine}
-                      variant="outline"
-                      size="sm"
-                      className="iphone:min-h-[36px] min-h-[44px] touch-manipulation border-stone-600 bg-stone-700 text-stone-100 hover:bg-stone-600 active:bg-stone-600"
-                    >
-                      Add Line
-                    </Button>
+                {/* JSON Mode: Raw JSON Editor */}
+                {editorMode === "json" && (
+                  <div className="space-y-2">
+                    <div className="text-sm text-stone-400">
+                      Edit the raw JSON for this scene. Format: {`{ "title": "Scene Title", "lines": [...] }`}
+                    </div>
+                    {jsonError && (
+                      <div className="rounded-md border border-red-600 bg-red-900/50 p-3 text-sm text-red-300">
+                        {jsonError}
+                      </div>
+                    )}
+                    <Textarea
+                      value={jsonText}
+                      onChange={(e) => handleJsonChange(e.target.value)}
+                      className={`min-h-[400px] font-mono text-sm border-stone-200 bg-stone-100 text-stone-900 placeholder:text-stone-400 focus:border-stone-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 ${jsonError ? "border-red-500" : ""}`}
+                      placeholder='{"title": "Scene Title", "lines": [{"characters": ["Character Name"], "line": "Dialogue text", "sung": false}]}'
+                    />
                   </div>
                 )}
               </div>
@@ -839,7 +987,7 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
               <div className="flex justify-center border-t border-stone-700 pt-4">
                 <Button
                   onClick={handleSave}
-                  disabled={!hasChanges || updateScriptMutation.isPending}
+                  disabled={!hasChanges || updateScriptMutation.isPending || (editorMode === "json" && !!jsonError)}
                   className="min-h-[44px] touch-manipulation bg-blue-600 px-8 text-white hover:bg-blue-700 active:bg-blue-800 disabled:bg-stone-600 disabled:text-stone-400"
                 >
                   {updateScriptMutation.isPending ? "Saving..." : "Save Script"}
