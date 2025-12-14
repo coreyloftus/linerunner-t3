@@ -77,7 +77,8 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
         const isCurrentLine = index === currentLineIndex;
         const currentLineIndicator = isCurrentLine ? "▶ " : "  ";
 
-        let lineText = `${lineNumber} | ${line.character}: ${line.line}`;
+        const characterDisplay = line.characters.join(" & ");
+        let lineText = `${lineNumber} | ${characterDisplay}: ${line.line}`;
 
         // If this is the current line and we're in play mode, show word progress
         if (isCurrentLine && playScene && currentLineSplit.length > 0) {
@@ -91,7 +92,7 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
               return word; // Future words
             }
           });
-          lineText = `${lineNumber} | ${line.character}: ${highlightedWords.join(" ")}`;
+          lineText = `${lineNumber} | ${characterDisplay}: ${highlightedWords.join(" ")}`;
         }
 
         return `${currentLineIndicator}${lineText}`;

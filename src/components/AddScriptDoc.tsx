@@ -360,8 +360,13 @@ export const AddScriptDoc = () => {
   };
 
   const parseScript = (script: string, characterNames: string[]) => {
+    console.log("=== PARSING DEBUG ===");
+    console.log("Input script:", JSON.stringify(script));
+    console.log("Character names:", characterNames);
+
     const lines = script.split(/\n/);
-    const parsedLines: { character: string; line: string; sung?: boolean }[] =
+    console.log("Split lines:", lines.map(line => `"${line}"`));
+    const parsedLines: { characters: string[]; line: string; sung?: boolean }[] =
       [];
     let currentCharacter = "";
     let currentLine = "";
@@ -383,6 +388,55 @@ export const AddScriptDoc = () => {
       const trimmedLine = line.trim();
       if (!trimmedLine) continue; // Skip empty lines
 
+      // Check for multiple character:line patterns within a single line
+      // Create a regex that matches CHARACTER: pattern for any of the provided character names
+      const characterPattern = new RegExp(
+        `\\b(${characterNames.map(name => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\s*:`,
+        'gi'
+      );
+      
+      const matches = [...trimmedLine.matchAll(characterPattern)];
+      console.log(`Found ${matches.length} character matches:`, matches.map(m => ({ match: m[0], character: m[1], index: m.index })));
+      
+      if (matches.length > 1) {
+        console.log("Processing multiple character patterns in line");
+        // Multiple character patterns found in this line - split them up
+        for (let i = 0; i < matches.length; i++) {
+          const match = matches[i];
+          if (!match) continue;
+
+          const nextMatch = matches[i + 1];
+
+          const characterName = match[1];
+          if (!characterName) continue;
+
+          const startIndex = (match.index ?? 0) + match[0].length;
+          const endIndex = nextMatch ? (nextMatch.index ?? 0) : trimmedLine.length;
+
+          const dialogue = trimmedLine.substring(startIndex, endIndex).trim();
+
+          // Find the proper case version of the character name
+          const foundCharacter = characterNames.find((name) => {
+            const normalizedName = normalizeText(name);
+            const normalizedMatch = normalizeText(characterName);
+            return normalizedName === normalizedMatch;
+          });
+
+          if (foundCharacter && dialogue) {
+            console.log(`  Adding character line: ${foundCharacter} - "${dialogue}"`);
+            const isSung = isSungLine(dialogue);
+            parsedLines.push({
+              characters: [foundCharacter],
+              line: dialogue,
+              ...(isSung && { sung: true }),
+            });
+          } else {
+            console.log(`  Skipped - foundCharacter: ${foundCharacter}, dialogue: "${dialogue}"`);
+          }
+        }
+        continue;
+      }
+
       // Check for character:line format first
       const colonIndex = trimmedLine.indexOf(':');
       if (colonIndex > 0) {
@@ -400,19 +454,19 @@ export const AddScriptDoc = () => {
           // If we have a previous character and line, save it first
           if (currentCharacter && currentLine.trim()) {
             parsedLines.push({
-              character: currentCharacter,
+              characters: [currentCharacter],
               line: currentLine.trim(),
             });
           }
-          
+
           // Add the new character line
           const isSung = isSungLine(potentialLine);
           parsedLines.push({
-            character: foundCharacter,
+            characters: [foundCharacter],
             line: potentialLine,
             ...(isSung && { sung: true }),
           });
-          
+
           currentCharacter = foundCharacter;
           currentLine = "";
           continue;
@@ -434,14 +488,14 @@ export const AddScriptDoc = () => {
         // If we have a previous character and line, save it first
         if (currentCharacter && currentLine.trim()) {
           parsedLines.push({
-            character: currentCharacter,
+            characters: [currentCharacter],
             line: currentLine.trim(),
           });
         }
         // Add the sung line as a separate line object
         if (currentCharacter) {
           parsedLines.push({
-            character: currentCharacter,
+            characters: [currentCharacter],
             line: trimmedLine,
             sung: true,
           });
@@ -464,7 +518,7 @@ export const AddScriptDoc = () => {
           // If we have a previous character and line, save it
           if (currentCharacter && currentLine.trim()) {
             parsedLines.push({
-              character: currentCharacter,
+              characters: [currentCharacter],
               line: currentLine.trim(),
             });
           }
@@ -483,12 +537,12 @@ export const AddScriptDoc = () => {
     // Save the last lines
     if (currentCharacter && currentLine.trim()) {
       parsedLines.push({
-        character: currentCharacter,
+        characters: [currentCharacter],
         line: currentLine.trim(),
       });
     }
 
-    // console.log(parsedLines);
+    console.log("Final parsed result:", parsedLines);
     return parsedLines;
   };
 

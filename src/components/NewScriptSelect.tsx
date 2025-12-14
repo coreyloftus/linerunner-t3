@@ -129,7 +129,7 @@ export default function NewScriptSelect({
         (scene) => scene.title === selectedScene,
       );
       return Array.from(
-        new Set(scene?.lines.map((line) => line.character) ?? []),
+        new Set(scene?.lines.flatMap((line) => line.characters) ?? []),
       );
     }
 
@@ -142,7 +142,7 @@ export default function NewScriptSelect({
         (scene) => scene.title === selectedScene,
       );
       return Array.from(
-        new Set(scene?.lines.map((line) => line.character) ?? []),
+        new Set(scene?.lines.flatMap((line) => line.characters) ?? []),
       );
     }
 

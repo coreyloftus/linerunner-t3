@@ -38,7 +38,7 @@ interface ScriptDataProps {
 
 interface FormLine {
   id: string;
-  character: string;
+  characters: string[];
   line: string;
   sung: boolean;
 }
@@ -56,7 +56,7 @@ interface SortableLineItemProps {
   onUpdate: (
     id: string,
     field: keyof FormLine,
-    value: string | boolean,
+    value: string | string[] | boolean,
   ) => void;
   onRemove: (id: string) => void;
   errors: Record<string, string>;
@@ -107,9 +107,12 @@ const SortableLineItem = ({
           {/* Character Name Input */}
           <div className="relative flex-1">
             <Input
-              placeholder="Character"
-              value={line.character}
-              onChange={(e) => onUpdate(line.id, "character", e.target.value)}
+              placeholder="Character(s)"
+              value={line.characters.join(", ")}
+              onChange={(e) => {
+                const chars = e.target.value.split(",").map((c) => c.trim()).filter(Boolean);
+                onUpdate(line.id, "characters", chars.length > 0 ? chars : [e.target.value]);
+              }}
               className={`text-mobile-base min-h-[44px] border-stone-200 bg-stone-100 text-stone-900 placeholder:text-stone-400 focus:border-stone-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 ${errors[`character-${line.id}`] ? "border-red-500" : ""}`}
             />
             {characterSuggestion && (
@@ -118,7 +121,7 @@ const SortableLineItem = ({
                 <button
                   type="button"
                   onClick={() =>
-                    onUpdate(line.id, "character", characterSuggestion)
+                    onUpdate(line.id, "characters", [characterSuggestion])
                   }
                   className="ml-2 text-yellow-300 underline hover:text-yellow-100"
                 >
@@ -211,9 +214,12 @@ const SortableLineItem = ({
         <div className="col-span-2 space-y-1">
           <div className="relative">
             <Input
-              placeholder="Character"
-              value={line.character}
-              onChange={(e) => onUpdate(line.id, "character", e.target.value)}
+              placeholder="Character(s)"
+              value={line.characters.join(", ")}
+              onChange={(e) => {
+                const chars = e.target.value.split(",").map((c) => c.trim()).filter(Boolean);
+                onUpdate(line.id, "characters", chars.length > 0 ? chars : [e.target.value]);
+              }}
               className={`text-sm min-h-[36px] border-stone-200 bg-stone-100 text-stone-900 placeholder:text-stone-400 focus:border-stone-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 ${errors[`character-${line.id}`] ? "border-red-500" : ""}`}
             />
             {characterSuggestion && (
@@ -222,7 +228,7 @@ const SortableLineItem = ({
                 <button
                   type="button"
                   onClick={() =>
-                    onUpdate(line.id, "character", characterSuggestion)
+                    onUpdate(line.id, "characters", [characterSuggestion])
                   }
                   className="ml-2 text-yellow-300 underline hover:text-yellow-100"
                 >
@@ -374,7 +380,7 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
         sceneTitle: selectedScene,
         lines: script.lines.map((line, index) => ({
           id: `line-${index}`,
-          character: line.character,
+          characters: line.characters,
           line: line.line,
           sung: line.sung ?? false,
         })),
@@ -442,7 +448,7 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
     const standardizedInput = standardizeCharacterName(inputName);
     const existingCharacters = [
       ...new Set(
-        formData.lines.map((line) => line.character.trim()).filter(Boolean),
+        formData.lines.flatMap((line) => line.characters.map((c) => c.trim())).filter(Boolean),
       ),
     ];
 
@@ -524,8 +530,8 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
 
     // Validate lines
     formData.lines.forEach((line) => {
-      if (!line.character.trim()) {
-        newErrors[`character-${line.id}`] = "Character name is required";
+      if (line.characters.length === 0 || line.characters.every((c) => !c.trim())) {
+        newErrors[`character-${line.id}`] = "At least one character name is required";
       }
       if (!line.line.trim()) {
         newErrors[`line-${line.id}`] = "Line text is required";
@@ -556,7 +562,7 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
   const handleLineChange = (
     id: string,
     field: keyof FormLine,
-    value: string | boolean,
+    value: string | string[] | boolean,
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -565,21 +571,25 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
           ? {
               ...line,
               [field]:
-                field === "character" && typeof value === "string"
-                  ? standardizeCharacterName(value)
+                field === "characters" && Array.isArray(value)
+                  ? value.map(standardizeCharacterName)
                   : value,
             }
           : line,
       ),
     }));
 
-    // Update character suggestions when character field changes
-    if (field === "character" && typeof value === "string") {
-      const suggestion = findSimilarCharacters(value);
-      setCharacterSuggestions((prev) => ({
-        ...prev,
-        [id]: suggestion ?? "",
-      }));
+    // Update character suggestions when characters field changes
+    if (field === "characters" && Array.isArray(value) && value.length > 0) {
+      // Check the first character for suggestions
+      const firstChar = value[0];
+      if (firstChar) {
+        const suggestion = findSimilarCharacters(firstChar);
+        setCharacterSuggestions((prev) => ({
+          ...prev,
+          [id]: suggestion ?? "",
+        }));
+      }
     }
 
     // Trigger validation to show duplicate warnings in real-time
@@ -608,7 +618,7 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
   const addLine = () => {
     const newLine: FormLine = {
       id: generateId(),
-      character: "",
+      characters: [],
       line: "",
       sung: false,
     };
@@ -648,7 +658,7 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
       const updatedScene = {
         title: formData.sceneTitle,
         lines: formData.lines.map((line) => ({
-          character: line.character,
+          characters: line.characters,
           line: line.line,
           sung: line.sung,
         })),
