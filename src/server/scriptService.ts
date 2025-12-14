@@ -30,7 +30,8 @@ export class ScriptService {
     const charactersSet = new Set<string>();
     scenes.forEach(scene => {
       scene.lines.forEach(line => {
-        charactersSet.add(line.character);
+        // Use characters array (new schema)
+        line.characters.forEach(char => charactersSet.add(char));
       });
     });
     return Array.from(charactersSet).sort();

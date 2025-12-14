@@ -74,7 +74,7 @@ export default function NewScriptSelect({
     })),
   ];
 
-  // Get all characters for the selected project (using new characters array)
+  // Get all characters for the selected project (extracted from all lines)
   const getCharacterData = () => {
     if (!selectedProject) return [];
 
@@ -83,7 +83,11 @@ export default function NewScriptSelect({
       const project = publicAllData.find(
         (project) => project.project === selectedProject,
       );
-      return project?.characters ?? [];
+      // Extract unique characters from all lines across all scenes
+      const characters = project?.scenes.flatMap((scene) =>
+        scene.lines.flatMap((line) => line.characters)
+      ) ?? [];
+      return Array.from(new Set(characters));
     }
 
     // Check if it's a user project
@@ -91,7 +95,11 @@ export default function NewScriptSelect({
       const project = userAllData.find(
         (project) => project.project === selectedProject,
       );
-      return project?.characters ?? [];
+      // Extract unique characters from all lines across all scenes
+      const characters = project?.scenes.flatMap((scene) =>
+        scene.lines.flatMap((line) => line.characters)
+      ) ?? [];
+      return Array.from(new Set(characters));
     }
 
     return [];
@@ -106,8 +114,8 @@ export default function NewScriptSelect({
       const project = publicAllData.find(
         (project) => project.project === selectedProject,
       );
-      return project?.scenes.filter(scene => 
-        scene.lines.some(line => line.character === selectedCharacter)
+      return project?.scenes.filter(scene =>
+        scene.lines.some(line => line.characters.includes(selectedCharacter))
       ).sort((a, b) => a.title.localeCompare(b.title)) ?? [];
     }
 
@@ -116,8 +124,8 @@ export default function NewScriptSelect({
       const project = userAllData.find(
         (project) => project.project === selectedProject,
       );
-      return project?.scenes.filter(scene => 
-        scene.lines.some(line => line.character === selectedCharacter)
+      return project?.scenes.filter(scene =>
+        scene.lines.some(line => line.characters.includes(selectedCharacter))
       ).sort((a, b) => a.title.localeCompare(b.title)) ?? [];
     }
 
