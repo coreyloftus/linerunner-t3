@@ -10,6 +10,7 @@ import { Label } from "./ui/label";
 import { RefreshButton } from "./ui/refresh-button";
 import { useScriptData } from "~/hooks/useScriptData";
 import { ThemeToggle } from "./ui/theme-toggle";
+import { DisplaySettings } from "./DisplaySettings";
 import Link from "next/link";
 
 type SidebarClientProps = {
@@ -170,6 +171,14 @@ export function SidebarClient({
                   </div>
                 )}
               </div>
+            </div>
+
+            {/* Display Settings */}
+            <div className="mt-4 border-t border-stone-200 px-2 pt-4 dark:border-stone-700">
+              <p className="mb-2 text-mobile-base font-bold text-stone-900 dark:text-stone-100 iphone:text-base">
+                Display
+              </p>
+              <DisplaySettings />
             </div>
 
             <div className="mt-2 flex flex-col p-2">
