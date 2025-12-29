@@ -18,7 +18,6 @@ interface CharacterLineDisplayProps {
   scrollRef: React.MutableRefObject<HTMLDivElement | null>;
 }
 
-const stylingSungLine = "text-yellow-500";
 const npcLineStyling = "justify-end text-right";
 const multiCharacterStyling = "justify-center text-center";
 
@@ -34,9 +33,8 @@ const COLOR_CLASS_MAP: Record<ColorPreset, string> = {
   "stone-400": "text-stone-400",
 };
 
-// Styling for multi-character (ensemble/duet) lines - container only, colors are now dynamic
-const multiCharacterContainerStyling =
-  "bg-gradient-to-r from-transparent via-violet-500/10 to-transparent border-l-2 border-r-2 border-violet-400/30 px-4 py-1 rounded-md";
+// Styling for multi-character (ensemble/duet) lines - just alignment, no background
+const multiCharacterContainerStyling = "";
 
 // Helper to check if user is in the line's characters
 const isUserLine = (characters: string[], selectedCharacter: string) =>
@@ -59,12 +57,8 @@ export const CharacterLineDisplay = ({
   const lines = script?.lines ?? [];
   const { displayPreferences } = useContext(ScriptContext);
 
-  // Get color class based on line type (sung lines always override with yellow)
-  const getLineColorClass = (
-    characters: string[],
-    isSung: boolean,
-  ): string => {
-    if (isSung) return stylingSungLine;
+  // Get color class based on line type (uses character color preferences)
+  const getLineColorClass = (characters: string[]): string => {
     if (isMultiCharacter(characters)) {
       return COLOR_CLASS_MAP[displayPreferences.sharedLineColor];
     }
@@ -126,13 +120,13 @@ export const CharacterLineDisplay = ({
             >
               {!sameAsPrev && (
                 <p
-                  className={`text-xl font-bold ${getNameColorClass(line.characters)}`}
+                  className={`text-[1.25em] font-bold ${getNameColorClass(line.characters)}`}
                 >
                   {formatCharacters(line.characters)}
                 </p>
               )}
               {/* sung & spoken lines have different styling */}
-              <p className={`text-xl ${getLineColorClass(line.characters, !!line.sung)}`}>
+              <p className={`text-[1.25em] ${getLineColorClass(line.characters)}`}>
                 {line.sung ? line.line.toUpperCase() : line.line}
               </p>
             </div>
@@ -158,13 +152,13 @@ export const CharacterLineDisplay = ({
                 {!isSameCharactersAsPrev(currentLineIndex) &&
                   currentChars.length > 0 && (
                     <p
-                      className={`text-xl font-bold ${getNameColorClass(currentChars)}`}
+                      className={`text-[1.25em] font-bold ${getNameColorClass(currentChars)}`}
                     >
                       {formatCharacters(currentChars)}
                     </p>
                   )}
                 {/* line text with appropriate color */}
-                <p className={`text-xl ${getLineColorClass(currentChars, isSung)}`}>
+                <p className={`text-[1.25em] ${getLineColorClass(currentChars)}`}>
                   {isSung ? lineText.toUpperCase() : lineText}
                 </p>
               </div>
