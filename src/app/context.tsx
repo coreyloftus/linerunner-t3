@@ -46,12 +46,41 @@ interface ScriptContextProps {
   setNewScriptBox: Dispatch<SetStateAction<string>>;
   isAdmin: boolean;
   setIsAdmin: Dispatch<SetStateAction<boolean>>;
+  // Display preferences
+  displayPreferences: DisplayPreferences;
+  setDisplayPreferences: Dispatch<SetStateAction<DisplayPreferences>>;
 }
 
 type UserConfig = {
   stopOnCharacter: boolean;
   autoAdvanceScript: boolean;
   dataSource: "local" | "firestore" | "public" | "shared";
+};
+
+// Color presets for line styling
+export type ColorPreset =
+  | "default"
+  | "violet-400"
+  | "blue-400"
+  | "emerald-400"
+  | "rose-400"
+  | "amber-400"
+  | "cyan-400"
+  | "stone-400";
+
+// Display preferences for customizing script appearance
+export interface DisplayPreferences {
+  ownCharacterColor: ColorPreset;
+  otherCharacterColor: ColorPreset;
+  sharedLineColor: ColorPreset;
+  fontSize: number; // percentage: 75-125
+}
+
+const DEFAULT_DISPLAY_PREFERENCES: DisplayPreferences = {
+  ownCharacterColor: "default",
+  otherCharacterColor: "default",
+  sharedLineColor: "violet-400",
+  fontSize: 100,
 };
 
 // Create the context with default values
@@ -99,6 +128,9 @@ export const ScriptContext = createContext<ScriptContextProps>({
   setNewScriptBox: () => "",
   isAdmin: false,
   setIsAdmin: () => false,
+  // Display preferences defaults
+  displayPreferences: DEFAULT_DISPLAY_PREFERENCES,
+  setDisplayPreferences: () => DEFAULT_DISPLAY_PREFERENCES,
 });
 
 export const ScriptProvider = ({ children }: { children: ReactNode }) => {
@@ -145,6 +177,22 @@ export const ScriptProvider = ({ children }: { children: ReactNode }) => {
   const [newScriptBox, setNewScriptBox] = useState<string>("");
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
+  // Display preferences state with localStorage persistence
+  const [displayPreferences, setDisplayPreferences] =
+    useState<DisplayPreferences>(() => {
+      if (typeof window !== "undefined") {
+        const saved = localStorage.getItem("linerunner-display-preferences");
+        if (saved) {
+          try {
+            return JSON.parse(saved) as DisplayPreferences;
+          } catch {
+            return DEFAULT_DISPLAY_PREFERENCES;
+          }
+        }
+      }
+      return DEFAULT_DISPLAY_PREFERENCES;
+    });
+
   useEffect(() => {
     setQueryParams(Object.fromEntries(searchParams));
   }, [searchParams]);
@@ -160,6 +208,16 @@ export const ScriptProvider = ({ children }: { children: ReactNode }) => {
       }
     }
   }, [theme]);
+
+  // Persist display preferences to localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem(
+        "linerunner-display-preferences",
+        JSON.stringify(displayPreferences),
+      );
+    }
+  }, [displayPreferences]);
 
   return (
     <ScriptContext.Provider
@@ -199,6 +257,9 @@ export const ScriptProvider = ({ children }: { children: ReactNode }) => {
         setNewScriptBox,
         isAdmin,
         setIsAdmin,
+        // Display preferences
+        displayPreferences,
+        setDisplayPreferences,
       }}
     >
       {children}

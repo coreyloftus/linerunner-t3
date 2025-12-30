@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import { useContext, useEffect } from "react";
+import { ScriptContext, type ColorPreset } from "~/app/context";
 
 interface CharacterLineDisplayProps {
   script:
@@ -17,15 +18,23 @@ interface CharacterLineDisplayProps {
   scrollRef: React.MutableRefObject<HTMLDivElement | null>;
 }
 
-const stylingSungLine = "text-yellow-500";
 const npcLineStyling = "justify-end text-right";
 const multiCharacterStyling = "justify-center text-center";
 
-// Styling for multi-character (ensemble/duet) lines
-const multiCharacterContainerStyling =
-  "bg-gradient-to-r from-transparent via-violet-500/10 to-transparent border-l-2 border-r-2 border-violet-400/30 px-4 py-1 rounded-md";
-const multiCharacterNameStyling = "text-violet-400";
-const multiCharacterLineStyling = "text-violet-200";
+// Color class lookup map - using full class names to prevent Tailwind purging
+const COLOR_CLASS_MAP: Record<ColorPreset, string> = {
+  default: "",
+  "violet-400": "text-violet-400",
+  "blue-400": "text-blue-400",
+  "emerald-400": "text-emerald-400",
+  "rose-400": "text-rose-400",
+  "amber-400": "text-amber-400",
+  "cyan-400": "text-cyan-400",
+  "stone-400": "text-stone-400",
+};
+
+// Styling for multi-character (ensemble/duet) lines - just alignment, no background
+const multiCharacterContainerStyling = "";
 
 // Helper to check if user is in the line's characters
 const isUserLine = (characters: string[], selectedCharacter: string) =>
@@ -46,6 +55,29 @@ export const CharacterLineDisplay = ({
   wordIndex: wordDisplayIndex,
 }: CharacterLineDisplayProps) => {
   const lines = script?.lines ?? [];
+  const { displayPreferences } = useContext(ScriptContext);
+
+  // Get color class based on line type (uses character color preferences)
+  const getLineColorClass = (characters: string[]): string => {
+    if (isMultiCharacter(characters)) {
+      return COLOR_CLASS_MAP[displayPreferences.sharedLineColor];
+    }
+    if (isUserLine(characters, selectedCharacter)) {
+      return COLOR_CLASS_MAP[displayPreferences.ownCharacterColor];
+    }
+    return COLOR_CLASS_MAP[displayPreferences.otherCharacterColor];
+  };
+
+  // Get color class for character name
+  const getNameColorClass = (characters: string[]): string => {
+    if (isMultiCharacter(characters)) {
+      return COLOR_CLASS_MAP[displayPreferences.sharedLineColor];
+    }
+    if (isUserLine(characters, selectedCharacter)) {
+      return COLOR_CLASS_MAP[displayPreferences.ownCharacterColor];
+    }
+    return COLOR_CLASS_MAP[displayPreferences.otherCharacterColor];
+  };
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -76,7 +108,7 @@ export const CharacterLineDisplay = ({
   };
 
   return (
-    <div>
+    <div style={{ fontSize: `${displayPreferences.fontSize}%` }}>
       {/* revealed lines */}
       {script?.lines.slice(0, currentLineIndex).map((line, index) => {
         const sameAsPrev = isSameCharactersAsPrev(index);
@@ -88,23 +120,15 @@ export const CharacterLineDisplay = ({
             >
               {!sameAsPrev && (
                 <p
-                  className={`text-xl font-bold ${isMulti ? multiCharacterNameStyling : ""}`}
+                  className={`text-[1.25em] font-bold ${getNameColorClass(line.characters)}`}
                 >
                   {formatCharacters(line.characters)}
                 </p>
               )}
               {/* sung & spoken lines have different styling */}
-              {line.sung ? (
-                <p
-                  className={`text-xl ${isMulti ? multiCharacterLineStyling : ""} ${stylingSungLine}`}
-                >
-                  {line.line.toUpperCase()}
-                </p>
-              ) : (
-                <p className={`text-xl ${isMulti ? multiCharacterLineStyling : ""}`}>
-                  {line.line}
-                </p>
-              )}
+              <p className={`text-[1.25em] ${getLineColorClass(line.characters)}`}>
+                {line.sung ? line.line.toUpperCase() : line.line}
+              </p>
             </div>
           </li>
         );
@@ -114,6 +138,11 @@ export const CharacterLineDisplay = ({
         {(() => {
           const currentChars = lines[currentLineIndex]?.characters ?? [];
           const isMulti = isMultiCharacter(currentChars);
+          const isSung = lines[currentLineIndex]?.sung === true;
+          const lineText = lines[currentLineIndex]?.line
+            .split(" ")
+            .slice(0, wordDisplayIndex)
+            .join(" ") ?? "";
           return (
             <li className="flex flex-col justify-center gap-2 p-2">
               <div
@@ -123,30 +152,15 @@ export const CharacterLineDisplay = ({
                 {!isSameCharactersAsPrev(currentLineIndex) &&
                   currentChars.length > 0 && (
                     <p
-                      className={`text-xl font-bold ${isMulti ? multiCharacterNameStyling : ""}`}
+                      className={`text-[1.25em] font-bold ${getNameColorClass(currentChars)}`}
                     >
                       {formatCharacters(currentChars)}
                     </p>
                   )}
-                {/* sung lines */}
-                {lines[currentLineIndex]?.sung === true ? (
-                  <p
-                    className={`text-xl ${isMulti ? multiCharacterLineStyling : ""} ${stylingSungLine}`}
-                  >
-                    {lines[currentLineIndex]?.line
-                      .split(" ")
-                      .slice(0, wordDisplayIndex)
-                      .join(" ")
-                      .toUpperCase() ?? ""}
-                  </p>
-                ) : (
-                  <p className={`text-xl ${isMulti ? multiCharacterLineStyling : ""}`}>
-                    {lines[currentLineIndex]?.line
-                      .split(" ")
-                      .slice(0, wordDisplayIndex)
-                      .join(" ") ?? ""}
-                  </p>
-                )}
+                {/* line text with appropriate color */}
+                <p className={`text-[1.25em] ${getLineColorClass(currentChars)}`}>
+                  {isSung ? lineText.toUpperCase() : lineText}
+                </p>
               </div>
             </li>
           );

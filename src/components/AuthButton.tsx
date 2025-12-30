@@ -27,13 +27,13 @@ export const AuthButton = () => {
     return (
       <DropdownMenu
         trigger={
-          <div className="rounded-md border border-gray-300 bg-gray-50/50 px-3 py-2 shadow-lg transition-all duration-200 hover:bg-gray-50 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 min-h-[44px] flex items-center">
+          <div className="rounded-md border border-gray-300 bg-gray-50/50 px-3 py-2 shadow-lg transition-all duration-200 hover:bg-gray-50 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 min-h-[44px] flex items-center dark:border-stone-700 dark:bg-stone-800/50 dark:text-stone-100 dark:hover:bg-stone-700">
             {session.user?.email ?? "User"}
           </div>
         }
       >
         <DropdownMenuItem
-          className="bg-gray-50/50 p-3 hover:cursor-pointer hover:bg-gray-50"
+          className="bg-gray-50/50 p-3 hover:cursor-pointer hover:bg-gray-50 dark:bg-stone-800/50 dark:text-stone-100 dark:hover:bg-stone-700"
           onClick={() => signOut()}
         >
           <div className="flex h-full w-full items-center justify-center">
@@ -54,7 +54,7 @@ export const AuthButton = () => {
       }
     >
       <DropdownMenuItem
-        className="w-full whitespace-nowrap bg-gray-50 p-2 hover:bg-yellow-400 transition-all duration-200 active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 min-h-[44px]"
+        className="w-full whitespace-nowrap bg-gray-50 p-2 hover:bg-yellow-400 hover:text-stone-900 transition-all duration-200 active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 min-h-[44px] dark:bg-stone-800 dark:text-stone-100 dark:hover:bg-yellow-500 dark:hover:text-stone-900"
         onClick={() => signIn("google")}
       >
         <svg
@@ -85,7 +85,7 @@ export const AuthButton = () => {
         Sign in with Google
       </DropdownMenuItem>
       <DropdownMenuItem
-        className="w-full whitespace-nowrap bg-gray-50 p-2 hover:bg-yellow-400 transition-all duration-200 active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 min-h-[44px]"
+        className="w-full whitespace-nowrap bg-gray-50 p-2 hover:bg-yellow-400 hover:text-stone-900 transition-all duration-200 active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 min-h-[44px] dark:bg-stone-800 dark:text-stone-100 dark:hover:bg-yellow-500 dark:hover:text-stone-900"
         onClick={() => signIn("discord")}
       >
         <svg
