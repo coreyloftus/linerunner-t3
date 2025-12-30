@@ -7,7 +7,7 @@ import { Textarea } from "./ui/textarea";
 import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
 import { ScriptContext } from "~/app/context";
-import { useContext, useState, useEffect } from "react";
+import { useContext, useState, useEffect, useMemo } from "react";
 import { api } from "~/trpc/react";
 import { useToast } from "~/components/ui/use-toast";
 import { useSession } from "next-auth/react";
@@ -28,6 +28,7 @@ import {
 } from "@dnd-kit/sortable";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { MultiCharacterSelect } from "./ui/multi-character-select";
 
 interface ScriptDataProps {
   data: {
@@ -62,6 +63,7 @@ interface SortableLineItemProps {
   errors: Record<string, string>;
   warnings: Record<string, string>;
   characterSuggestion?: string;
+  availableCharacters: string[];
 }
 
 const SortableLineItem = ({
@@ -72,6 +74,7 @@ const SortableLineItem = ({
   errors,
   warnings,
   characterSuggestion,
+  availableCharacters,
 }: SortableLineItemProps) => {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: line.id });
@@ -106,29 +109,14 @@ const SortableLineItem = ({
           
           {/* Character Name Input */}
           <div className="relative flex-1">
-            <Input
-              placeholder="Character(s)"
-              value={line.characters.join(", ")}
-              onChange={(e) => {
-                const chars = e.target.value.split(",").map((c) => c.trim()).filter(Boolean);
-                onUpdate(line.id, "characters", chars.length > 0 ? chars : [e.target.value]);
-              }}
-              className={`text-mobile-base min-h-[44px] border-stone-200 bg-stone-100 text-stone-900 placeholder:text-stone-400 focus:border-stone-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 ${errors[`character-${line.id}`] ? "border-red-500" : ""}`}
+            <MultiCharacterSelect
+              value={line.characters}
+              onChange={(chars) => onUpdate(line.id, "characters", chars)}
+              availableCharacters={availableCharacters}
+              placeholder="Select character(s)"
+              error={!!errors[`character-${line.id}`]}
+              className="min-h-[44px]"
             />
-            {characterSuggestion && (
-              <div className="absolute left-0 right-0 top-full z-10 rounded-b-md border border-yellow-600 bg-yellow-900 p-2 text-xs text-yellow-200">
-                {`Did you mean "${characterSuggestion}"?`}
-                <button
-                  type="button"
-                  onClick={() =>
-                    onUpdate(line.id, "characters", [characterSuggestion])
-                  }
-                  className="ml-2 text-yellow-300 underline hover:text-yellow-100"
-                >
-                  Use this
-                </button>
-              </div>
-            )}
           </div>
 
           {/* Sung Switch */}
@@ -212,31 +200,14 @@ const SortableLineItem = ({
 
         {/* Desktop: Character Name */}
         <div className="col-span-2 space-y-1">
-          <div className="relative">
-            <Input
-              placeholder="Character(s)"
-              value={line.characters.join(", ")}
-              onChange={(e) => {
-                const chars = e.target.value.split(",").map((c) => c.trim()).filter(Boolean);
-                onUpdate(line.id, "characters", chars.length > 0 ? chars : [e.target.value]);
-              }}
-              className={`text-sm min-h-[36px] border-stone-200 bg-stone-100 text-stone-900 placeholder:text-stone-400 focus:border-stone-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 ${errors[`character-${line.id}`] ? "border-red-500" : ""}`}
-            />
-            {characterSuggestion && (
-              <div className="absolute left-0 right-0 top-full z-10 rounded-b-md border border-yellow-600 bg-yellow-900 p-2 text-xs text-yellow-200">
-                {`Did you mean "${characterSuggestion}"?`}
-                <button
-                  type="button"
-                  onClick={() =>
-                    onUpdate(line.id, "characters", [characterSuggestion])
-                  }
-                  className="ml-2 text-yellow-300 underline hover:text-yellow-100"
-                >
-                  Use this
-                </button>
-              </div>
-            )}
-          </div>
+          <MultiCharacterSelect
+            value={line.characters}
+            onChange={(chars) => onUpdate(line.id, "characters", chars)}
+            availableCharacters={availableCharacters}
+            placeholder="Select character(s)"
+            error={!!errors[`character-${line.id}`]}
+            className="min-h-[36px]"
+          />
           {errors[`character-${line.id}`] && (
             <p className="text-xs text-red-400">
               {errors[`character-${line.id}`]}
@@ -328,6 +299,12 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
       coordinateGetter: sortableKeyboardCoordinates,
     }),
   );
+
+  // Calculate available characters from all lines in the current form
+  const availableCharacters = useMemo(() => {
+    const allCharacters = formData.lines.flatMap((line) => line.characters);
+    return [...new Set(allCharacters)].filter(Boolean).sort();
+  }, [formData.lines]);
 
   // Fetch public data (always available)
   const { data: publicData, refetch } = api.scriptData.getAll.useQuery(
@@ -935,6 +912,7 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
                               errors={errors}
                               warnings={warnings}
                               characterSuggestion={characterSuggestions[line.id]}
+                              availableCharacters={availableCharacters}
                             />
                           ))}
                         </div>
