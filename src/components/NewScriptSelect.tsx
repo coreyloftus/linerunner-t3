@@ -100,9 +100,10 @@ export default function NewScriptSelect({
         (project) => project.project === selectedProject,
       );
       // Extract unique characters from all lines across all scenes
-      const characters = project?.scenes.flatMap((scene) =>
-        scene.lines.flatMap((line) => line.characters)
-      ) ?? [];
+      const characters =
+        project?.scenes
+          .flatMap((scene) => scene.lines.flatMap((line) => line.characters))
+          .sort((a, b) => a.localeCompare(b)) ?? [];
       return Array.from(new Set(characters));
     }
 
@@ -112,9 +113,10 @@ export default function NewScriptSelect({
         (project) => project.project === selectedProject,
       );
       // Extract unique characters from all lines across all scenes
-      const characters = project?.scenes.flatMap((scene) =>
-        scene.lines.flatMap((line) => line.characters)
-      ) ?? [];
+      const characters =
+        project?.scenes
+          .flatMap((scene) => scene.lines.flatMap((line) => line.characters))
+          .sort((a, b) => a.localeCompare(b)) ?? [];
       return Array.from(new Set(characters));
     }
 
@@ -124,9 +126,10 @@ export default function NewScriptSelect({
         (project) => project.project === selectedProject,
       );
       // Extract unique characters from all lines across all scenes
-      const characters = project?.scenes.flatMap((scene) =>
-        scene.lines.flatMap((line) => line.characters)
-      ) ?? [];
+      const characters =
+        project?.scenes
+          .flatMap((scene) => scene.lines.flatMap((line) => line.characters))
+          .sort((a, b) => a.localeCompare(b)) ?? [];
       return Array.from(new Set(characters));
     }
 
@@ -142,9 +145,15 @@ export default function NewScriptSelect({
       const project = publicAllData.find(
         (project) => project.project === selectedProject,
       );
-      return project?.scenes.filter(scene =>
-        scene.lines.some(line => line.characters.includes(selectedCharacter))
-      ).sort((a, b) => a.title.localeCompare(b.title)) ?? [];
+      return (
+        project?.scenes
+          .filter((scene) =>
+            scene.lines.some((line) =>
+              line.characters.includes(selectedCharacter),
+            ),
+          )
+          .sort((a, b) => a.title.localeCompare(b.title)) ?? []
+      );
     }
 
     // Check if it's a shared project
@@ -152,9 +161,15 @@ export default function NewScriptSelect({
       const project = sharedAllData.find(
         (project) => project.project === selectedProject,
       );
-      return project?.scenes.filter(scene =>
-        scene.lines.some(line => line.characters.includes(selectedCharacter))
-      ).sort((a, b) => a.title.localeCompare(b.title)) ?? [];
+      return (
+        project?.scenes
+          .filter((scene) =>
+            scene.lines.some((line) =>
+              line.characters.includes(selectedCharacter),
+            ),
+          )
+          .sort((a, b) => a.title.localeCompare(b.title)) ?? []
+      );
     }
 
     // Check if it's a user project
@@ -162,9 +177,15 @@ export default function NewScriptSelect({
       const project = userAllData.find(
         (project) => project.project === selectedProject,
       );
-      return project?.scenes.filter(scene =>
-        scene.lines.some(line => line.characters.includes(selectedCharacter))
-      ).sort((a, b) => a.title.localeCompare(b.title)) ?? [];
+      return (
+        project?.scenes
+          .filter((scene) =>
+            scene.lines.some((line) =>
+              line.characters.includes(selectedCharacter),
+            ),
+          )
+          .sort((a, b) => a.title.localeCompare(b.title)) ?? []
+      );
     }
 
     return [];
@@ -196,7 +217,6 @@ export default function NewScriptSelect({
     router.push(newQPs);
   };
 
-
   useEffect(() => {
     if (project) {
       setSelectedProject(project.toString());
@@ -222,7 +242,9 @@ export default function NewScriptSelect({
       <Select onValueChange={handleProjectChange} value={selectedProject}>
         <Label>Project</Label>
         <SelectTrigger>
-          <SelectValue placeholder="Select Project">{selectedProject}</SelectValue>
+          <SelectValue placeholder="Select Project">
+            {selectedProject}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
           {hierarchicalProjects.map((project, index) => (
@@ -239,14 +261,16 @@ export default function NewScriptSelect({
 
       {/* Character Selection - only show if project is selected */}
       {selectedProject && (
-        <Select 
-          onValueChange={handleCharacterChange} 
+        <Select
+          onValueChange={handleCharacterChange}
           value={selectedCharacter}
           disabled={!selectedProject}
         >
           <Label>Character</Label>
           <SelectTrigger>
-            <SelectValue placeholder="Select Character">{selectedCharacter}</SelectValue>
+            <SelectValue placeholder="Select Character">
+              {selectedCharacter}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {characterList?.map((char, index) => (
@@ -260,14 +284,16 @@ export default function NewScriptSelect({
 
       {/* Scene Selection - only show if character is selected */}
       {selectedProject && selectedCharacter && (
-        <Select 
-          onValueChange={handleSceneChange} 
+        <Select
+          onValueChange={handleSceneChange}
           value={selectedScene}
           disabled={!selectedCharacter}
         >
           <Label>Scene</Label>
           <SelectTrigger>
-            <SelectValue placeholder="Select Scene">{selectedScene}</SelectValue>
+            <SelectValue placeholder="Select Scene">
+              {selectedScene}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {sceneList?.map((scene, index) => (
