@@ -507,11 +507,8 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
   const generateId = () => `line-${Date.now()}-${Math.random()}`;
 
   const standardizeCharacterName = (name: string): string => {
-    return name
-      .trim()
-      .split(" ")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(" ");
+    // Only trim whitespace, preserve original case (e.g., "CP" stays "CP")
+    return name.trim();
   };
 
   const findSimilarCharacters = (inputName: string): string | undefined => {
