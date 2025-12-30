@@ -424,8 +424,8 @@ export class FirestoreService {
         .get();
 
       return querySnapshot.docs.map((doc) => ({
-        id: doc.id,
         ...doc.data(),
+        id: doc.id, // Ensure Firestore doc ID takes precedence
       })) as SharedProjectJSON[];
     } catch (error) {
       console.error("Error getting shared projects for user:", error);
@@ -439,8 +439,8 @@ export class FirestoreService {
       const querySnapshot = await adminDb.collection("shared_projects").get();
 
       return querySnapshot.docs.map((doc) => ({
-        id: doc.id,
         ...doc.data(),
+        id: doc.id, // Ensure Firestore doc ID takes precedence
       })) as SharedProjectJSON[];
     } catch (error) {
       console.error("Error getting all shared projects:", error);
@@ -457,7 +457,7 @@ export class FirestoreService {
       const docSnap = await docRef.get();
 
       if (docSnap.exists) {
-        return { id: docSnap.id, ...docSnap.data() } as SharedProjectJSON;
+        return { ...docSnap.data(), id: docSnap.id } as SharedProjectJSON; // Ensure Firestore doc ID takes precedence
       }
       return null;
     } catch (error) {
@@ -473,8 +473,11 @@ export class FirestoreService {
     ownerId: string,
   ): Promise<string> {
     try {
+      // Destructure to remove any existing 'id' field from the source project
+      const { id: _existingId, ...projectDataWithoutId } = projectData as ProjectJSON & { id?: string };
+
       const sharedProject = {
-        ...projectData,
+        ...projectDataWithoutId,
         ownerId,
         allowedUsers,
         createdAt: FieldValue.serverTimestamp(),
