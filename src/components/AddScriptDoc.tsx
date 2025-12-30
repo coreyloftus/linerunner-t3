@@ -442,8 +442,42 @@ export const AddScriptDoc = () => {
       if (colonIndex > 0) {
         const potentialCharacter = trimmedLine.substring(0, colonIndex).trim();
         const potentialLine = trimmedLine.substring(colonIndex + 1).trim();
-        
-        // Check if the part before the colon matches any character name
+
+        // Check for multi-character format: "CHARACTER1 & CHARACTER2:" or "CHARACTER1/CHARACTER2:" or "CHARACTER1, CHARACTER2:"
+        const multiCharSeparators = /\s*[&\/,]\s*/;
+        if (multiCharSeparators.test(potentialCharacter)) {
+          const potentialCharacters = potentialCharacter.split(multiCharSeparators).map(c => c.trim()).filter(c => c.length > 0);
+
+          // Validate all parts are known character names
+          const foundCharacters = potentialCharacters.map(pc =>
+            characterNames.find(name => normalizeText(name) === normalizeText(pc))
+          ).filter((c): c is string => c !== undefined);
+
+          // If all parts matched character names, create a multi-character line
+          if (foundCharacters.length === potentialCharacters.length && foundCharacters.length > 0 && potentialLine) {
+            // If we have a previous character and line, save it first
+            if (currentCharacter && currentLine.trim()) {
+              parsedLines.push({
+                characters: [currentCharacter],
+                line: currentLine.trim(),
+              });
+            }
+
+            // Add the multi-character line
+            const isSung = isSungLine(potentialLine);
+            parsedLines.push({
+              characters: foundCharacters,
+              line: potentialLine,
+              ...(isSung && { sung: true }),
+            });
+
+            currentCharacter = foundCharacters[0] ?? "";
+            currentLine = "";
+            continue;
+          }
+        }
+
+        // Check if the part before the colon matches any single character name
         const foundCharacter = characterNames.find((name) => {
           const normalizedName = normalizeText(name);
           const normalizedPotentialCharacter = normalizeText(potentialCharacter);
@@ -813,13 +847,17 @@ export const AddScriptDoc = () => {
                     placeholder={`Copy/paste your raw script here.
 
 Character names should be in all caps or use CHARACTER: line format.
-Ex: 
+Ex:
 STANLEY
 Stella!!!
 
 Or:
 SOLO: DIXIT DOMINUS DOMINO MEO: SEDE A DEXTRIS MEIS.
 RESPONSE: DONEC PONAM INIMICOS TUOS, SCABELLEUM PEDUM TUORUM.
+
+For lines spoken by multiple characters at once, use & or / or , to separate:
+MARIA & TONY: Tonight, tonight, won't be just any night!
+NUNS/MOTHER ABBESS: How do you solve a problem like Maria?
 
 Sung lines should be in all caps between two character names.
 Ex:
@@ -864,6 +902,14 @@ WITH SONGS THEY HAVE SUNG FOR A THOUSAND YEARS
                             </div>
                           </div>
                           
+                          <div>
+                            <p className="font-medium mb-1">Multiple characters speaking together</p>
+                            <div className="bg-white dark:bg-stone-800 border rounded p-2 font-mono text-xs">
+                              <div>MARIA & TONY: Tonight, tonight!</div>
+                              <div>NUNS/MOTHER ABBESS: How do you solve a problem like Maria?</div>
+                            </div>
+                          </div>
+
                           <div>
                             <p className="font-medium mb-1">Sung lines (all caps between characters)</p>
                             <div className="bg-white dark:bg-stone-800 border rounded p-2 font-mono text-xs">
