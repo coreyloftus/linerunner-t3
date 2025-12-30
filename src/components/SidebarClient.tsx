@@ -11,6 +11,7 @@ import { RefreshButton } from "./ui/refresh-button";
 import { useScriptData } from "~/hooks/useScriptData";
 import { ThemeToggle } from "./ui/theme-toggle";
 import { DisplaySettings } from "./DisplaySettings";
+import { AdminSharingPanel } from "./AdminSharingPanel";
 import Link from "next/link";
 
 type SidebarClientProps = {
@@ -180,6 +181,16 @@ export function SidebarClient({
               </p>
               <DisplaySettings />
             </div>
+
+            {/* Project Sharing - Admin Only */}
+            {isAdmin && (
+              <div className="mt-4 border-t border-stone-200 px-2 pt-4 dark:border-stone-700">
+                <p className="mb-2 text-mobile-base font-bold text-stone-900 dark:text-stone-100 iphone:text-base">
+                  Project Sharing
+                </p>
+                <AdminSharingPanel />
+              </div>
+            )}
 
             <div className="mt-2 flex flex-col p-2">
               {/* add a toggle for the "Auto Advance" feature -- when TRUE set the context.autoAdvance to TRUE */}

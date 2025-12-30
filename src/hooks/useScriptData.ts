@@ -3,7 +3,7 @@ import { api } from "~/trpc/react";
 import { useSession } from "next-auth/react";
 
 interface UseScriptDataOptions {
-  dataSource: "local" | "firestore" | "public";
+  dataSource: "local" | "firestore" | "public" | "shared";
   enableAutoRefresh?: boolean;
   cacheTime?: number; // in milliseconds
 }
@@ -21,7 +21,7 @@ export function useScriptData({
   const shouldEnableQuery =
     dataSource === "local" ||
     dataSource === "public" ||
-    (dataSource === "firestore" && !!session?.user?.email);
+    ((dataSource === "firestore" || dataSource === "shared") && !!session?.user?.email);
 
   // Main data query with optimized caching
   const {

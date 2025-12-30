@@ -54,7 +54,7 @@ interface ScriptContextProps {
 type UserConfig = {
   stopOnCharacter: boolean;
   autoAdvanceScript: boolean;
-  dataSource: "local" | "firestore" | "public";
+  dataSource: "local" | "firestore" | "public" | "shared";
 };
 
 // Color presets for line styling
