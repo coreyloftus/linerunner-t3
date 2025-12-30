@@ -1,6 +1,16 @@
 import { adminDb } from "~/lib/firebase-admin";
 import type { DocumentData, WhereFilterOp } from "firebase-admin/firestore";
 import type { ProjectJSON } from "./scriptService";
+import { FieldValue } from "firebase-admin/firestore";
+
+// Shared project structure stored in shared_projects collection
+export interface SharedProjectJSON extends ProjectJSON {
+  id?: string;
+  ownerId: string;
+  allowedUsers: string[];
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 // Generic CRUD operations for Firestore using Admin SDK
 export class FirestoreService {
@@ -397,6 +407,164 @@ export class FirestoreService {
       })) as T[];
     } catch (error) {
       console.error("Error querying documents:", error);
+      throw error;
+    }
+  }
+
+  // ============ SHARED PROJECTS METHODS ============
+
+  // Get all shared projects where user has access
+  static async getSharedProjectsForUser(
+    userEmail: string,
+  ): Promise<SharedProjectJSON[]> {
+    try {
+      const querySnapshot = await adminDb
+        .collection("shared_projects")
+        .where("allowedUsers", "array-contains", userEmail)
+        .get();
+
+      return querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as SharedProjectJSON[];
+    } catch (error) {
+      console.error("Error getting shared projects for user:", error);
+      throw error;
+    }
+  }
+
+  // Get all shared projects (admin only - for management)
+  static async getAllSharedProjects(): Promise<SharedProjectJSON[]> {
+    try {
+      const querySnapshot = await adminDb.collection("shared_projects").get();
+
+      return querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as SharedProjectJSON[];
+    } catch (error) {
+      console.error("Error getting all shared projects:", error);
+      throw error;
+    }
+  }
+
+  // Get a single shared project by ID
+  static async getSharedProject(
+    projectId: string,
+  ): Promise<SharedProjectJSON | null> {
+    try {
+      const docRef = adminDb.collection("shared_projects").doc(projectId);
+      const docSnap = await docRef.get();
+
+      if (docSnap.exists) {
+        return { id: docSnap.id, ...docSnap.data() } as SharedProjectJSON;
+      }
+      return null;
+    } catch (error) {
+      console.error("Error getting shared project:", error);
+      throw error;
+    }
+  }
+
+  // Create a new shared project
+  static async createSharedProject(
+    projectData: ProjectJSON,
+    allowedUsers: string[],
+    ownerId: string,
+  ): Promise<string> {
+    try {
+      const sharedProject = {
+        ...projectData,
+        ownerId,
+        allowedUsers,
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+      };
+
+      const docRef = await adminDb
+        .collection("shared_projects")
+        .add(sharedProject);
+
+      console.log(
+        `🔗 [FirestoreService.createSharedProject] Created shared project: ${docRef.id}`,
+      );
+      return docRef.id;
+    } catch (error) {
+      console.error("Error creating shared project:", error);
+      throw error;
+    }
+  }
+
+  // Update allowed users for a shared project (admin only)
+  static async updateSharedProjectPermissions(
+    projectId: string,
+    allowedUsers: string[],
+    adminEmail: string,
+  ): Promise<void> {
+    try {
+      if (adminEmail !== "coreyloftus@gmail.com") {
+        throw new Error("Admin access required");
+      }
+
+      const docRef = adminDb.collection("shared_projects").doc(projectId);
+      await docRef.update({
+        allowedUsers,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+
+      console.log(
+        `🔗 [FirestoreService.updateSharedProjectPermissions] Updated permissions for: ${projectId}`,
+      );
+    } catch (error) {
+      console.error("Error updating shared project permissions:", error);
+      throw error;
+    }
+  }
+
+  // Update a shared project's content (admin only)
+  static async updateSharedProject(
+    projectId: string,
+    projectData: Partial<ProjectJSON>,
+    adminEmail: string,
+  ): Promise<void> {
+    try {
+      if (adminEmail !== "coreyloftus@gmail.com") {
+        throw new Error("Admin access required");
+      }
+
+      const docRef = adminDb.collection("shared_projects").doc(projectId);
+      await docRef.update({
+        ...projectData,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+
+      console.log(
+        `🔗 [FirestoreService.updateSharedProject] Updated shared project: ${projectId}`,
+      );
+    } catch (error) {
+      console.error("Error updating shared project:", error);
+      throw error;
+    }
+  }
+
+  // Delete a shared project (admin only)
+  static async deleteSharedProject(
+    projectId: string,
+    adminEmail: string,
+  ): Promise<void> {
+    try {
+      if (adminEmail !== "coreyloftus@gmail.com") {
+        throw new Error("Admin access required");
+      }
+
+      const docRef = adminDb.collection("shared_projects").doc(projectId);
+      await docRef.delete();
+
+      console.log(
+        `🔗 [FirestoreService.deleteSharedProject] Deleted shared project: ${projectId}`,
+      );
+    } catch (error) {
+      console.error("Error deleting shared project:", error);
       throw error;
     }
   }

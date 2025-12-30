@@ -56,17 +56,33 @@ export default function NewScriptSelect({
     },
   );
 
-  // Combine public and user data
+  // Fetch shared projects (only if authenticated)
+  const { data: sharedData } = api.scriptData.getAll.useQuery(
+    { dataSource: "shared" },
+    {
+      enabled: !!session?.user,
+      refetchOnWindowFocus: false,
+      refetchOnMount: true,
+    },
+  );
+
+  // Combine public, user, and shared data
   const publicProjects = publicData?.projects ?? [];
   const publicAllData = publicData?.allData ?? [];
   const userProjects = userData?.projects ?? [];
   const userAllData = userData?.allData ?? [];
+  const sharedProjects = sharedData?.projects ?? [];
+  const sharedAllData = sharedData?.allData ?? [];
 
   // Create hierarchical project list
   const hierarchicalProjects = [
     ...publicProjects.map((project) => ({
       name: project,
       type: "public" as const,
+    })),
+    ...sharedProjects.map((project) => ({
+      name: project,
+      type: "shared" as const,
     })),
     ...userProjects.map((project) => ({
       name: project,
@@ -81,6 +97,18 @@ export default function NewScriptSelect({
     // Check if it's a public project
     if (publicProjects.includes(selectedProject)) {
       const project = publicAllData.find(
+        (project) => project.project === selectedProject,
+      );
+      // Extract unique characters from all lines across all scenes
+      const characters = project?.scenes.flatMap((scene) =>
+        scene.lines.flatMap((line) => line.characters)
+      ) ?? [];
+      return Array.from(new Set(characters));
+    }
+
+    // Check if it's a shared project
+    if (sharedProjects.includes(selectedProject)) {
+      const project = sharedAllData.find(
         (project) => project.project === selectedProject,
       );
       // Extract unique characters from all lines across all scenes
@@ -112,6 +140,16 @@ export default function NewScriptSelect({
     // Check if it's a public project
     if (publicProjects.includes(selectedProject)) {
       const project = publicAllData.find(
+        (project) => project.project === selectedProject,
+      );
+      return project?.scenes.filter(scene =>
+        scene.lines.some(line => line.characters.includes(selectedCharacter))
+      ).sort((a, b) => a.title.localeCompare(b.title)) ?? [];
+    }
+
+    // Check if it's a shared project
+    if (sharedProjects.includes(selectedProject)) {
+      const project = sharedAllData.find(
         (project) => project.project === selectedProject,
       );
       return project?.scenes.filter(scene =>
@@ -191,7 +229,9 @@ export default function NewScriptSelect({
             <SelectItem value={project.name} key={index}>
               {project.type === "public"
                 ? `📁 ${project.name}`
-                : `👤 ${project.name}`}
+                : project.type === "shared"
+                  ? `🔗 ${project.name}`
+                  : `👤 ${project.name}`}
             </SelectItem>
           ))}
         </SelectContent>
