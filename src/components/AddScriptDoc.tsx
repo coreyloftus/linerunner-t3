@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect, useRef } from "react";
 import { Textarea } from "./ui/textarea";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
@@ -38,7 +38,16 @@ export const AddScriptDoc = () => {
   const [copySourceUserId, setCopySourceUserId] = useState("");
   const [copyTargetUserId, setCopyTargetUserId] = useState("");
   const [copyProjectName, setCopyProjectName] = useState("");
+  const [characterInput, setCharacterInput] = useState("");
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
+
+  // Sync characterInput with scriptCharacterNames when it changes externally (e.g., form clear)
+  useEffect(() => {
+    if (scriptCharacterNames.length === 0 && characterInput !== "") {
+      setCharacterInput("");
+    }
+  }, [scriptCharacterNames, characterInput]);
 
   // Fetch existing projects from public data
   const { data: publicData } = api.scriptData.getAll.useQuery(
@@ -186,13 +195,34 @@ export const AddScriptDoc = () => {
     });
 
   const handleAddCharacters = (e: React.ChangeEvent<HTMLInputElement>) => {
-    e.preventDefault();
-    const characterNames = e.target.value;
-    const characterNamesArray = characterNames
+    const inputValue = e.target.value;
+    setCharacterInput(inputValue);
+
+    // Clear existing debounce timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    // Debounce the parsing - wait 500ms after user stops typing
+    debounceTimerRef.current = setTimeout(() => {
+      const characterNamesArray = inputValue
+        .split(",")
+        .map((name) => name.trim())
+        .filter((name) => name.length > 0);
+      setScriptCharacterNames(characterNamesArray);
+    }, 500);
+  };
+
+  // Also parse on blur for immediate feedback when leaving the field
+  const handleCharacterInputBlur = () => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    const characterNamesArray = characterInput
       .split(",")
-      .map((name) => name.trim());
+      .map((name) => name.trim())
+      .filter((name) => name.length > 0);
     setScriptCharacterNames(characterNamesArray);
-    // console.log(characterNamesArray);
   };
 
   const handleProjectChange = (value: string) => {
@@ -806,8 +836,9 @@ export const AddScriptDoc = () => {
               </p>
               <Input
                 placeholder="Rosenkrantz, Guildenstern, etc."
-                value={scriptCharacterNames.join(", ")}
+                value={characterInput}
                 onChange={(e) => handleAddCharacters(e)}
+                onBlur={handleCharacterInputBlur}
               />
             </div>
 
