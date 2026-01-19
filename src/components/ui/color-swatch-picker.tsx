@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { type ColorPreset } from "~/app/context";
 
 interface ColorSwatchPickerProps {
@@ -25,6 +26,29 @@ export function ColorSwatchPicker({
   onChange,
   label,
 }: ColorSwatchPickerProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Prevent hydration mismatch by not rendering until client-side
+  if (!mounted) {
+    return (
+      <div className="flex flex-col gap-1">
+        <span className="text-xs text-stone-600 dark:text-stone-400">{label}</span>
+        <div className="flex gap-1.5">
+          {COLOR_OPTIONS.map((option) => (
+            <div
+              key={option.value}
+              className={`h-6 w-6 rounded-full ${option.bgClass}`}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-1">
       <span className="text-xs text-stone-600 dark:text-stone-400">{label}</span>

@@ -110,80 +110,43 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     .find((project) => project.project === selectedProject)
     ?.scenes.find((scene) => scene.title === selectedScene);
 
-  // event loop
+  // event loop - simplified for manual navigation only
   const proceedWithScene = useCallback(() => {
     const lines = script?.lines ?? [];
-    const nextIndex = currentLineIndex + 1;
     const currentLine = lines[currentLineIndex];
 
     // if there are no more lines to display
-    if (nextIndex >= lines.length) {
-      // Make sure the last line is properly set up for display
-      if (currentLine) {
-        const split = currentLine.line.split(" ");
-        setCurrentLineSplit(split);
-      }
+    if (currentLineIndex >= lines.length) {
       setAwaitingInput(true);
       return;
     }
-    if (gameMode === "linerun") {
-      if (currentLine) {
-        const split = currentLine.line.split(" ");
-        setCurrentLineSplit(split);
-        // if not user's character, auto-advance
-        if (!checkIsUserLine(currentLine?.characters, selectedCharacter)) {
-          if (userConfig.autoAdvanceScript) {
-            setAwaitingInput(false);
-            if (wordIndex <= split.length - 1) {
-              setTimeout(() => setWordIndex((prevIndex) => prevIndex + 1), 250);
-            } else {
-              // All words have been advanced, move to next line
-              setTimeout(() => {
-                setCurrentLineIndex((prevIndex) => prevIndex + 1);
-                setWordIndex(0);
-              }, 50);
-            }
-          } else {
-            setTimeout(() => {
-              setCurrentLineIndex((prevIndex) => prevIndex + 1);
-              setWordIndex(0);
-            }, 50);
-          }
-        } else if (checkIsUserLine(currentLine?.characters, selectedCharacter)) {
-          setAwaitingInput(true);
-        }
-        return;
-      }
-    }
-    if (gameMode === "navigate") {
-      if (checkIsUserLine(currentLine?.characters, selectedCharacter)) {
-        setCurrentLine(currentLine!.line.split(""));
 
+    if (currentLine) {
+      const split = currentLine.line.split(" ");
+      setCurrentLineSplit(split);
+      setWordIndex(split.length); // Show full line immediately
+
+      // Check if it's the user's line
+      if (checkIsUserLine(currentLine?.characters, selectedCharacter)) {
         setAwaitingInput(true);
-        return;
+      } else {
+        setAwaitingInput(false);
       }
-    }
-    if (userConfig.autoAdvanceScript) {
-      setTimeout(() => setCurrentLineIndex((prevIndex) => prevIndex + 1), 1000);
     }
   }, [
     currentLineIndex,
     script,
     selectedCharacter,
-    userConfig.autoAdvanceScript,
-    gameMode,
-    wordIndex,
-    setCurrentLineIndex,
     setWordIndex,
     setAwaitingInput,
     setCurrentLineSplit,
   ]);
 
   useEffect(() => {
-    if (playScene && !awaitingInput) {
+    if (playScene) {
       proceedWithScene();
     }
-  }, [playScene, awaitingInput, proceedWithScene, wordIndex]);
+  }, [playScene, proceedWithScene, currentLineIndex]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -212,8 +175,10 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
   const handleLineNavigation = useCallback(
     (direction: "up" | "down") => {
       if (!playScene || !script?.lines) return;
+
       let newIndex = currentLineIndex;
       const totalLines = script.lines.length;
+
       if (direction === "up" && currentLineIndex > 0) {
         newIndex = currentLineIndex - 1;
       } else if (direction === "down") {
@@ -232,9 +197,11 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
         }
       }
 
+      // Show entire line immediately
+      const newLineSplit = script.lines[newIndex]?.line.split(" ") ?? [];
       setCurrentLineIndex(newIndex);
-      setCurrentLineSplit(script.lines[newIndex]?.line.split(" ") ?? []);
-      setWordIndex(0);
+      setCurrentLineSplit(newLineSplit);
+      setWordIndex(newLineSplit.length); // Show all words immediately
 
       // Check if the new line is for the player character
       if (checkIsUserLine(script.lines?.[newIndex]?.characters, selectedCharacter)) {

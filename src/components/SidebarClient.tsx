@@ -192,23 +192,6 @@ export function SidebarClient({
               </div>
             )}
 
-            <div className="mt-2 flex flex-col p-2">
-              {/* add a toggle for the "Auto Advance" feature -- when TRUE set the context.autoAdvance to TRUE */}
-              {/* <p className="font-bold">NPC Settings</p>
-              <div className="flex justify-between p-2">
-                <p>Word-by-word</p>
-                <Switch
-                  checked={userConfig.autoAdvanceScript}
-                  onCheckedChange={(checked) =>
-                    setUserConfig({
-                      ...userConfig,
-                      autoAdvanceScript: checked,
-                    })
-                  }
-                  className="bg-stone-500 text-white"
-                />
-              </div> */}
-            </div>
           </div>
           <div className="fixed bottom-[.5rem] pl-2">
             <Link href="https://www.coreyloftus.com" target="_blank">

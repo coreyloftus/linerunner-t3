@@ -53,7 +53,6 @@ interface ScriptContextProps {
 
 type UserConfig = {
   stopOnCharacter: boolean;
-  autoAdvanceScript: boolean;
   dataSource: "local" | "firestore" | "public" | "shared";
 };
 
@@ -93,13 +92,11 @@ export const ScriptContext = createContext<ScriptContextProps>({
   setSelectedCharacter: () => "",
   userConfig: {
     stopOnCharacter: true,
-    autoAdvanceScript: true,
     dataSource: "public",
   },
   gameMode: "linerun",
   setUserConfig: () => ({
     stopOnCharacter: true,
-    autoAdvanceScript: false,
     dataSource: "public",
   }),
   setGameMode: () => "linerun",
@@ -139,7 +136,6 @@ export const ScriptProvider = ({ children }: { children: ReactNode }) => {
   const [selectedCharacter, setSelectedCharacter] = useState<string>("");
   const [userConfig, setUserConfig] = useState<UserConfig>({
     stopOnCharacter: true,
-    autoAdvanceScript: true,
     dataSource: "public",
   });
   const [gameMode, setGameMode] = useState<"navigate" | "linerun">("linerun");
