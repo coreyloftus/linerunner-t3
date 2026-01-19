@@ -83,6 +83,63 @@ export class FirestoreService {
     }
   }
 
+  // Get shared scripts that the user has access to
+  static async getSharedScripts<T = DocumentData>(
+    userEmail: string,
+  ): Promise<T[]> {
+    try {
+      const sharedProjectsRef = adminDb.collection("shared_projects");
+
+      // Query for documents where allowedUsers array contains the user's email
+      const querySnapshot = await sharedProjectsRef
+        .where("allowedUsers", "array-contains", userEmail)
+        .get();
+
+      const documents = querySnapshot.docs.map((doc) => {
+        const data = doc.data();
+
+        // Normalize the data format - convert old format with characters[] to new format with character
+        if (data.scenes && Array.isArray(data.scenes)) {
+          data.scenes = data.scenes.map((scene: any) => {
+            if (scene.lines && Array.isArray(scene.lines)) {
+              scene.lines = scene.lines.map((line: any) => {
+                // If line has characters array instead of character string, convert it
+                if (line.characters && Array.isArray(line.characters)) {
+                  const { characters, ...rest } = line; // Remove old characters field
+                  return {
+                    ...rest,
+                    character: characters[0] || "Unknown", // Add new character field
+                  };
+                }
+                return line;
+              });
+            }
+            return scene;
+          });
+        }
+
+        return {
+          id: doc.id,
+          ...data,
+        };
+      }) as T[];
+
+      console.log("🔍 [FirestoreService.getSharedScripts] Found documents:", documents.length);
+      if (documents.length > 0) {
+        console.log("🔍 [FirestoreService.getSharedScripts] First document after normalization:");
+        const firstDoc: any = documents[0];
+        if (firstDoc.scenes && firstDoc.scenes[0] && firstDoc.scenes[0].lines) {
+          console.log("First line structure:", JSON.stringify(firstDoc.scenes[0].lines[0], null, 2));
+        }
+      }
+
+      return documents;
+    } catch (error) {
+      console.error("Error getting shared scripts:", error);
+      throw error;
+    }
+  }
+
   // Get a single document
   static async getDocument<T = DocumentData>(
     collectionName: string,

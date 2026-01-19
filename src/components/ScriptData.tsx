@@ -338,15 +338,30 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
     },
   );
 
+  // Fetch shared data (only if authenticated)
+  const { data: sharedData } = api.scriptData.getAll.useQuery(
+    { dataSource: "shared" },
+    {
+      enabled: !!session?.user,
+      refetchOnWindowFocus: false,
+      refetchOnMount: true,
+    },
+  );
+
   // Determine which data source to use based on selected project
   const getCurrentData = () => {
     if (!selectedProject) return data;
 
     const publicProjects = publicData?.projects ?? [];
     const userProjects = userData?.projects ?? [];
+    const sharedProjects = sharedData?.projects ?? [];
 
     if (publicProjects.includes(selectedProject)) {
       return publicData ?? data;
+    }
+
+    if (sharedProjects.includes(selectedProject)) {
+      return sharedData ?? data;
     }
 
     if (userProjects.includes(selectedProject)) {
