@@ -95,10 +95,42 @@ export class FirestoreService {
         .where("allowedUsers", "array-contains", userEmail)
         .get();
 
-      const documents = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as T[];
+      const documents = querySnapshot.docs.map((doc) => {
+        const data = doc.data();
+
+        // Normalize the data format - convert old format with characters[] to new format with character
+        if (data.scenes && Array.isArray(data.scenes)) {
+          data.scenes = data.scenes.map((scene: any) => {
+            if (scene.lines && Array.isArray(scene.lines)) {
+              scene.lines = scene.lines.map((line: any) => {
+                // If line has characters array instead of character string, convert it
+                if (line.characters && Array.isArray(line.characters) && !line.character) {
+                  return {
+                    ...line,
+                    character: line.characters[0] || "Unknown", // Use first character from array
+                  };
+                }
+                return line;
+              });
+            }
+            return scene;
+          });
+        }
+
+        return {
+          id: doc.id,
+          ...data,
+        };
+      }) as T[];
+
+      console.log("🔍 [FirestoreService.getSharedScripts] Found documents:", documents.length);
+      if (documents.length > 0) {
+        console.log("🔍 [FirestoreService.getSharedScripts] First document after normalization:");
+        const firstDoc: any = documents[0];
+        if (firstDoc.scenes && firstDoc.scenes[0] && firstDoc.scenes[0].lines) {
+          console.log("First line structure:", JSON.stringify(firstDoc.scenes[0].lines[0], null, 2));
+        }
+      }
 
       return documents;
     } catch (error) {
