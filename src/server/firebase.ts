@@ -104,10 +104,11 @@ export class FirestoreService {
             if (scene.lines && Array.isArray(scene.lines)) {
               scene.lines = scene.lines.map((line: any) => {
                 // If line has characters array instead of character string, convert it
-                if (line.characters && Array.isArray(line.characters) && !line.character) {
+                if (line.characters && Array.isArray(line.characters)) {
+                  const { characters, ...rest } = line; // Remove old characters field
                   return {
-                    ...line,
-                    character: line.characters[0] || "Unknown", // Use first character from array
+                    ...rest,
+                    character: characters[0] || "Unknown", // Add new character field
                   };
                 }
                 return line;
