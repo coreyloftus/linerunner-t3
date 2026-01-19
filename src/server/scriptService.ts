@@ -85,9 +85,24 @@ export class ScriptService {
   // Load shared scripts from Firestore
   static async getSharedScripts(userId: string): Promise<GetAllResponse> {
     try {
+      console.log("🔍 [ScriptService.getSharedScripts] Called with userId:", userId);
+
       const documents = await FirestoreService.getSharedScripts<ProjectJSON>(
         userId,
       );
+
+      console.log("🔍 [ScriptService.getSharedScripts] Received documents:", documents.length);
+      if (documents.length > 0) {
+        console.log("🔍 [ScriptService.getSharedScripts] First document project:", documents[0].project);
+        console.log("🔍 [ScriptService.getSharedScripts] First document scenes count:", documents[0].scenes?.length);
+        if (documents[0].scenes && documents[0].scenes[0]) {
+          console.log("🔍 [ScriptService.getSharedScripts] First scene title:", documents[0].scenes[0].title);
+          console.log("🔍 [ScriptService.getSharedScripts] First scene lines count:", documents[0].scenes[0].lines?.length);
+          if (documents[0].scenes[0].lines && documents[0].scenes[0].lines[0]) {
+            console.log("🔍 [ScriptService.getSharedScripts] First line structure:", JSON.stringify(documents[0].scenes[0].lines[0], null, 2));
+          }
+        }
+      }
 
       const projects = documents.map((doc) => doc.project);
       return {

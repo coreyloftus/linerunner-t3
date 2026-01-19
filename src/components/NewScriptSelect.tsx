@@ -63,6 +63,18 @@ export default function NewScriptSelect({
       enabled: !!session?.user,
       refetchOnWindowFocus: false,
       refetchOnMount: true,
+      onSuccess: (data) => {
+        console.log("🎯 [NewScriptSelect] Received shared data:", data);
+        if (data?.allData && data.allData.length > 0) {
+          console.log("🎯 [NewScriptSelect] First shared project:", data.allData[0].project);
+          if (data.allData[0].scenes && data.allData[0].scenes[0]) {
+            console.log("🎯 [NewScriptSelect] First scene:", data.allData[0].scenes[0].title);
+            if (data.allData[0].scenes[0].lines && data.allData[0].scenes[0].lines[0]) {
+              console.log("🎯 [NewScriptSelect] First line:", JSON.stringify(data.allData[0].scenes[0].lines[0], null, 2));
+            }
+          }
+        }
+      },
     },
   );
 
@@ -143,47 +155,75 @@ export default function NewScriptSelect({
 
   // Get character list based on selected project and scene
   const getCharacterData = () => {
+    console.log("🔍 [getCharacterData] Called with:", { selectedProject, selectedScene });
+
     if (!selectedProject || !selectedScene) return [];
 
     // Check if it's a public project
     if (publicProjects.includes(selectedProject)) {
+      console.log("🔍 [getCharacterData] Using public project data");
       const project = publicAllData.find(
         (project) => project.project === selectedProject,
       );
       const scene = project?.scenes.find(
         (scene) => scene.title === selectedScene,
       );
-      return Array.from(
+      console.log("🔍 [getCharacterData] Found scene:", scene?.title);
+      console.log("🔍 [getCharacterData] Lines count:", scene?.lines?.length);
+      if (scene?.lines && scene.lines[0]) {
+        console.log("🔍 [getCharacterData] First line:", JSON.stringify(scene.lines[0], null, 2));
+      }
+      const characters = Array.from(
         new Set(scene?.lines.map((line) => line.character) ?? []),
       );
+      console.log("🔍 [getCharacterData] Extracted characters:", characters);
+      return characters;
     }
 
     // Check if it's a shared project
     if (sharedProjects.includes(selectedProject)) {
+      console.log("🔍 [getCharacterData] Using shared project data");
       const project = sharedAllData.find(
         (project) => project.project === selectedProject,
       );
+      console.log("🔍 [getCharacterData] Found project:", project?.project);
       const scene = project?.scenes.find(
         (scene) => scene.title === selectedScene,
       );
-      return Array.from(
+      console.log("🔍 [getCharacterData] Found scene:", scene?.title);
+      console.log("🔍 [getCharacterData] Lines count:", scene?.lines?.length);
+      if (scene?.lines && scene.lines[0]) {
+        console.log("🔍 [getCharacterData] First line:", JSON.stringify(scene.lines[0], null, 2));
+      }
+      const characters = Array.from(
         new Set(scene?.lines.map((line) => line.character) ?? []),
       );
+      console.log("🔍 [getCharacterData] Extracted characters:", characters);
+      return characters;
     }
 
     // Check if it's a user project
     if (userProjects.includes(selectedProject)) {
+      console.log("🔍 [getCharacterData] Using user project data");
       const project = userAllData.find(
         (project) => project.project === selectedProject,
       );
       const scene = project?.scenes.find(
         (scene) => scene.title === selectedScene,
       );
-      return Array.from(
+      console.log("🔍 [getCharacterData] Found scene:", scene?.title);
+      console.log("🔍 [getCharacterData] Lines count:", scene?.lines?.length);
+      if (scene?.lines && scene.lines[0]) {
+        console.log("🔍 [getCharacterData] First line:", JSON.stringify(scene.lines[0], null, 2));
+      }
+      const characters = Array.from(
         new Set(scene?.lines.map((line) => line.character) ?? []),
       );
+      console.log("🔍 [getCharacterData] Extracted characters:", characters);
+      return characters;
     }
 
+    console.log("🔍 [getCharacterData] No matching project found");
     return [];
   };
 
