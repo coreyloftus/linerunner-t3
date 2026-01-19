@@ -82,9 +82,31 @@ export class ScriptService {
     }
   }
 
+  // Load shared scripts from Firestore
+  static async getSharedScripts(userId: string): Promise<GetAllResponse> {
+    try {
+      const documents = await FirestoreService.getSharedScripts<ProjectJSON>(
+        userId,
+      );
+
+      const projects = documents.map((doc) => doc.project);
+      return {
+        projects,
+        allData: documents,
+      };
+    } catch (error) {
+      console.error("Error loading shared scripts:", error);
+      // Return empty data if Firestore fails
+      return {
+        projects: [],
+        allData: [],
+      };
+    }
+  }
+
   // Unified method to get scripts based on data source
   static async getScripts(
-    dataSource: "local" | "firestore" | "public",
+    dataSource: "local" | "firestore" | "public" | "shared",
     userId?: string,
   ): Promise<GetAllResponse> {
     if (dataSource === "local") {
@@ -93,15 +115,17 @@ export class ScriptService {
       return this.getFirestoreScripts(userId);
     } else if (dataSource === "public") {
       return this.getPublicScripts();
+    } else if (dataSource === "shared" && userId) {
+      return this.getSharedScripts(userId);
     } else {
-      throw new Error("Invalid data source or missing userId for Firestore");
+      throw new Error("Invalid data source or missing userId for Firestore/Shared");
     }
   }
 
   // Get scenes for a specific project
   static async getScenes(
     project: string,
-    dataSource: "local" | "firestore" | "public",
+    dataSource: "local" | "firestore" | "public" | "shared",
     userId?: string,
   ): Promise<{ sceneTitles: string[] | undefined }> {
     const { allData } = await this.getScripts(dataSource, userId);
@@ -114,7 +138,7 @@ export class ScriptService {
   static async getCharacters(
     project: string,
     scene: string,
-    dataSource: "local" | "firestore" | "public",
+    dataSource: "local" | "firestore" | "public" | "shared",
     userId?: string,
   ): Promise<{ characters: string[] | undefined }> {
     const { allData } = await this.getScripts(dataSource, userId);
@@ -129,7 +153,7 @@ export class ScriptService {
   static async getLines(
     project: string,
     scene: string,
-    dataSource: "local" | "firestore" | "public",
+    dataSource: "local" | "firestore" | "public" | "shared",
     userId?: string,
   ): Promise<string[]> {
     const { allData } = await this.getScripts(dataSource, userId);

@@ -16,7 +16,7 @@ export const scriptData = createTRPCRouter({
   getAll: publicProcedure
     .input(
       z.object({
-        dataSource: z.enum(["local", "firestore", "public"]).default("local"),
+        dataSource: z.enum(["local", "firestore", "public", "shared"]).default("local"),
       }),
     )
     .query(async ({ input, ctx }): Promise<GetAllResponse> => {
@@ -29,6 +29,13 @@ export const scriptData = createTRPCRouter({
         return ScriptService.getScripts("firestore", ctx.session.user.email);
       } else if (input.dataSource === "public") {
         return ScriptService.getScripts("public");
+      } else if (input.dataSource === "shared") {
+        if (!ctx.session?.user?.email) {
+          throw new Error(
+            "User must be authenticated to access shared scripts",
+          );
+        }
+        return ScriptService.getScripts("shared", ctx.session.user.email);
       } else {
         return ScriptService.getScripts("local");
       }
@@ -38,7 +45,7 @@ export const scriptData = createTRPCRouter({
     .input(
       z.object({
         project: z.string(),
-        dataSource: z.enum(["local", "firestore", "public"]).default("local"),
+        dataSource: z.enum(["local", "firestore", "public", "shared"]).default("local"),
       }),
     )
     .query(async ({ input, ctx }) => {
@@ -55,6 +62,17 @@ export const scriptData = createTRPCRouter({
         );
       } else if (input.dataSource === "public") {
         return ScriptService.getScenes(input.project, "public");
+      } else if (input.dataSource === "shared") {
+        if (!ctx.session?.user?.email) {
+          throw new Error(
+            "User must be authenticated to access shared scripts",
+          );
+        }
+        return ScriptService.getScenes(
+          input.project,
+          "shared",
+          ctx.session.user.email,
+        );
       } else {
         return ScriptService.getScenes(input.project, "local");
       }
@@ -65,7 +83,7 @@ export const scriptData = createTRPCRouter({
       z.object({
         project: z.string(),
         scene: z.string(),
-        dataSource: z.enum(["local", "firestore", "public"]).default("local"),
+        dataSource: z.enum(["local", "firestore", "public", "shared"]).default("local"),
       }),
     )
     .query(async ({ input, ctx }) => {
@@ -87,6 +105,18 @@ export const scriptData = createTRPCRouter({
           input.scene,
           "public",
         );
+      } else if (input.dataSource === "shared") {
+        if (!ctx.session?.user?.email) {
+          throw new Error(
+            "User must be authenticated to access shared scripts",
+          );
+        }
+        return ScriptService.getCharacters(
+          input.project,
+          input.scene,
+          "shared",
+          ctx.session.user.email,
+        );
       } else {
         return ScriptService.getCharacters(input.project, input.scene, "local");
       }
@@ -97,7 +127,7 @@ export const scriptData = createTRPCRouter({
       z.object({
         project: z.string(),
         scene: z.string(),
-        dataSource: z.enum(["local", "firestore", "public"]).default("local"),
+        dataSource: z.enum(["local", "firestore", "public", "shared"]).default("local"),
       }),
     )
     .query(async ({ input, ctx }) => {
@@ -115,6 +145,18 @@ export const scriptData = createTRPCRouter({
         );
       } else if (input.dataSource === "public") {
         return ScriptService.getLines(input.project, input.scene, "public");
+      } else if (input.dataSource === "shared") {
+        if (!ctx.session?.user?.email) {
+          throw new Error(
+            "User must be authenticated to access shared scripts",
+          );
+        }
+        return ScriptService.getLines(
+          input.project,
+          input.scene,
+          "shared",
+          ctx.session.user.email,
+        );
       } else {
         return ScriptService.getLines(input.project, input.scene, "local");
       }

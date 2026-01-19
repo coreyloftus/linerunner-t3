@@ -2,7 +2,7 @@
 import { api } from "~/trpc/server";
 
 export const getAllProjects = async (
-  dataSource: "local" | "firestore" | "public" = "public",
+  dataSource: "local" | "firestore" | "public" | "shared" = "public",
 ) => {
   const projects = await api.scriptData.getAll({ dataSource });
   // console.log("getAllProjects actions hit");
@@ -12,7 +12,7 @@ export const getAllProjects = async (
 
 export const getScenes = async (
   project: string,
-  dataSource: "local" | "firestore" = "local",
+  dataSource: "local" | "firestore" | "public" | "shared" = "local",
 ) => {
   const scenes = await api.scriptData.getScenes({ project, dataSource });
   return scenes;
@@ -21,7 +21,7 @@ export const getScenes = async (
 export const getCharacters = async (
   project: string,
   scene: string,
-  dataSource: "local" | "firestore" = "local",
+  dataSource: "local" | "firestore" | "public" | "shared" = "local",
 ) => {
   const characters = await api.scriptData.getCharacters({
     project,

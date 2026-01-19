@@ -83,6 +83,30 @@ export class FirestoreService {
     }
   }
 
+  // Get shared scripts that the user has access to
+  static async getSharedScripts<T = DocumentData>(
+    userEmail: string,
+  ): Promise<T[]> {
+    try {
+      const sharedProjectsRef = adminDb.collection("shared_projects");
+
+      // Query for documents where allowedUsers array contains the user's email
+      const querySnapshot = await sharedProjectsRef
+        .where("allowedUsers", "array-contains", userEmail)
+        .get();
+
+      const documents = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as T[];
+
+      return documents;
+    } catch (error) {
+      console.error("Error getting shared scripts:", error);
+      throw error;
+    }
+  }
+
   // Get a single document
   static async getDocument<T = DocumentData>(
     collectionName: string,
