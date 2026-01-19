@@ -38,7 +38,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     setCurrentLineSplit,
   } = useContext(ScriptContext);
 
-  // Fetch both public and user data
+  // Fetch public, user, and shared data
   const { data: publicData } = api.scriptData.getAll.useQuery(
     { dataSource: "public" },
     {
@@ -57,15 +57,29 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     },
   );
 
+  const { data: sharedData } = api.scriptData.getAll.useQuery(
+    { dataSource: "shared" },
+    {
+      enabled: !!session?.user,
+      refetchOnWindowFocus: false,
+      refetchOnMount: true,
+    },
+  );
+
   // Determine which data to use based on selected project
   const getCurrentData = () => {
     if (!selectedProject) return data;
 
     const publicProjects = publicData?.projects ?? [];
     const userProjects = userData?.projects ?? [];
+    const sharedProjects = sharedData?.projects ?? [];
 
     if (publicProjects.includes(selectedProject)) {
       return publicData ?? data;
+    }
+
+    if (sharedProjects.includes(selectedProject)) {
+      return sharedData ?? data;
     }
 
     if (userProjects.includes(selectedProject)) {
