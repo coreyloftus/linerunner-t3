@@ -7,7 +7,7 @@ export const Titlebar = () => {
   return (
     <>
       <div className="flex justify-around gap-2">
-        <p>{selectedProject}</p>
+        <p>{selectedProject?.name}</p>
         <p>{selectedScene}</p>
         <p>{selectedCharacter}</p>
       </div>

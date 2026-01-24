@@ -24,11 +24,19 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
     currentLineSplit,
   } = useContext(ScriptContext);
 
-  // Fetch both public and user data
+  // Fetch public, shared, and user data
   const { data: publicData } = api.scriptData.getAll.useQuery(
     { dataSource: "public" },
     {
       enabled: true,
+      refetchOnWindowFocus: false,
+    },
+  );
+
+  const { data: sharedData } = api.scriptData.getAll.useQuery(
+    { dataSource: "shared" },
+    {
+      enabled: !!session?.user,
       refetchOnWindowFocus: false,
     },
   );
@@ -41,28 +49,26 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
     },
   );
 
-  // Determine which data to use based on selected project
+  // Determine which data to use based on selected project source
   const getCurrentData = () => {
     if (!selectedProject) return data;
 
-    const publicProjects = publicData?.projects ?? [];
-    const userProjects = userData?.projects ?? [];
-
-    if (publicProjects.includes(selectedProject)) {
-      return publicData ?? data;
+    switch (selectedProject.source) {
+      case "public":
+        return publicData ?? data;
+      case "shared":
+        return sharedData ?? data;
+      case "user":
+        return userData ?? data;
+      default:
+        return data;
     }
-
-    if (userProjects.includes(selectedProject)) {
-      return userData ?? data;
-    }
-
-    return data;
   };
 
   const currentData = getCurrentData();
 
   const script = currentData.allData
-    .find((project) => project.project === selectedProject)
+    .find((project) => project.project === selectedProject?.name)
     ?.scenes.find((scene) => scene.title === selectedScene);
 
   const formatScriptForDisplay = () => {

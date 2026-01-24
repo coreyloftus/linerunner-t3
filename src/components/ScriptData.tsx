@@ -316,6 +316,16 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
     },
   );
 
+  // Fetch shared data (only if authenticated)
+  const { data: sharedData } = api.scriptData.getAll.useQuery(
+    { dataSource: "shared" },
+    {
+      enabled: !!session?.user,
+      refetchOnWindowFocus: false,
+      refetchOnMount: true,
+    },
+  );
+
   // Fetch user data (only if authenticated)
   const { data: userData } = api.scriptData.getAll.useQuery(
     { dataSource: "firestore" },
@@ -326,22 +336,20 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
     },
   );
 
-  // Determine which data source to use based on selected project
+  // Determine which data source to use based on selected project source
   const getCurrentData = () => {
     if (!selectedProject) return data;
 
-    const publicProjects = publicData?.projects ?? [];
-    const userProjects = userData?.projects ?? [];
-
-    if (publicProjects.includes(selectedProject)) {
-      return publicData ?? data;
+    switch (selectedProject.source) {
+      case "public":
+        return publicData ?? data;
+      case "shared":
+        return sharedData ?? data;
+      case "user":
+        return userData ?? data;
+      default:
+        return data;
     }
-
-    if (userProjects.includes(selectedProject)) {
-      return userData ?? data;
-    }
-
-    return data;
   };
 
   const currentData = getCurrentData();
@@ -350,7 +358,7 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
   const script =
     selectedProject && selectedScene && selectedCharacter
       ? currentData.allData
-          .find((project) => project.project === selectedProject)
+          .find((project) => project.project === selectedProject.name)
           ?.scenes.find((scene) => scene.title === selectedScene)
       : null;
 
@@ -401,7 +409,7 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
   useEffect(() => {
     if (script && selectedProject && selectedScene) {
       const newFormData: FormData = {
-        projectName: selectedProject,
+        projectName: selectedProject.name,
         sceneTitle: selectedScene,
         lines: script.lines.map((line, index) => ({
           id: `line-${index}`,
@@ -739,7 +747,7 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
       };
 
       updateScriptMutation.mutate({
-        projectName: selectedProject, // Use original project name for lookup
+        projectName: selectedProject.name, // Use original project name for lookup
         sceneTitle: selectedScene, // Use original scene title for lookup
         updatedScript: updatedScript,
         dataSource: "firestore",
