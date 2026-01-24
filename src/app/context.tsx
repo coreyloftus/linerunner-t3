@@ -10,9 +10,17 @@ import React, {
 import { useSearchParams } from "next/navigation";
 import { type GetAllResponse } from "~/server/api/routers/scriptData";
 
+// Project source types for distinguishing projects with the same name
+export type ProjectSource = "public" | "shared" | "user";
+
+export interface SelectedProject {
+  name: string;
+  source: ProjectSource;
+}
+
 interface ScriptContextProps {
-  selectedProject: string;
-  setSelectedProject: Dispatch<SetStateAction<string>>;
+  selectedProject: SelectedProject | null;
+  setSelectedProject: Dispatch<SetStateAction<SelectedProject | null>>;
   selectedScene: string;
   setSelectedScene: Dispatch<SetStateAction<string>>;
   selectedCharacter: string;
@@ -84,8 +92,8 @@ const DEFAULT_DISPLAY_PREFERENCES: DisplayPreferences = {
 
 // Create the context with default values
 export const ScriptContext = createContext<ScriptContextProps>({
-  selectedProject: "",
-  setSelectedProject: () => "",
+  selectedProject: null,
+  setSelectedProject: () => null,
   selectedScene: "",
   setSelectedScene: () => "",
   selectedCharacter: "",
@@ -131,7 +139,7 @@ export const ScriptContext = createContext<ScriptContextProps>({
 });
 
 export const ScriptProvider = ({ children }: { children: ReactNode }) => {
-  const [selectedProject, setSelectedProject] = useState<string>("");
+  const [selectedProject, setSelectedProject] = useState<SelectedProject | null>(null);
   const [selectedScene, setSelectedScene] = useState<string>("");
   const [selectedCharacter, setSelectedCharacter] = useState<string>("");
   const [userConfig, setUserConfig] = useState<UserConfig>({

@@ -1,5 +1,5 @@
 "use client";
-import { ScriptContext } from "~/app/context";
+import { ScriptContext, type ProjectSource } from "~/app/context";
 import {
   Select,
   SelectContent,
@@ -94,112 +94,79 @@ export default function NewScriptSelect({
   const getCharacterData = () => {
     if (!selectedProject) return [];
 
-    // Check if it's a public project
-    if (publicProjects.includes(selectedProject)) {
-      const project = publicAllData.find(
-        (project) => project.project === selectedProject,
-      );
-      // Extract unique characters from all lines across all scenes
-      const characters =
-        project?.scenes
-          .flatMap((scene) => scene.lines.flatMap((line) => line.characters))
-          .sort((a, b) => a.localeCompare(b)) ?? [];
-      return Array.from(new Set(characters));
+    // Use selectedProject.source to determine which data to use
+    let dataSource: ProjectJSON[];
+    switch (selectedProject.source) {
+      case "public":
+        dataSource = publicAllData;
+        break;
+      case "shared":
+        dataSource = sharedAllData;
+        break;
+      case "user":
+        dataSource = userAllData;
+        break;
+      default:
+        return [];
     }
 
-    // Check if it's a shared project
-    if (sharedProjects.includes(selectedProject)) {
-      const project = sharedAllData.find(
-        (project) => project.project === selectedProject,
-      );
-      // Extract unique characters from all lines across all scenes
-      const characters =
-        project?.scenes
-          .flatMap((scene) => scene.lines.flatMap((line) => line.characters))
-          .sort((a, b) => a.localeCompare(b)) ?? [];
-      return Array.from(new Set(characters));
-    }
-
-    // Check if it's a user project
-    if (userProjects.includes(selectedProject)) {
-      const project = userAllData.find(
-        (project) => project.project === selectedProject,
-      );
-      // Extract unique characters from all lines across all scenes
-      const characters =
-        project?.scenes
-          .flatMap((scene) => scene.lines.flatMap((line) => line.characters))
-          .sort((a, b) => a.localeCompare(b)) ?? [];
-      return Array.from(new Set(characters));
-    }
-
-    return [];
+    const project = dataSource.find(
+      (p) => p.project === selectedProject.name,
+    );
+    // Extract unique characters from all lines across all scenes
+    const characters =
+      project?.scenes
+        .flatMap((scene) => scene.lines.flatMap((line) => line.characters))
+        .sort((a, b) => a.localeCompare(b)) ?? [];
+    return Array.from(new Set(characters));
   };
 
   // Get scenes that contain the selected character
   const getScenesForCharacter = () => {
     if (!selectedProject || !selectedCharacter) return [];
 
-    // Check if it's a public project
-    if (publicProjects.includes(selectedProject)) {
-      const project = publicAllData.find(
-        (project) => project.project === selectedProject,
-      );
-      return (
-        project?.scenes
-          .filter((scene) =>
-            scene.lines.some((line) =>
-              line.characters.includes(selectedCharacter),
-            ),
-          )
-          .sort((a, b) => a.title.localeCompare(b.title)) ?? []
-      );
+    // Use selectedProject.source to determine which data to use
+    let dataSource: ProjectJSON[];
+    switch (selectedProject.source) {
+      case "public":
+        dataSource = publicAllData;
+        break;
+      case "shared":
+        dataSource = sharedAllData;
+        break;
+      case "user":
+        dataSource = userAllData;
+        break;
+      default:
+        return [];
     }
 
-    // Check if it's a shared project
-    if (sharedProjects.includes(selectedProject)) {
-      const project = sharedAllData.find(
-        (project) => project.project === selectedProject,
-      );
-      return (
-        project?.scenes
-          .filter((scene) =>
-            scene.lines.some((line) =>
-              line.characters.includes(selectedCharacter),
-            ),
-          )
-          .sort((a, b) => a.title.localeCompare(b.title)) ?? []
-      );
-    }
-
-    // Check if it's a user project
-    if (userProjects.includes(selectedProject)) {
-      const project = userAllData.find(
-        (project) => project.project === selectedProject,
-      );
-      return (
-        project?.scenes
-          .filter((scene) =>
-            scene.lines.some((line) =>
-              line.characters.includes(selectedCharacter),
-            ),
-          )
-          .sort((a, b) => a.title.localeCompare(b.title)) ?? []
-      );
-    }
-
-    return [];
+    const project = dataSource.find(
+      (p) => p.project === selectedProject.name,
+    );
+    return (
+      project?.scenes
+        .filter((scene) =>
+          scene.lines.some((line) =>
+            line.characters.includes(selectedCharacter),
+          ),
+        )
+        .sort((a, b) => a.title.localeCompare(b.title)) ?? []
+    );
   };
 
   const characterList = getCharacterData();
   const sceneList = getScenesForCharacter();
 
-  const handleProjectChange = (newProject: string) => {
-    setSelectedProject(newProject);
+  const handleProjectChange = (compositeValue: string) => {
+    const [source, ...nameParts] = compositeValue.split(':');
+    const name = nameParts.join(':'); // Handle names containing colons
+    setSelectedProject({ name, source: source as ProjectSource });
     // Clear dependent selections when project changes
     setSelectedCharacter("");
     setSelectedScene("");
-    const newQPs = `?project=${newProject}`;
+    // Update URL with source parameter
+    const newQPs = `?project=${encodeURIComponent(name)}&source=${source}`;
     router.push(newQPs);
   };
 
@@ -207,48 +174,75 @@ export default function NewScriptSelect({
     setSelectedCharacter(newCharacter);
     // Clear scene selection when character changes
     setSelectedScene("");
-    const newQPs = `?project=${selectedProject}&character=${newCharacter}`;
+    const newQPs = `?project=${encodeURIComponent(selectedProject?.name ?? '')}&source=${selectedProject?.source}&character=${encodeURIComponent(newCharacter)}`;
     router.push(newQPs);
   };
 
   const handleSceneChange = (newScene: string) => {
     setSelectedScene(newScene);
-    const newQPs = `?project=${selectedProject}&character=${selectedCharacter}&scene=${newScene}`;
+    const newQPs = `?project=${encodeURIComponent(selectedProject?.name ?? '')}&source=${selectedProject?.source}&character=${encodeURIComponent(selectedCharacter)}&scene=${encodeURIComponent(newScene)}`;
     router.push(newQPs);
   };
 
   useEffect(() => {
     if (project) {
-      setSelectedProject(project.toString());
+      const projectName = project.toString();
+      const sourceParam = queryParams.source as ProjectSource | undefined;
+
+      // If source is provided in URL, use it directly
+      if (sourceParam && ["public", "shared", "user"].includes(sourceParam)) {
+        setSelectedProject({ name: projectName, source: sourceParam });
+      } else {
+        // Legacy URL support: infer source by checking which list contains the project
+        let inferredSource: ProjectSource = "public";
+        if (publicProjects.includes(projectName)) {
+          inferredSource = "public";
+        } else if (sharedProjects.includes(projectName)) {
+          inferredSource = "shared";
+        } else if (userProjects.includes(projectName)) {
+          inferredSource = "user";
+        }
+        setSelectedProject({ name: projectName, source: inferredSource });
+      }
+
+      if (character) {
+        setSelectedCharacter(character.toString());
+      }
       if (scene) {
         setSelectedScene(scene.toString());
-        if (character) {
-          setSelectedCharacter(character.toString());
-        }
       }
     }
   }, [
     project,
     scene,
     character,
+    queryParams.source,
+    publicProjects,
+    sharedProjects,
+    userProjects,
     setSelectedProject,
     setSelectedScene,
     setSelectedCharacter,
   ]);
 
+  // Create composite value for Select (source:name)
+  const selectedCompositeValue = selectedProject
+    ? `${selectedProject.source}:${selectedProject.name}`
+    : "";
+
   return (
     <div className="flex flex-col gap-4 px-4">
       {/* Project Selection */}
-      <Select onValueChange={handleProjectChange} value={selectedProject}>
+      <Select onValueChange={handleProjectChange} value={selectedCompositeValue}>
         <Label>Project</Label>
         <SelectTrigger>
           <SelectValue placeholder="Select Project">
-            {selectedProject}
+            {selectedProject?.name}
           </SelectValue>
         </SelectTrigger>
         <SelectContent>
           {hierarchicalProjects.map((project, index) => (
-            <SelectItem value={project.name} key={index}>
+            <SelectItem value={`${project.type}:${project.name}`} key={index}>
               {project.type === "public"
                 ? `📁 ${project.name}`
                 : project.type === "shared"
