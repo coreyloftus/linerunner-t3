@@ -131,7 +131,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     if (currentLine) {
       const split = currentLine.line.split(" ");
       setCurrentLineSplit(split);
-      setWordIndex(split.length); // Show full line immediately
+      setWordIndex(0); // Show character name only, require down arrow to reveal line
 
       // Check if it's the user's line
       if (checkIsUserLine(currentLine?.characters, selectedCharacter)) {
@@ -183,42 +183,51 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     (direction: "up" | "down") => {
       if (!playScene || !script?.lines) return;
 
-      let newIndex = currentLineIndex;
       const totalLines = script.lines.length;
 
       if (direction === "up" && currentLineIndex > 0) {
-        newIndex = currentLineIndex - 1;
-      } else if (direction === "down") {
-        // if not last line of scene, show next line
-        if (currentLineIndex < totalLines - 1) {
-          newIndex = currentLineIndex + 1;
+        // Go to previous line and show character name only
+        const newIndex = currentLineIndex - 1;
+        const newLineSplit = script.lines[newIndex]?.line.split(" ") ?? [];
+        setCurrentLineIndex(newIndex);
+        setCurrentLineSplit(newLineSplit);
+        setWordIndex(0); // Show character name only
+
+        // Check if the new line is for the player character
+        if (checkIsUserLine(script.lines?.[newIndex]?.characters, selectedCharacter)) {
+          setAwaitingInput(true);
         } else {
-          // if last line of scene, show the entire line
-          const lastLine = script.lines[currentLineIndex];
-          if (lastLine) {
-            const split = lastLine.line.split(" ");
-            setCurrentLineSplit(split);
-            setWordIndex(split.length);
-          }
-          return; // Don't continue with the rest of the function
+          setAwaitingInput(false);
         }
-      }
+      } else if (direction === "down") {
+        // Two-step flow: first show full line, then advance to next line
+        if (wordIndex < currentLineSplit.length) {
+          // Step 1: Show full line of current line
+          setWordIndex(currentLineSplit.length);
+        } else {
+          // Step 2: Advance to next line with character name only
+          if (currentLineIndex < totalLines - 1) {
+            const newIndex = currentLineIndex + 1;
+            const newLineSplit = script.lines[newIndex]?.line.split(" ") ?? [];
+            setCurrentLineIndex(newIndex);
+            setCurrentLineSplit(newLineSplit);
+            setWordIndex(0); // Show character name only
 
-      // Show entire line immediately
-      const newLineSplit = script.lines[newIndex]?.line.split(" ") ?? [];
-      setCurrentLineIndex(newIndex);
-      setCurrentLineSplit(newLineSplit);
-      setWordIndex(newLineSplit.length); // Show all words immediately
-
-      // Check if the new line is for the player character
-      if (checkIsUserLine(script.lines?.[newIndex]?.characters, selectedCharacter)) {
-        setAwaitingInput(true);
-      } else {
-        setAwaitingInput(false);
+            // Check if the new line is for the player character
+            if (checkIsUserLine(script.lines?.[newIndex]?.characters, selectedCharacter)) {
+              setAwaitingInput(true);
+            } else {
+              setAwaitingInput(false);
+            }
+          }
+          // If last line and already showing full line, do nothing
+        }
       }
     },
     [
       currentLineIndex,
+      currentLineSplit,
+      wordIndex,
       playScene,
       script?.lines,
       selectedCharacter,
