@@ -190,20 +190,27 @@ export default function NewScriptSelect({
       const sourceParam = queryParams.source as ProjectSource | undefined;
 
       // If source is provided in URL, use it directly
+      let resolvedSource: ProjectSource;
       if (sourceParam && ["public", "shared", "user"].includes(sourceParam)) {
-        setSelectedProject({ name: projectName, source: sourceParam });
+        resolvedSource = sourceParam;
       } else {
         // Legacy URL support: infer source by checking which list contains the project
-        let inferredSource: ProjectSource = "public";
+        resolvedSource = "public";
         if (publicProjects.includes(projectName)) {
-          inferredSource = "public";
+          resolvedSource = "public";
         } else if (sharedProjects.includes(projectName)) {
-          inferredSource = "shared";
+          resolvedSource = "shared";
         } else if (userProjects.includes(projectName)) {
-          inferredSource = "user";
+          resolvedSource = "user";
         }
-        setSelectedProject({ name: projectName, source: inferredSource });
       }
+      // Bail out with the previous object when nothing changed — this effect
+      // re-runs on every render, and a fresh object here loops it forever
+      setSelectedProject((prev) =>
+        prev?.name === projectName && prev.source === resolvedSource
+          ? prev
+          : { name: projectName, source: resolvedSource },
+      );
 
       if (character) {
         setSelectedCharacter(character.toString());

@@ -2,15 +2,49 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Theme Variables */
+/* ------------------------------------------------------------------ */
+/* "The Prompt Book" theme                                            */
+/* Light: a script page — warm paper, ink, pencil.                    */
+/* Dark: house lights down — warm black stage, amber spotlight.       */
+/* ------------------------------------------------------------------ */
 :root {
-  --background: 0 0% 100%;
-  --foreground: 20 14.3% 4.1%;
+  --background: 42 42% 95%;
+  --foreground: 24 24% 12%;
+
+  --surface: 44 45% 97%;
+  --surface-raised: 42 38% 93%;
+
+  --muted: 40 22% 88%;
+  --muted-foreground: 28 10% 40%;
+
+  --border: 36 20% 82%;
+  --ring: 38 92% 44%;
+
+  --accent: 38 92% 46%;
+  --accent-soft: 40 85% 90%;
+  --accent-foreground: 26 40% 10%;
+
+  --curtain: 352 62% 42%;
 }
 
 .dark {
-  --background: 20 14.3% 4.1%;
-  --foreground: 0 0% 95%;
+  --background: 24 14% 6%;
+  --foreground: 40 28% 90%;
+
+  --surface: 24 12% 9%;
+  --surface-raised: 25 11% 12%;
+
+  --muted: 24 10% 16%;
+  --muted-foreground: 34 12% 62%;
+
+  --border: 25 10% 19%;
+  --ring: 41 96% 56%;
+
+  --accent: 41 96% 56%;
+  --accent-soft: 38 40% 15%;
+  --accent-foreground: 24 20% 7%;
+
+  --curtain: 352 70% 58%;
 }
 
 /* Apply theme colors to document */
@@ -20,9 +54,40 @@ body {
   color: hsl(var(--foreground));
 }
 
+/* Paper grain — a whisper of tooth on every surface */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+}
+
+/* Spotlight wash — dark mode only: a warm pool of light upstage center */
+.dark body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 90% 65% at 50% -10%,
+    hsl(41 96% 56% / 0.07),
+    transparent 65%
+  );
+}
+
+/* Everything renders above the texture layers */
+body > * {
+  position: relative;
+  z-index: 1;
+}
+
 .scrollbar-custom {
   scrollbar-width: thin; /* Firefox */
-  scrollbar-color: #a1a097 #a1a097; /* Color for Firefox */
+  scrollbar-color: hsl(var(--border)) transparent;
 }
 
 .scrollbar-custom::-webkit-scrollbar {
@@ -30,28 +95,16 @@ body {
 }
 
 .scrollbar-custom::-webkit-scrollbar-track {
-  background: #a1a097;
-  border-radius: 10px;
+  background: transparent;
 }
 
 .scrollbar-custom::-webkit-scrollbar-thumb {
-  background-color: #a1a097;
+  background-color: hsl(var(--border));
   border-radius: 10px;
-  border: 2px solid #a1a097;
 }
 
-/* Dark mode scrollbar */
-.dark .scrollbar-custom {
-  scrollbar-color: #57534e #292524; /* Color for Firefox */
-}
-
-.dark .scrollbar-custom::-webkit-scrollbar-track {
-  background: #292524;
-}
-
-.dark .scrollbar-custom::-webkit-scrollbar-thumb {
-  background-color: #57534e;
-  border: 2px solid #57534e;
+.scrollbar-custom::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--muted-foreground));
 }
 
 @keyframes blink-on-and-off {
@@ -67,4 +120,54 @@ body {
 
 .blink-on-and-off {
   animation: blink-on-and-off 2s ease-in-out infinite;
+}
+
+/* Line reveal — new lines rise gently into place */
+@keyframes line-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.line-enter {
+  animation: line-enter 0.35s ease-out both;
+}
+
+/* Cue dot — pulsing marker for the live line awaiting reveal */
+@keyframes cue-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.8);
+  }
+}
+
+.cue-dot {
+  animation: cue-pulse 1.6s ease-in-out infinite;
+}
+
+/* Keyboard hint chips on the welcome screen */
+.kbd-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.375rem;
+  border: 1px solid hsl(var(--border));
+  border-bottom-width: 2px;
+  background: hsl(var(--surface));
+  font-family: var(--font-geist-sans), sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
 }
