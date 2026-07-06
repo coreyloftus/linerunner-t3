@@ -36,7 +36,16 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${GeistSans.variable} ${fraunces.variable} ${courierPrime.variable}`}
+      suppressHydrationWarning
     >
+      <head>
+        {/* Apply the saved theme before first paint to avoid a light-mode flash */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem("linerunner-theme");if(t==="dark"||(!t&&matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.classList.add("dark")}catch(e){}`,
+          }}
+        />
+      </head>
       <body className="font-sans">
         <Suspense fallback={<div>Loading...</div>}>
           <Providers>
