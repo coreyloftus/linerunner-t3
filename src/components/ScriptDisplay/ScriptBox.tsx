@@ -2,12 +2,14 @@
 import { useCallback, useContext, useEffect, useState, useRef } from "react";
 // import { Button } from "../ui/button";
 // import { Input } from "../ui/input";
+import { FaMicrophone } from "react-icons/fa6";
 import { ScriptContext } from "~/app/context";
 import { type ProjectJSON } from "../../server/api/routers/scriptData";
 import ControlBar from "../ControlBar";
 import { CharacterLineDisplay } from "./CharacterLineDisplay";
 import { api } from "~/trpc/react";
 import { useSession } from "next-auth/react";
+import { useSpeechMatch } from "~/hooks/useSpeechMatch";
 
 // Helper to check if user is in the line's characters (outside component for memoization)
 const checkIsUserLine = (
@@ -42,6 +44,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     setAwaitingInput,
     currentLineSplit,
     setCurrentLineSplit,
+    speechMatchEnabled,
   } = useContext(ScriptContext);
 
   // Fetch public, shared, and user data
@@ -320,6 +323,40 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     }
   });
 
+  // --- Speech recognition line matching ---
+  const currentScriptLine = script?.lines[currentLineIndex];
+  const isUsersLine = checkIsUserLine(
+    currentScriptLine?.characters,
+    selectedCharacter,
+  );
+  const speechActive =
+    speechMatchEnabled && playScene && isUsersLine && !!currentScriptLine;
+
+  // The advance fires from a timeout, so route it through a ref to always
+  // call the latest navigation handler
+  const lineNavRef = useRef(handleLineNavigation);
+  useEffect(() => {
+    lineNavRef.current = handleLineNavigation;
+  });
+
+  const handleSpeechMatch = useCallback(() => {
+    // Reveal the full line so the actor sees they nailed it...
+    setWordIndex(currentLineSplit.length);
+    // ...then advance to the next line after a beat
+    window.setTimeout(() => lineNavRef.current("down"), 900);
+  }, [currentLineSplit.length, setWordIndex]);
+
+  const {
+    supported: speechSupported,
+    listening,
+    transcript,
+    ratio,
+  } = useSpeechMatch({
+    targetText: currentScriptLine?.line ?? "",
+    active: speechActive,
+    onMatch: handleSpeechMatch,
+  });
+
   return (
     <div className="flex h-[90dvh] w-[95dvw] flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-xl shadow-black/5 supports-[height:100svh]:h-[90svh] dark:shadow-black/40">
       <div className="flex h-[90%] flex-col rounded-md ">
@@ -399,6 +436,26 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
             </div>
           </div>
         ) : null} */}
+        {/* Speech match status — visible while listening for the user's line */}
+        {speechActive && speechSupported && (
+          <div className="flex items-center gap-3 border-t border-border bg-accent/5 px-4 py-2">
+            <FaMicrophone
+              className={`h-4 w-4 flex-shrink-0 ${listening ? "blink-on-and-off text-accent" : "text-muted-foreground"}`}
+              aria-label={listening ? "Listening" : "Microphone idle"}
+            />
+            <div className="min-w-0 flex-1">
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-accent transition-[width] duration-300"
+                  style={{ width: `${Math.round(ratio * 100)}%` }}
+                />
+              </div>
+              <p className="mt-1 truncate font-script text-xs text-muted-foreground">
+                {transcript || "Say your line…"}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
       <div className="h-[10%]">
         <ControlBar
