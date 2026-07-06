@@ -96,7 +96,7 @@ const SortableLineItem = ({
     <div
       ref={setNodeRef}
       style={style}
-      className="rounded-md border border-stone-200 bg-stone-100 p-3 dark:border-stone-700 dark:bg-stone-800"
+      className="rounded-xl border border-border bg-surface-raised/60 p-3"
     >
       {/* Mobile Layout */}
       <div className="md:hidden">
@@ -145,7 +145,7 @@ const SortableLineItem = ({
             placeholder="Line text"
             value={line.line}
             onChange={(e) => onUpdate(line.id, "line", e.target.value)}
-            className={`text-mobile-base min-h-[88px] resize-none border-stone-200 bg-stone-100 text-stone-900 placeholder:text-stone-400 focus:border-stone-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 ${errors[`line-${line.id}`] ? "border-red-500" : warnings[`line-${line.id}`] ? "border-yellow-500" : ""}`}
+            className={`text-mobile-base min-h-[88px] resize-none border-border bg-surface text-foreground placeholder:text-muted-foreground focus:border-ring ${errors[`line-${line.id}`] ? "border-red-500" : warnings[`line-${line.id}`] ? "border-yellow-500" : ""}`}
             rows={3}
           />
           {errors[`character-${line.id}`] && (
@@ -194,7 +194,7 @@ const SortableLineItem = ({
         </div>
 
         {/* Desktop: Line Number */}
-        <div className="col-span-1 pt-2 text-sm text-stone-900 dark:text-stone-600">
+        <div className="col-span-1 pt-2 text-sm text-muted-foreground">
           {index + 1}
         </div>
 
@@ -226,7 +226,7 @@ const SortableLineItem = ({
             placeholder="Line text"
             value={line.line}
             onChange={(e) => onUpdate(line.id, "line", e.target.value)}
-            className={`text-sm resize-none border-stone-200 bg-stone-100 text-stone-900 placeholder:text-stone-400 focus:border-stone-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 ${errors[`line-${line.id}`] ? "border-red-500" : warnings[`line-${line.id}`] ? "border-yellow-500" : ""}`}
+            className={`text-sm resize-none border-border bg-surface text-foreground placeholder:text-muted-foreground focus:border-ring ${errors[`line-${line.id}`] ? "border-red-500" : warnings[`line-${line.id}`] ? "border-yellow-500" : ""}`}
             rows={calculateTextareaRows(line.line)}
           />
           {errors[`line-${line.id}`] && (
@@ -246,7 +246,7 @@ const SortableLineItem = ({
               checked={line.sung}
               onCheckedChange={(checked) => onUpdate(line.id, "sung", checked)}
             />
-            <Label className="text-xs text-stone-900 dark:text-stone-600">
+            <Label className="text-xs text-muted-foreground">
               Sung
             </Label>
           </div>
@@ -354,9 +354,9 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
 
   const currentData = getCurrentData();
 
-  // Only find script if all required context values are present
+  // Only find script if a project and scene are selected (character not needed to edit)
   const script =
-    selectedProject && selectedScene && selectedCharacter
+    selectedProject && selectedScene
       ? currentData.allData
           .find((project) => project.project === selectedProject.name)
           ?.scenes.find((scene) => scene.title === selectedScene)
@@ -764,12 +764,12 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
   // If user is not authenticated, show message
   if (!session?.user) {
     return (
-      <div className="flex h-[90dvh] w-[95dvw] flex-col justify-center rounded-md border-2 border-stone-700 bg-stone-900 supports-[height:100svh]:h-[90svh]">
+      <div className="flex h-full w-full flex-col justify-center">
         <div className="px-4 text-center">
-          <h2 className="text-mobile-lg iphone:text-lg mb-4 font-semibold text-stone-100">
+          <h2 className="text-mobile-lg iphone:text-lg mb-4 font-display font-semibold">
             Authentication Required
           </h2>
-          <p className="text-mobile-base iphone:text-base text-stone-400">
+          <p className="text-mobile-base iphone:text-base text-muted-foreground">
             Please sign in to edit scripts.
           </p>
         </div>
@@ -778,19 +778,21 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
   }
 
   return (
-    <div className="flex h-[90dvh] w-[95dvw] flex-col rounded-md border-2 border-stone-200 bg-stone-100 font-mono supports-[height:100svh]:h-[90svh] dark:border-stone-700 dark:bg-stone-900">
-      <div className="flex h-full flex-col rounded-md">
+    <div className="flex h-full w-full flex-col">
+      <div className="flex h-full flex-col">
         {/* Header */}
-        <div className="iphone:flex-row iphone:items-center iphone:justify-between iphone:space-y-0 iphone:px-4 iphone:py-3 flex flex-col space-y-2 border-b border-stone-200 bg-stone-50 px-3 py-2 dark:border-stone-700 dark:bg-stone-800">
-          <h2 className="text-mobile-base iphone:text-lg font-semibold text-stone-900 dark:text-stone-100">
-            Script Data Editor
-          </h2>
+        <div className="iphone:flex-row iphone:items-center iphone:justify-between iphone:space-y-0 iphone:px-4 iphone:py-2 flex flex-col space-y-2 border-b border-border bg-surface-raised/60 px-3 py-2">
+          <p className="text-mobile-sm iphone:text-sm truncate text-muted-foreground">
+            {script
+              ? `Editing: ${selectedProject?.name} — ${selectedScene}`
+              : "Scene Editor"}
+          </p>
           <Button
             onClick={handleSave}
             disabled={!hasChanges || updateScriptMutation.isPending || !script || (editorMode === "json" && !!jsonError)}
             variant="outline"
             size="sm"
-            className="iphone:min-h-[36px] min-h-[44px] touch-manipulation border-stone-600 bg-stone-700 text-stone-100 hover:bg-stone-600 active:bg-stone-600 dark:border-stone-600 dark:bg-stone-700 dark:text-stone-100 dark:hover:bg-stone-600"
+            className="iphone:min-h-[36px] min-h-[44px] touch-manipulation"
           >
             {updateScriptMutation.isPending ? "Saving..." : "Save Script"}
           </Button>
@@ -800,9 +802,8 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
         <div className="iphone:p-4 flex-1 overflow-auto p-3 [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain] [touch-action:pan-y]">
           {!script ? (
             <div className="flex h-full items-center justify-center text-center">
-              <p className="text-stone-900 dark:text-stone-400">
-                Please select a project, scene, and character to edit script
-                data.
+              <p className="font-script text-muted-foreground">
+                Choose a scene from the Library to start editing.
               </p>
             </div>
           ) : (
@@ -812,7 +813,7 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
                 <div className="space-y-2">
                   <Label
                     htmlFor="projectName"
-                    className="text-mobile-sm iphone:text-sm text-stone-900 dark:text-stone-200"
+                    className="text-mobile-sm iphone:text-sm"
                   >
                     Project Name
                   </Label>
@@ -820,7 +821,7 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
                     id="projectName"
                     value={formData.projectName}
                     onChange={(e) => handleProjectNameChange(e.target.value)}
-                    className={`iphone:min-h-[36px] text-mobile-base iphone:text-sm min-h-[44px] border-stone-200 bg-stone-100 text-stone-900 placeholder:text-stone-400 focus:border-stone-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 ${errors.projectName ? "border-red-500" : ""}`}
+                    className={`iphone:min-h-[36px] text-mobile-base iphone:text-sm min-h-[44px] border-border bg-surface text-foreground placeholder:text-muted-foreground focus:border-ring ${errors.projectName ? "border-red-500" : ""}`}
                   />
                   {errors.projectName && (
                     <p className="text-mobile-xs iphone:text-sm text-red-400">
@@ -831,7 +832,7 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
                 <div className="space-y-2">
                   <Label
                     htmlFor="sceneTitle"
-                    className="text-mobile-sm iphone:text-sm text-stone-900 dark:text-stone-200"
+                    className="text-mobile-sm iphone:text-sm"
                   >
                     Scene Title
                   </Label>
@@ -839,7 +840,7 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
                     id="sceneTitle"
                     value={formData.sceneTitle}
                     onChange={(e) => handleSceneTitleChange(e.target.value)}
-                    className={`iphone:min-h-[36px] text-mobile-base iphone:text-sm min-h-[44px] border-stone-200 bg-stone-100 text-stone-900 placeholder:text-stone-400 focus:border-stone-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 ${errors.sceneTitle ? "border-red-500" : ""}`}
+                    className={`iphone:min-h-[36px] text-mobile-base iphone:text-sm min-h-[44px] border-border bg-surface text-foreground placeholder:text-muted-foreground focus:border-ring ${errors.sceneTitle ? "border-red-500" : ""}`}
                   />
                   {errors.sceneTitle && (
                     <p className="text-mobile-xs iphone:text-sm text-red-400">
@@ -852,19 +853,19 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
               {/* Lines Section */}
               <div className="space-y-4">
                 <div className="iphone:flex-row iphone:items-center iphone:justify-between iphone:space-y-0 flex flex-col space-y-2">
-                  <h3 className="text-mobile-lg iphone:text-lg font-medium text-stone-100">
+                  <h3 className="text-mobile-lg iphone:text-lg font-display font-medium text-foreground">
                     Lines ({formData.lines.length})
                   </h3>
                   <div className="flex items-center gap-2">
                     {/* Editor Mode Toggle */}
-                    <div className="flex rounded-md border border-stone-600 bg-stone-800">
+                    <div className="flex rounded-md border border-border bg-surface p-0.5">
                       <button
                         type="button"
                         onClick={() => handleModeSwitch("form")}
-                        className={`px-3 py-1.5 text-sm transition-colors ${
+                        className={`rounded px-3 py-1.5 text-sm transition-colors ${
                           editorMode === "form"
-                            ? "bg-stone-600 text-stone-100"
-                            : "text-stone-400 hover:text-stone-200"
+                            ? "bg-accent font-medium text-accent-foreground"
+                            : "text-muted-foreground hover:text-foreground"
                         }`}
                       >
                         Form
@@ -872,10 +873,10 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
                       <button
                         type="button"
                         onClick={() => handleModeSwitch("json")}
-                        className={`px-3 py-1.5 text-sm transition-colors ${
+                        className={`rounded px-3 py-1.5 text-sm transition-colors ${
                           editorMode === "json"
-                            ? "bg-stone-600 text-stone-100"
-                            : "text-stone-400 hover:text-stone-200"
+                            ? "bg-accent font-medium text-accent-foreground"
+                            : "text-muted-foreground hover:text-foreground"
                         }`}
                       >
                         JSON
@@ -886,7 +887,7 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
                         onClick={addLine}
                         variant="outline"
                         size="sm"
-                        className="iphone:min-h-[36px] min-h-[44px] touch-manipulation border-stone-600 bg-stone-700 text-stone-100 hover:bg-stone-600 active:bg-stone-600"
+                        className="iphone:min-h-[36px] min-h-[44px] touch-manipulation"
                       >
                         Add Line
                       </Button>
@@ -936,7 +937,7 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
                           onClick={addLine}
                           variant="outline"
                           size="sm"
-                          className="iphone:min-h-[36px] min-h-[44px] touch-manipulation border-stone-600 bg-stone-700 text-stone-100 hover:bg-stone-600 active:bg-stone-600"
+                          className="iphone:min-h-[36px] min-h-[44px] touch-manipulation"
                         >
                           Add Line
                         </Button>
@@ -959,7 +960,7 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
                     <Textarea
                       value={jsonText}
                       onChange={(e) => handleJsonChange(e.target.value)}
-                      className={`min-h-[400px] font-mono text-sm border-stone-200 bg-stone-100 text-stone-900 placeholder:text-stone-400 focus:border-stone-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 ${jsonError ? "border-red-500" : ""}`}
+                      className={`min-h-[400px] font-mono text-sm border-border bg-surface text-foreground placeholder:text-muted-foreground focus:border-ring ${jsonError ? "border-red-500" : ""}`}
                       placeholder='{"title": "Scene Title", "lines": [{"characters": ["Character Name"], "line": "Dialogue text", "sung": false}]}'
                     />
                   </div>
@@ -967,11 +968,11 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
               </div>
 
               {/* Bottom Save Button */}
-              <div className="flex justify-center border-t border-stone-700 pt-4">
+              <div className="flex justify-center border-t border-border pt-4">
                 <Button
                   onClick={handleSave}
                   disabled={!hasChanges || updateScriptMutation.isPending || (editorMode === "json" && !!jsonError)}
-                  className="min-h-[44px] touch-manipulation bg-blue-600 px-8 text-white hover:bg-blue-700 active:bg-blue-800 disabled:bg-stone-600 disabled:text-stone-400"
+                  className="min-h-[44px] touch-manipulation bg-accent px-8 text-accent-foreground hover:bg-accent/90"
                 >
                   {updateScriptMutation.isPending ? "Saving..." : "Save Script"}
                 </Button>

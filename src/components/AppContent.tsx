@@ -7,8 +7,7 @@ import { SidebarToggle } from "./SidebarToggle";
 import { SidebarClient } from "./SidebarClient";
 import ScriptBox from "./ScriptDisplay/ScriptBox";
 import ScriptViewer from "./ScriptViewer";
-import { ScriptData } from "./ScriptData";
-import { AddScriptDoc } from "./AddScriptDoc";
+import { ScriptsWorkspace } from "./ScriptsWorkspace";
 
 interface GetAllResponse {
   projects: string[];
@@ -22,6 +21,7 @@ interface AppContentProps {
 
 export function AppContent({ projectData, sidebarData }: AppContentProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("runner");
 
   const handleSidebarToggle = () => {
     setSidebarOpen(!sidebarOpen);
@@ -42,10 +42,11 @@ export function AppContent({ projectData, sidebarData }: AppContentProps) {
       {/* Main Content */}
       <div className="pt-safe-top pb-safe-bottom flex min-h-[100dvh] flex-col items-center justify-center p-2 text-foreground transition-colors [touch-action:manipulation] supports-[height:100svh]:min-h-[100svh]">
         <Tabs
-          defaultValue="runner"
+          value={activeTab}
+          onValueChange={setActiveTab}
           className="flex w-full flex-1 flex-col items-center justify-center"
         >
-          <TabsList className="mb-2 mt-0 grid w-full max-w-none grid-cols-5 gap-0">
+          <TabsList className="mb-2 mt-0 grid w-full max-w-none grid-cols-4 gap-0">
             <div className="flex flex-1 items-center justify-center">
               <SidebarToggle
                 onToggle={handleSidebarToggle}
@@ -63,15 +64,10 @@ export function AppContent({ projectData, sidebarData }: AppContentProps) {
               <span className="iphone:inline hidden md:hidden">View</span>
               <span className="hidden md:inline">Line Viewer</span>
             </TabsTrigger>
-            <TabsTrigger value="scriptdata" className="flex-1">
-              <span className="iphone:hidden">✏️</span>
-              <span className="iphone:inline hidden md:hidden">Edit</span>
-              <span className="hidden md:inline">Script Data</span>
-            </TabsTrigger>
-            <TabsTrigger value="newlines" className="flex-1">
-              <span className="iphone:hidden">➕</span>
-              <span className="iphone:inline hidden md:hidden">Add</span>
-              <span className="hidden md:inline">Add Script</span>
+            <TabsTrigger value="scripts" className="flex-1">
+              <span className="iphone:hidden">📚</span>
+              <span className="iphone:inline hidden md:hidden">Scripts</span>
+              <span className="hidden md:inline">Scripts</span>
             </TabsTrigger>
           </TabsList>
           <TabsContent value="runner" className="mt-0">
@@ -80,11 +76,11 @@ export function AppContent({ projectData, sidebarData }: AppContentProps) {
           <TabsContent value="viewer" className="mt-0">
             <ScriptViewer data={projectData} />
           </TabsContent>
-          <TabsContent value="scriptdata" className="mt-0">
-            <ScriptData data={projectData} />
-          </TabsContent>
-          <TabsContent value="newlines" className="mt-0">
-            <AddScriptDoc />
+          <TabsContent value="scripts" className="mt-0">
+            <ScriptsWorkspace
+              data={projectData}
+              onPractice={() => setActiveTab("runner")}
+            />
           </TabsContent>
         </Tabs>
       </div>
