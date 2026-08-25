@@ -7,6 +7,7 @@ import { IoClose } from "react-icons/io5";
 import { ScriptContext } from "~/app/context";
 import { AuthButton } from "./AuthButton";
 import { Label } from "./ui/label";
+import { Switch } from "./ui/switch";
 import { RefreshButton } from "./ui/refresh-button";
 import { useScriptData } from "~/hooks/useScriptData";
 import { ThemeToggle } from "./ui/theme-toggle";
@@ -43,7 +44,8 @@ export function SidebarClient({
   );
 
   const setNavOpen = setNavOpenStable;
-  const { userConfig, isAdmin } = useContext(ScriptContext);
+  const { userConfig, isAdmin, speechMatchEnabled, setSpeechMatchEnabled } =
+    useContext(ScriptContext);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
   // Get refresh functionality from the optimized hook
@@ -162,6 +164,36 @@ export function SidebarClient({
                     Theme
                   </Label>
                   <ThemeToggle />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-mobile-sm iphone:text-sm">
+                      Speech Match
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Say your line to advance (Chrome/Safari)
+                    </p>
+                  </div>
+                  <Switch
+                    checked={speechMatchEnabled}
+                    onCheckedChange={setSpeechMatchEnabled}
+                    aria-label="Toggle speech match"
+                  />
+                </div>
+                <div className="flex items-center justify-between opacity-60">
+                  <div>
+                    <Label className="text-mobile-sm iphone:text-sm">
+                      Scene Partner Voice
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Coming soon — hear the other characters
+                    </p>
+                  </div>
+                  <Switch
+                    checked={false}
+                    disabled
+                    aria-label="Scene partner voice (coming soon)"
+                  />
                 </div>
                 {isAdmin && (
                   <div className="flex items-center justify-between">

@@ -6,6 +6,7 @@ import React, {
   useState,
   type ReactNode,
   useEffect,
+  useRef,
 } from "react";
 import { useSearchParams } from "next/navigation";
 import { type GetAllResponse } from "~/server/api/routers/scriptData";
@@ -57,6 +58,9 @@ interface ScriptContextProps {
   // Display preferences
   displayPreferences: DisplayPreferences;
   setDisplayPreferences: Dispatch<SetStateAction<DisplayPreferences>>;
+  // Speech recognition line matching
+  speechMatchEnabled: boolean;
+  setSpeechMatchEnabled: Dispatch<SetStateAction<boolean>>;
 }
 
 type UserConfig = {
@@ -136,6 +140,9 @@ export const ScriptContext = createContext<ScriptContextProps>({
   // Display preferences defaults
   displayPreferences: DEFAULT_DISPLAY_PREFERENCES,
   setDisplayPreferences: () => DEFAULT_DISPLAY_PREFERENCES,
+  // Speech matching defaults
+  speechMatchEnabled: false,
+  setSpeechMatchEnabled: () => false,
 });
 
 export const ScriptProvider = ({ children }: { children: ReactNode }) => {
@@ -196,6 +203,24 @@ export const ScriptProvider = ({ children }: { children: ReactNode }) => {
       }
       return DEFAULT_DISPLAY_PREFERENCES;
     });
+
+  // Speech matching preference. Read from localStorage after mount (not in
+  // the initializer) so the SSR markup matches the first client render.
+  const [speechMatchEnabled, setSpeechMatchEnabled] = useState(false);
+  const speechMatchLoaded = useRef(false);
+
+  useEffect(() => {
+    setSpeechMatchEnabled(
+      localStorage.getItem("linerunner-speech-match") === "true",
+    );
+    speechMatchLoaded.current = true;
+  }, []);
+
+  // Persist speech matching preference (skip until the saved value is loaded)
+  useEffect(() => {
+    if (!speechMatchLoaded.current) return;
+    localStorage.setItem("linerunner-speech-match", String(speechMatchEnabled));
+  }, [speechMatchEnabled]);
 
   useEffect(() => {
     setQueryParams(Object.fromEntries(searchParams));
@@ -264,6 +289,9 @@ export const ScriptProvider = ({ children }: { children: ReactNode }) => {
         // Display preferences
         displayPreferences,
         setDisplayPreferences,
+        // Speech matching
+        speechMatchEnabled,
+        setSpeechMatchEnabled,
       }}
     >
       {children}
