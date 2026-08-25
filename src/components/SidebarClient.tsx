@@ -113,7 +113,7 @@ export function SidebarClient({
       {/* sidebar */}
       <div
         ref={sidebarRef}
-        className={`fixed left-0 top-0 h-full transform border-r border-stone-200 bg-stone-50/95 backdrop-blur-sm transition-all duration-500 ease-in-out dark:border-stone-800 dark:bg-stone-900/90 ${
+        className={`fixed left-0 top-0 h-full transform border-r border-border bg-surface/95 backdrop-blur-md transition-all duration-500 ease-in-out ${
           navOpen
             ? "w-[85vw] translate-x-0 opacity-100 xs:w-[80vw] iphone:w-[75vw] md:w-[33vw]"
             : "w-[85vw] -translate-x-full opacity-100 xs:w-[80vw] iphone:w-[75vw] md:w-[33vw]"
@@ -126,41 +126,46 @@ export function SidebarClient({
         >
           <div className="pt-3 iphone:pt-2">
             <div className="flex items-center justify-between p-2">
-              {/* Close button for mobile */}
-              <Button
-                onClick={() => setNavOpen(false)}
-                variant="ghost"
-                size="sm"
-                className="p-2 text-stone-600 hover:bg-stone-200 dark:text-stone-400 dark:hover:bg-stone-700 md:hidden"
-                aria-label="Close sidebar"
-              >
-                <IoClose className="h-5 w-5" />
-              </Button>
-              <div className="md:hidden" /> {/* Spacer for mobile */}
+              <div className="flex items-center gap-1">
+                {/* Close button for mobile */}
+                <Button
+                  onClick={() => setNavOpen(false)}
+                  variant="ghost"
+                  size="sm"
+                  className="p-2 text-muted-foreground hover:bg-muted md:hidden"
+                  aria-label="Close sidebar"
+                >
+                  <IoClose className="h-5 w-5" />
+                </Button>
+                {/* Wordmark */}
+                <span className="pl-1 font-display text-xl font-semibold tracking-tight">
+                  Line<span className="text-accent">Runner</span>
+                </span>
+              </div>
               <AuthButton />
             </div>
-            <div className=" px-2">
-              <p className="mb-2 text-mobile-base font-bold text-stone-900 dark:text-stone-100 iphone:text-base">
+            <div className="px-3 pt-2">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                 Script Select
               </p>
               <NewScriptSelect projects={projects} allData={allData} />
             </div>
 
             {/* Settings */}
-            <div className="mt-4 px-2">
-              <p className="mb-2 text-mobile-base font-bold text-stone-900 dark:text-stone-100 iphone:text-base">
+            <div className="mt-5 px-3">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                 Settings
               </p>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label className="text-mobile-sm text-stone-800 dark:text-stone-200 iphone:text-sm">
+                  <Label className="text-mobile-sm iphone:text-sm">
                     Theme
                   </Label>
                   <ThemeToggle />
                 </div>
                 {isAdmin && (
                   <div className="flex items-center justify-between">
-                    <Label className="text-mobile-sm text-stone-800 dark:text-stone-200 iphone:text-sm">
+                    <Label className="text-mobile-sm iphone:text-sm">
                       Refresh Data
                     </Label>
                     <RefreshButton
@@ -175,8 +180,8 @@ export function SidebarClient({
             </div>
 
             {/* Display Settings */}
-            <div className="mt-4 border-t border-stone-200 px-2 pt-4 dark:border-stone-700">
-              <p className="mb-2 text-mobile-base font-bold text-stone-900 dark:text-stone-100 iphone:text-base">
+            <div className="mt-5 border-t border-border px-3 pt-4">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                 Display
               </p>
               <DisplaySettings />
@@ -184,8 +189,8 @@ export function SidebarClient({
 
             {/* Project Sharing - Admin Only */}
             {isAdmin && (
-              <div className="mt-4 border-t border-stone-200 px-2 pt-4 dark:border-stone-700">
-                <p className="mb-2 text-mobile-base font-bold text-stone-900 dark:text-stone-100 iphone:text-base">
+              <div className="mt-5 border-t border-border px-3 pt-4">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                   Project Sharing
                 </p>
                 <AdminSharingPanel />
@@ -193,14 +198,10 @@ export function SidebarClient({
             )}
 
           </div>
-          <div className="fixed bottom-[.5rem] pl-2">
+          <div className="fixed bottom-[.5rem] pl-3">
             <Link href="https://www.coreyloftus.com" target="_blank">
-              <div className="font-mono text-mobile-xs text-stone-600 dark:text-stone-400 iphone:text-sm">
-                LineRunner by Corey -- ©2025
-                <span className="text-stone-600 dark:text-stone-400">
-                  {" "}
-                  coreyloftus.com
-                </span>
+              <div className="font-script text-mobile-xs text-muted-foreground transition-colors hover:text-foreground iphone:text-sm">
+                LineRunner by Corey — ©2025 coreyloftus.com
               </div>
             </Link>
           </div>

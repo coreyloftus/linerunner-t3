@@ -321,7 +321,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
   });
 
   return (
-    <div className="flex h-[90dvh] w-[95dvw] flex-col rounded-md border-2 border-stone-200 supports-[height:100svh]:h-[90svh]">
+    <div className="flex h-[90dvh] w-[95dvw] flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-xl shadow-black/5 supports-[height:100svh]:h-[90svh] dark:shadow-black/40">
       <div className="flex h-[90%] flex-col rounded-md ">
         <div className="pt-safe-top pb-safe-bottom flex-grow overflow-hidden">
           <ul className="overscroll-bounce h-full overflow-y-auto px-2 [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain] [touch-action:pan-y]">
@@ -336,18 +336,42 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
               />
             ) : (
               <div className="flex h-full items-center justify-center">
-                <div className="text-center">
-                  <div className="mb-4">
-                    <h1 className="text-3xl font-bold text-stone-700">
-                      Welcome to Line Runner
-                    </h1>
-                    <h4 className="text-lg font-bold text-stone-700">
-                      by Corey
-                    </h4>
+                <div className="max-w-md px-6 text-center">
+                  {/* Playbill-style masthead */}
+                  <div className="mb-3 flex items-center justify-center gap-3">
+                    <span className="h-px w-10 bg-border" />
+                    <p className="text-xs font-semibold uppercase tracking-[0.35em] text-muted-foreground">
+                      LineRunner
+                    </p>
+                    <span className="h-px w-10 bg-border" />
                   </div>
-                  <p className="text-lg text-stone-700">
-                    Select a scene from the menu to begin
+                  <h1 className="font-display text-4xl font-semibold leading-tight md:text-5xl">
+                    Know <span className="italic text-accent">every</span> line.
+                  </h1>
+                  <p className="mt-4 font-script text-base text-muted-foreground">
+                    Open the menu, pick a scene and your character,
+                    <br className="hidden md:block" /> then press play.
                   </p>
+
+                  {/* Keyboard cues */}
+                  <div className="mt-10 hidden flex-col items-center gap-2.5 text-sm text-muted-foreground md:flex">
+                    <div className="flex items-center gap-2">
+                      <span className="kbd-chip">Space</span>
+                      <span>start the scene</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="kbd-chip">↓</span>
+                      <span>reveal line, then advance</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="kbd-chip">↑</span>
+                      <span>previous line</span>
+                      <span className="mx-1 text-border">·</span>
+                      <span className="kbd-chip">←</span>
+                      <span className="kbd-chip">→</span>
+                      <span>word by word</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}

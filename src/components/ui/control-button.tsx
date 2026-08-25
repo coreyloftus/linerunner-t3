@@ -19,7 +19,7 @@ export function ControlButton({
   disabled = false,
 }: ControlButtonProps) {
   const baseClasses =
-    "flex items-center justify-center border border-stone-300 bg-stone-50 shadow-sm transition-all duration-200 hover:bg-stone-200 hover:shadow-md hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-stone-50 disabled:active:scale-100 dark:border-stone-600 dark:bg-stone-700 dark:hover:bg-stone-600";
+    "flex items-center justify-center border border-border bg-surface shadow-sm transition-all duration-200 hover:border-accent/50 hover:bg-accent-soft hover:shadow-md active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-surface disabled:active:scale-100";
 
   const sizeClasses = {
     small: "h-full min-h-full w-11 min-w-[52px] rounded-full xs:w-12",
@@ -33,10 +33,9 @@ export function ControlButton({
   };
 
   const iconSizeClasses = {
-    small:
-      "text-lg text-stone-700 transition-colors duration-200 dark:text-stone-200",
+    small: "text-lg text-foreground/80 transition-colors duration-200",
     large:
-      "text-xl text-stone-700 xs:text-xl sm:text-2xl transition-colors duration-200 dark:text-stone-200",
+      "text-xl text-foreground/80 xs:text-xl sm:text-2xl transition-colors duration-200",
   };
 
   return (

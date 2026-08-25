@@ -15,9 +15,9 @@ const TabsList = React.forwardRef<
     ref={ref}
     className={cn(
       // Mobile-first design with touch targets
-      "inline-flex h-12 iphone:h-14 items-center justify-center rounded-lg bg-stone-100 p-1 text-stone-500 dark:bg-stone-800 dark:text-stone-400 [touch-action:manipulation]",
+      "inline-flex h-12 iphone:h-14 items-center justify-center rounded-xl border border-border bg-surface-raised/80 p-1 text-muted-foreground shadow-sm backdrop-blur-sm [touch-action:manipulation]",
       // Mobile spacing and overflow handling
-      "w-full max-w-md gap-2",
+      "w-full max-w-md gap-1",
       // Responsive grid for equal width tabs
       "grid grid-cols-4",
       className,
@@ -35,17 +35,17 @@ const TabsTrigger = React.forwardRef<
     ref={ref}
     className={cn(
       // Mobile-first touch targets and responsive design
-      "min-h-[44px] min-w-[44px] flex flex-col items-center justify-center gap-1 rounded-md transition-all [touch-action:manipulation]",
+      "min-h-[44px] min-w-[44px] flex flex-col items-center justify-center gap-1 rounded-lg transition-all duration-200 [touch-action:manipulation]",
       // Mobile typography - smaller on mobile, larger on desktop
       "text-mobile-xs iphone:text-mobile-sm md:text-sm font-medium",
       // Mobile padding - more generous touch area
       "px-1 py-2 iphone:px-2 md:px-3",
-      // Active state styling
-      "data-[state=active]:bg-newStyle-accent-color dark:data-[state=active]:bg-newStyle-accent-color",
-      "data-[state=active]:text-stone-950 data-[state=active]:shadow",
+      // Hover state for inactive tabs
+      "hover:text-foreground",
+      // Active state styling — spotlight amber
+      "data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow data-[state=active]:font-semibold",
       // Focus and accessibility
-      "ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-950 focus-visible:ring-offset-2",
-      "dark:ring-offset-stone-950 dark:focus-visible:ring-stone-300 dark:data-[state=active]:text-stone-950",
+      "ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
       // Disabled state
       "disabled:pointer-events-none disabled:opacity-50",
       // Responsive behavior
@@ -64,7 +64,7 @@ const TabsContent = React.forwardRef<
   <TabsPrimitive.Content
     ref={ref}
     className={cn(
-      "mt-2 ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-950 focus-visible:ring-offset-2 dark:ring-offset-stone-950 dark:focus-visible:ring-stone-300",
+      "mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
       className,
     )}
     {...props}

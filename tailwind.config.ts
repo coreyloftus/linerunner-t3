@@ -26,12 +26,37 @@ const config = {
       },
       
       colors: {
-        "newStyle-accent-color": "#fbbf24", // yellow-400
+        // "Prompt Book" theme tokens — defined in globals.css
+        background: "hsl(var(--background) / <alpha-value>)",
+        foreground: "hsl(var(--foreground) / <alpha-value>)",
+        surface: {
+          DEFAULT: "hsl(var(--surface) / <alpha-value>)",
+          raised: "hsl(var(--surface-raised) / <alpha-value>)",
+        },
+        muted: {
+          DEFAULT: "hsl(var(--muted) / <alpha-value>)",
+          foreground: "hsl(var(--muted-foreground) / <alpha-value>)",
+        },
+        border: "hsl(var(--border) / <alpha-value>)",
+        ring: "hsl(var(--ring) / <alpha-value>)",
+        accent: {
+          DEFAULT: "hsl(var(--accent) / <alpha-value>)",
+          soft: "hsl(var(--accent-soft) / <alpha-value>)",
+          foreground: "hsl(var(--accent-foreground) / <alpha-value>)",
+        },
+        curtain: "hsl(var(--curtain) / <alpha-value>)",
+        "newStyle-accent-color": "hsl(var(--accent) / <alpha-value>)",
         // Mobile-optimized colors for better contrast
         'mobile-contrast': {
           50: '#f8fafc',
           900: '#0f172a',
         }
+      },
+
+      fontFamily: {
+        sans: ["var(--font-geist-sans)", "sans-serif"],
+        display: ["var(--font-fraunces)", "Georgia", "serif"],
+        script: ["var(--font-courier-prime)", "Courier New", "monospace"],
       },
       
       // Mobile touch targets

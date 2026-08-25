@@ -108,25 +108,33 @@ export const CharacterLineDisplay = ({
   };
 
   return (
-    <div style={{ fontSize: `${displayPreferences.fontSize}%` }}>
+    <div
+      className="mx-auto max-w-3xl py-3"
+      style={{ fontSize: `${displayPreferences.fontSize}%` }}
+    >
       {/* revealed lines */}
       {script?.lines.slice(0, currentLineIndex).map((line, index) => {
         const sameAsPrev = isSameCharactersAsPrev(index);
         const isMulti = isMultiCharacter(line.characters);
         return (
-          <li key={index} className="flex flex-col justify-center gap-2 p-2">
+          <li
+            key={index}
+            className="flex flex-col justify-center gap-2 px-3 py-2 opacity-75 transition-opacity hover:opacity-100"
+          >
             <div
-              className={`flex flex-col ${getAlignmentClass(line.characters)} ${isMulti ? multiCharacterContainerStyling : ""}`}
+              className={`flex flex-col gap-0.5 ${getAlignmentClass(line.characters)} ${isMulti ? multiCharacterContainerStyling : ""}`}
             >
               {!sameAsPrev && (
                 <p
-                  className={`text-[1.25em] font-bold ${getNameColorClass(line.characters)}`}
+                  className={`font-sans text-[0.8em] font-bold uppercase tracking-[0.2em] ${getNameColorClass(line.characters) || "text-muted-foreground"}`}
                 >
                   {formatCharacters(line.characters)}
                 </p>
               )}
               {/* sung & spoken lines have different styling */}
-              <p className={`text-[1.25em] ${getLineColorClass(line.characters)}`}>
+              <p
+                className={`font-script text-[1.2em] leading-relaxed ${line.sung ? "italic" : ""} ${getLineColorClass(line.characters)}`}
+              >
                 {line.sung ? line.line.toUpperCase() : line.line}
               </p>
             </div>
@@ -143,24 +151,37 @@ export const CharacterLineDisplay = ({
             .split(" ")
             .slice(0, wordDisplayIndex)
             .join(" ") ?? "";
+          const isConcealed = lineText === "" && currentChars.length > 0;
           return (
-            <li className="flex flex-col justify-center gap-2 p-2">
+            <li className="flex flex-col justify-center gap-2 px-1 py-1">
               <div
-                className={`flex flex-col ${currentChars.length > 0 ? getAlignmentClass(currentChars) : ""} ${isMulti ? multiCharacterContainerStyling : ""}`}
+                className={`flex flex-col gap-0.5 rounded-xl bg-accent/[0.07] px-2 py-2 ring-1 ring-accent/20 ${currentChars.length > 0 ? getAlignmentClass(currentChars) : ""} ${isMulti ? multiCharacterContainerStyling : ""}`}
               >
                 {/* only show char name if diff characters in current line */}
                 {!isSameCharactersAsPrev(currentLineIndex) &&
                   currentChars.length > 0 && (
                     <p
-                      className={`text-[1.25em] font-bold ${getNameColorClass(currentChars)}`}
+                      className={`font-sans text-[0.8em] font-bold uppercase tracking-[0.2em] ${getNameColorClass(currentChars) || "text-muted-foreground"}`}
                     >
                       {formatCharacters(currentChars)}
                     </p>
                   )}
-                {/* line text with appropriate color */}
-                <p className={`text-[1.25em] ${getLineColorClass(currentChars)}`}>
-                  {isSung ? lineText.toUpperCase() : lineText}
-                </p>
+                {/* concealed line shows a pulsing cue marker until revealed */}
+                {isConcealed ? (
+                  <p
+                    className="cue-dot font-script text-[1.2em] leading-relaxed text-accent"
+                    aria-label="Line hidden — press down arrow to reveal"
+                  >
+                    ···
+                  </p>
+                ) : (
+                  <p
+                    key={`${currentLineIndex}-${wordDisplayIndex > 0 ? "revealed" : "hidden"}`}
+                    className={`line-enter font-script text-[1.2em] leading-relaxed ${isSung ? "italic" : ""} ${getLineColorClass(currentChars)}`}
+                  >
+                    {isSung ? lineText.toUpperCase() : lineText}
+                  </p>
+                )}
               </div>
             </li>
           );

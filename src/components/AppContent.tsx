@@ -40,7 +40,7 @@ export function AppContent({ projectData, sidebarData }: AppContentProps) {
       </div>
 
       {/* Main Content */}
-      <div className="pt-safe-top pb-safe-bottom flex min-h-[100dvh] flex-col items-center justify-center bg-[hsl(var(--background))] p-2 text-[hsl(var(--foreground))] transition-colors [touch-action:manipulation] supports-[height:100svh]:min-h-[100svh]">
+      <div className="pt-safe-top pb-safe-bottom flex min-h-[100dvh] flex-col items-center justify-center p-2 text-foreground transition-colors [touch-action:manipulation] supports-[height:100svh]:min-h-[100svh]">
         <Tabs
           defaultValue="runner"
           className="flex w-full flex-1 flex-col items-center justify-center"

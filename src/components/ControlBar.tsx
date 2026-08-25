@@ -32,7 +32,7 @@ export default function ControlBar({
   handleWordNavigation,
 }: ControlBarProps) {
   return (
-    <div className="flex h-full w-full items-center justify-between gap-2 rounded-b-md  border-stone-200 bg-stone-100/85 px-3 py-1 shadow-lg dark:border-stone-700 dark:bg-stone-800 xs:gap-4 xs:px-1 xs:py-1 sm:px-6">
+    <div className="flex h-full w-full items-center justify-between gap-2 border-t border-border bg-surface-raised/90 px-3 py-1 backdrop-blur-sm xs:gap-4 xs:px-1 xs:py-1 sm:px-6">
       {/* Playback Controls */}
       <div className="flex h-full items-center gap-1">
         <ControlButton
