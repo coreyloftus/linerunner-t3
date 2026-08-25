@@ -613,12 +613,12 @@ export const AddScriptDoc = () => {
   // If user is not authenticated, show message
   if (!session?.user) {
     return (
-      <div className="flex h-[90dvh] w-[95dvw] flex-col items-center justify-center rounded-md border-2 border-stone-200 supports-[height:100svh]:h-[90svh]">
+      <div className="flex h-full w-full flex-col items-center justify-center">
         <div className="text-center">
-          <h2 className="mb-4 text-lg font-semibold text-stone-900 dark:text-stone-100">
+          <h2 className="mb-4 font-display text-lg font-semibold">
             Authentication Required
           </h2>
-          <p className="text-stone-600 dark:text-stone-400">
+          <p className="text-muted-foreground">
             Please sign in to add scripts to the database.
           </p>
         </div>
@@ -627,15 +627,15 @@ export const AddScriptDoc = () => {
   }
 
   return (
-    <div>
+    <div className="h-full w-full">
       <>
-        <div className="flex h-[90dvh] w-[95dvw] flex-col rounded-md border-2 border-stone-200 supports-[height:100svh]:h-[90svh]">
-          <div className="flex h-full flex-col rounded-md">
-            <div className="flex items-center justify-between rounded-md border-b border-stone-200 bg-stone-50 px-4 py-3 dark:border-stone-700 dark:bg-stone-800">
+        <div className="flex h-full w-full flex-col">
+          <div className="flex h-full flex-col">
+            <div className="flex items-center justify-between border-b border-border bg-surface-raised/60 px-4 py-2">
               <div className="flex items-center gap-4">
-                <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">
-                  Add Script
-                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Import a new script
+                </p>
               </div>
               {isAdmin && (
                 <div className="flex items-center gap-2">
@@ -660,7 +660,7 @@ export const AddScriptDoc = () => {
                 </p>
                 <div className="grid grid-cols-3 gap-2">
                   <div>
-                    <p className="mb-1 text-xs text-stone-900 dark:text-stone-100">
+                    <p className="mb-1 text-xs text-muted-foreground">
                       Collection:
                     </p>
                     <Select
@@ -680,7 +680,7 @@ export const AddScriptDoc = () => {
                     </Select>
                   </div>
                   <div>
-                    <p className="mb-1 text-xs text-stone-900 dark:text-stone-100">
+                    <p className="mb-1 text-xs text-muted-foreground">
                       Document ID:
                     </p>
                     <Select
@@ -700,7 +700,7 @@ export const AddScriptDoc = () => {
                     </Select>
                   </div>
                   <div>
-                    <p className="mb-1 text-xs text-stone-900 dark:text-stone-100">
+                    <p className="mb-1 text-xs text-muted-foreground">
                       Subcollection:
                     </p>
                     <Select
@@ -728,7 +728,7 @@ export const AddScriptDoc = () => {
                   </p>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <p className="mb-1 text-xs text-stone-900 dark:text-stone-100">
+                      <p className="mb-1 text-xs text-muted-foreground">
                         Source User ID:
                       </p>
                       <Input
@@ -739,7 +739,7 @@ export const AddScriptDoc = () => {
                       />
                     </div>
                     <div>
-                      <p className="mb-1 text-xs text-stone-900 dark:text-stone-100">
+                      <p className="mb-1 text-xs text-muted-foreground">
                         Target User ID:
                       </p>
                       <Input
@@ -750,7 +750,7 @@ export const AddScriptDoc = () => {
                       />
                     </div>
                     <div className="col-span-2">
-                      <p className="mb-1 text-xs text-stone-900 dark:text-stone-100">
+                      <p className="mb-1 text-xs text-muted-foreground">
                         Project Name:
                       </p>
                       <div className="flex gap-2">
@@ -779,7 +779,7 @@ export const AddScriptDoc = () => {
             <div className="flex flex-col gap-2 p-2">
               <div className="flex flex-col gap-2 sm:flex-row">
                 <div className="flex-1">
-                  <p className="mb-1 text-sm text-stone-900 dark:text-stone-100">
+                  <p className="mb-1 text-sm">
                     Project Name:
                   </p>
                   <div className="space-y-2">
@@ -817,7 +817,7 @@ export const AddScriptDoc = () => {
                   </div>
                 </div>
                 <div className="flex-1">
-                  <p className="mb-1 text-sm text-stone-900 dark:text-stone-100">
+                  <p className="mb-1 text-sm">
                     Scene Title:
                   </p>
                   <Input
@@ -831,7 +831,7 @@ export const AddScriptDoc = () => {
 
             {/* inputs for character names */}
             <div className="flex flex-col gap-2 p-2">
-              <p className="text-sm text-stone-900 dark:text-stone-100">
+              <p className="text-sm">
                 Character names separated by commas:
               </p>
               <Input
@@ -845,22 +845,22 @@ export const AddScriptDoc = () => {
             {/* Input method tabs and content */}
             <div className="flex-1 flex flex-col">
               {/* Tabs */}
-              <div className="flex border-b border-stone-200 dark:border-stone-700">
+              <div className="flex border-b border-border">
                 <button
-                  className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                  className={`border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
                     inputMethod === "text"
-                      ? "border-blue-500 text-blue-600 dark:text-blue-400"
-                      : "border-transparent text-stone-600 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"
+                      ? "border-accent text-foreground"
+                      : "border-transparent text-muted-foreground hover:text-foreground"
                   }`}
                   onClick={() => setInputMethod("text")}
                 >
                   Text Input
                 </button>
                 <button
-                  className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                  className={`border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
                     inputMethod === "file"
-                      ? "border-blue-500 text-blue-600 dark:text-blue-400"
-                      : "border-transparent text-stone-600 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"
+                      ? "border-accent text-foreground"
+                      : "border-transparent text-muted-foreground hover:text-foreground"
                   }`}
                   onClick={() => setInputMethod("file")}
                 >
