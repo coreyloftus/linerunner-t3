@@ -19,33 +19,85 @@ export interface SceneJSON {
   lines: LineJSON[];
 }
 
+// Shapes accepted on read, before normalization to LineJSON/ProjectJSON
+export interface RawLine {
+  characters?: unknown;
+  character?: unknown;
+  line?: unknown;
+  sung?: boolean;
+}
+
+export interface RawScene {
+  title?: unknown;
+  lines?: RawLine[];
+}
+
+export interface RawProject {
+  project?: unknown;
+  scenes?: RawScene[];
+  characters?: unknown;
+}
+
 export interface GetAllResponse {
   projects: string[];
   allData: ProjectJSON[];
 }
 
 export class ScriptService {
+  // Scripts on disk and in Firestore predate the current schema: older lines
+  // store a single `character: string`, and some files hold an array of
+  // projects rather than one. Normalize both on read so a legacy document
+  // cannot take down the whole data source.
+  static normalizeLine(line: RawLine): LineJSON {
+    const characters = Array.isArray(line?.characters)
+      ? line.characters.filter((c): c is string => typeof c === "string")
+      : typeof line?.character === "string" && line.character
+        ? [line.character]
+        : [];
+
+    return {
+      characters,
+      line: typeof line?.line === "string" ? line.line : "",
+      ...(line?.sung ? { sung: true } : {}),
+    };
+  }
+
+  static normalizeProject(project: RawProject): ProjectJSON {
+    const rawScenes = Array.isArray(project?.scenes) ? project.scenes : [];
+    const scenes: SceneJSON[] = rawScenes.map((scene) => ({
+      title: typeof scene?.title === "string" ? scene.title : "",
+      lines: Array.isArray(scene?.lines)
+        ? scene.lines.map((line) => this.normalizeLine(line))
+        : [],
+    }));
+
+    const declared = Array.isArray(project?.characters)
+      ? project.characters.filter((c): c is string => typeof c === "string")
+      : [];
+
+    return {
+      project: typeof project?.project === "string" ? project.project : "",
+      scenes,
+      characters:
+        declared.length > 0 ? declared : this.generateCharactersFromScenes(scenes),
+    };
+  }
+
   // Helper function to generate characters array from scenes
   static generateCharactersFromScenes(scenes: SceneJSON[]): string[] {
     const charactersSet = new Set<string>();
-    scenes.forEach(scene => {
-      scene.lines.forEach(line => {
+    (scenes ?? []).forEach((scene) => {
+      (scene?.lines ?? []).forEach((line) => {
         // Use characters array (new schema)
-        line.characters.forEach(char => charactersSet.add(char));
+        (line?.characters ?? []).forEach((char) => charactersSet.add(char));
       });
     });
     return Array.from(charactersSet).sort();
   }
 
   // Helper function to ensure project has characters array
-  static ensureCharactersArray(project: ProjectJSON): ProjectJSON {
-    if (!project.characters) {
-      return {
-        ...project,
-        characters: this.generateCharactersFromScenes(project.scenes)
-      };
-    }
-    return project;
+  static ensureCharactersArray(project: RawProject): ProjectJSON {
+    return this.normalizeProject(project);
   }
 
   // Load scripts from local files
@@ -53,10 +105,13 @@ export class ScriptService {
     const directory = path.join(process.cwd(), "public/sceneData");
     const files = fs.readdirSync(directory);
     const allData: ProjectJSON[] = files
+      .filter((file) => file.endsWith(".json"))
       .map((file) => {
         const data = fs.readFileSync(path.join(directory, file), "utf8");
-        const project = JSON.parse(data) as ProjectJSON;
-        return this.ensureCharactersArray(project);
+        // A file may hold a single project or an array of them
+        const parsed = JSON.parse(data) as RawProject | RawProject[];
+        const projects = Array.isArray(parsed) ? parsed : [parsed];
+        return projects.map((project) => this.normalizeProject(project));
       })
       .flat();
 

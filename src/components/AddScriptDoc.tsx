@@ -300,15 +300,6 @@ export const AddScriptDoc = () => {
       return;
     }
 
-    if (scriptCharacterNames.length === 0) {
-      toast({
-        title: "Error",
-        description: "Please enter character names",
-        variant: "destructive",
-      });
-      return;
-    }
-
     if (!script.trim()) {
       toast({
         title: "Error",
@@ -389,29 +380,69 @@ export const AddScriptDoc = () => {
     }
   };
 
+  // Character names come from the user, but scripts routinely contain speakers
+  // the user did not list. A standalone upper-case line that looks like a name
+  // ("CINDERELLA", "CP/RP") is treated as a speaker header and registered on
+  // the fly, so an incomplete list no longer swallows a whole character.
   const parseScript = (script: string, characterNames: string[]) => {
-    console.log("=== PARSING DEBUG ===");
-    console.log("Input script:", JSON.stringify(script));
-    console.log("Character names:", characterNames);
-
     const lines = script.split(/\n/);
-    console.log("Split lines:", lines.map(line => `"${line}"`));
     const parsedLines: { characters: string[]; line: string; sung?: boolean }[] =
       [];
-    let currentCharacter = "";
+    const knownCharacters = [...characterNames];
+    let currentCharacters: string[] = [];
     let currentLine = "";
+
+    const multiCharSeparators = /\s*[&\/,]\s*/;
 
     // Helper function to normalize text by removing spaces
     const normalizeText = (text: string) =>
       text.toLowerCase().replace(/\s+/g, "");
 
-    // Helper function to check if a line is sung (all caps)
-    const isSungLine = (text: string) => {
-      // Remove spaces and punctuation, check if all remaining characters are uppercase
+    // Remove punctuation, then check whether what remains is all upper-case
+    const isAllCaps = (text: string) => {
       const cleanedText = text.replace(/[^a-zA-Z]/g, "");
       return (
         cleanedText.length > 0 && cleanedText === cleanedText.toUpperCase()
       );
+    };
+
+    // Helper function to check if a line is sung (all caps)
+    const isSungLine = (text: string) => isAllCaps(text);
+
+    // Sung lyrics are upper-case too, so shape is what separates them: a
+    // speaker header is short and never ends in sentence punctuation.
+    const looksLikeCharacterHeader = (text: string) => {
+      const core = text.replace(/:\s*$/, "").trim();
+      if (!core || !isAllCaps(core)) return false;
+      if (/[.,!?;…-]$/.test(core)) return false;
+      return core.split(/\s+/).length <= 3;
+    };
+
+    // Resolve a header to canonical character names, registering unseen ones
+    const resolveHeaderCharacters = (header: string) => {
+      const core = header.replace(/:\s*$/, "").trim();
+      return core
+        .split(multiCharSeparators)
+        .map((part) => part.trim())
+        .filter((part) => part.length > 0)
+        .map((part) => {
+          const known = knownCharacters.find(
+            (name) => normalizeText(name) === normalizeText(part),
+          );
+          if (known) return known;
+          knownCharacters.push(part);
+          return part;
+        });
+    };
+
+    const flushCurrentLine = () => {
+      if (currentCharacters.length > 0 && currentLine.trim()) {
+        parsedLines.push({
+          characters: [...currentCharacters],
+          line: currentLine.trim(),
+        });
+      }
+      currentLine = "";
     };
 
     for (const line of lines) {
@@ -419,194 +450,118 @@ export const AddScriptDoc = () => {
       if (!trimmedLine) continue; // Skip empty lines
 
       // Check for multiple character:line patterns within a single line
-      // Create a regex that matches CHARACTER: pattern for any of the provided character names
-      const characterPattern = new RegExp(
-        `\\b(${characterNames.map(name => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\s*:`,
-        'gi'
-      );
-      
-      const matches = [...trimmedLine.matchAll(characterPattern)];
-      console.log(`Found ${matches.length} character matches:`, matches.map(m => ({ match: m[0], character: m[1], index: m.index })));
-      
+      const characterPattern =
+        knownCharacters.length > 0
+          ? new RegExp(
+              `\\b(${knownCharacters
+                .map((name) => name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+                .join("|")})\\s*:`,
+              "gi",
+            )
+          : null;
+
+      const matches = characterPattern
+        ? [...trimmedLine.matchAll(characterPattern)]
+        : [];
+
       if (matches.length > 1) {
-        console.log("Processing multiple character patterns in line");
         // Multiple character patterns found in this line - split them up
+        flushCurrentLine();
         for (let i = 0; i < matches.length; i++) {
           const match = matches[i];
           if (!match) continue;
 
           const nextMatch = matches[i + 1];
-
           const characterName = match[1];
           if (!characterName) continue;
 
           const startIndex = (match.index ?? 0) + match[0].length;
-          const endIndex = nextMatch ? (nextMatch.index ?? 0) : trimmedLine.length;
-
+          const endIndex = nextMatch
+            ? (nextMatch.index ?? 0)
+            : trimmedLine.length;
           const dialogue = trimmedLine.substring(startIndex, endIndex).trim();
 
-          // Find the proper case version of the character name
-          const foundCharacter = characterNames.find((name) => {
-            const normalizedName = normalizeText(name);
-            const normalizedMatch = normalizeText(characterName);
-            return normalizedName === normalizedMatch;
-          });
+          const foundCharacter = knownCharacters.find(
+            (name) => normalizeText(name) === normalizeText(characterName),
+          );
 
           if (foundCharacter && dialogue) {
-            console.log(`  Adding character line: ${foundCharacter} - "${dialogue}"`);
             const isSung = isSungLine(dialogue);
             parsedLines.push({
               characters: [foundCharacter],
               line: dialogue,
               ...(isSung && { sung: true }),
             });
-          } else {
-            console.log(`  Skipped - foundCharacter: ${foundCharacter}, dialogue: "${dialogue}"`);
+            currentCharacters = [foundCharacter];
           }
         }
         continue;
       }
 
-      // Check for character:line format first
-      const colonIndex = trimmedLine.indexOf(':');
+      // Check for "CHARACTER: line" format, including "CHAR1/CHAR2: line"
+      const colonIndex = trimmedLine.indexOf(":");
       if (colonIndex > 0) {
         const potentialCharacter = trimmedLine.substring(0, colonIndex).trim();
         const potentialLine = trimmedLine.substring(colonIndex + 1).trim();
 
-        // Check for multi-character format: "CHARACTER1 & CHARACTER2:" or "CHARACTER1/CHARACTER2:" or "CHARACTER1, CHARACTER2:"
-        const multiCharSeparators = /\s*[&\/,]\s*/;
-        if (multiCharSeparators.test(potentialCharacter)) {
-          const potentialCharacters = potentialCharacter.split(multiCharSeparators).map(c => c.trim()).filter(c => c.length > 0);
+        if (potentialLine) {
+          const potentialCharacters = potentialCharacter
+            .split(multiCharSeparators)
+            .map((c) => c.trim())
+            .filter((c) => c.length > 0);
 
-          // Validate all parts are known character names
-          const foundCharacters = potentialCharacters.map(pc =>
-            characterNames.find(name => normalizeText(name) === normalizeText(pc))
-          ).filter((c): c is string => c !== undefined);
+          const allKnown =
+            potentialCharacters.length > 0 &&
+            potentialCharacters.every((pc) =>
+              knownCharacters.some(
+                (name) => normalizeText(name) === normalizeText(pc),
+              ),
+            );
 
-          // If all parts matched character names, create a multi-character line
-          if (foundCharacters.length === potentialCharacters.length && foundCharacters.length > 0 && potentialLine) {
-            // If we have a previous character and line, save it first
-            if (currentCharacter && currentLine.trim()) {
-              parsedLines.push({
-                characters: [currentCharacter],
-                line: currentLine.trim(),
-              });
-            }
-
-            // Add the multi-character line
+          if (allKnown || looksLikeCharacterHeader(potentialCharacter)) {
+            flushCurrentLine();
+            const resolved = resolveHeaderCharacters(potentialCharacter);
             const isSung = isSungLine(potentialLine);
             parsedLines.push({
-              characters: foundCharacters,
+              characters: resolved,
               line: potentialLine,
               ...(isSung && { sung: true }),
             });
-
-            currentCharacter = foundCharacters[0] ?? "";
-            currentLine = "";
+            currentCharacters = resolved;
             continue;
           }
         }
-
-        // Check if the part before the colon matches any single character name
-        const foundCharacter = characterNames.find((name) => {
-          const normalizedName = normalizeText(name);
-          const normalizedPotentialCharacter = normalizeText(potentialCharacter);
-          return normalizedName === normalizedPotentialCharacter;
-        });
-
-        if (foundCharacter && potentialLine) {
-          // If we have a previous character and line, save it first
-          if (currentCharacter && currentLine.trim()) {
-            parsedLines.push({
-              characters: [currentCharacter],
-              line: currentLine.trim(),
-            });
-          }
-
-          // Add the new character line
-          const isSung = isSungLine(potentialLine);
-          parsedLines.push({
-            characters: [foundCharacter],
-            line: potentialLine,
-            ...(isSung && { sung: true }),
-          });
-
-          currentCharacter = foundCharacter;
-          currentLine = "";
-          continue;
-        }
       }
 
-      // First check if this is a sung line (all caps) - but exclude simple character names
-      const isCharacterNameOnly = characterNames.some((name) => {
-        const normalizedName = normalizeText(name);
-        const normalizedLine = normalizeText(trimmedLine);
-        return (
-          normalizedLine === normalizedName ||
-          normalizedLine === normalizedName + ":" ||
-          normalizedLine.replace(/[^a-z]/g, "") === normalizedName
-        );
-      });
+      // A standalone name line ("CINDERELLA", "CP/RP") opens that speaker's lines
+      if (looksLikeCharacterHeader(trimmedLine)) {
+        flushCurrentLine();
+        currentCharacters = resolveHeaderCharacters(trimmedLine);
+        continue;
+      }
 
-      if (!isCharacterNameOnly && isSungLine(trimmedLine)) {
-        // If we have a previous character and line, save it first
-        if (currentCharacter && currentLine.trim()) {
+      // Upper-case, but not a speaker header, so it is a sung lyric
+      if (isSungLine(trimmedLine)) {
+        flushCurrentLine();
+        if (currentCharacters.length > 0) {
           parsedLines.push({
-            characters: [currentCharacter],
-            line: currentLine.trim(),
-          });
-        }
-        // Add the sung line as a separate line object
-        if (currentCharacter) {
-          parsedLines.push({
-            characters: [currentCharacter],
+            characters: [...currentCharacters],
             line: trimmedLine,
             sung: true,
           });
         }
-        currentLine = "";
-      } else {
-        // Check if this line is a character name (should be at the start of the line)
-        const foundCharacter = characterNames.find((name) => {
-          const normalizedName = normalizeText(name);
-          const normalizedLine = normalizeText(trimmedLine);
-          // Check if line starts with character name or is exactly the character name
-          return (
-            normalizedLine === normalizedName ||
-            normalizedLine.startsWith(normalizedName + ":") ||
-            normalizedLine.startsWith(normalizedName + " ")
-          );
-        });
+        continue;
+      }
 
-        if (foundCharacter) {
-          // If we have a previous character and line, save it
-          if (currentCharacter && currentLine.trim()) {
-            parsedLines.push({
-              characters: [currentCharacter],
-              line: currentLine.trim(),
-            });
-          }
-          // Start new character
-          currentCharacter = foundCharacter;
-          currentLine = "";
-        } else {
-          // This line is regular dialogue for the current character
-          if (currentCharacter) {
-            currentLine += (currentLine ? " " : "") + trimmedLine;
-          }
-        }
+      // Regular dialogue for the current speaker
+      if (currentCharacters.length > 0) {
+        currentLine += (currentLine ? " " : "") + trimmedLine;
       }
     }
 
     // Save the last lines
-    if (currentCharacter && currentLine.trim()) {
-      parsedLines.push({
-        characters: [currentCharacter],
-        line: currentLine.trim(),
-      });
-    }
+    flushCurrentLine();
 
-    console.log("Final parsed result:", parsedLines);
     return parsedLines;
   };
 
