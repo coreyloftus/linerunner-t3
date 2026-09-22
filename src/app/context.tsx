@@ -6,10 +6,15 @@ import React, {
   useState,
   type ReactNode,
   useEffect,
-  useRef,
 } from "react";
 import { useSearchParams } from "next/navigation";
 import { type GetAllResponse } from "~/server/api/routers/scriptData";
+import {
+  defaultPreferences,
+  loadPreferences,
+  savePreferences,
+  type PlaybackPreferences,
+} from "~/lib/preferences";
 
 // Project source types for distinguishing projects with the same name
 export type ProjectSource = "public" | "shared" | "user";
@@ -58,13 +63,15 @@ interface ScriptContextProps {
   // Display preferences
   displayPreferences: DisplayPreferences;
   setDisplayPreferences: Dispatch<SetStateAction<DisplayPreferences>>;
+  // Playback preferences
+  playbackPreferences: PlaybackPreferences;
+  setPlaybackPreferences: Dispatch<SetStateAction<PlaybackPreferences>>;
   // Speech recognition line matching
   speechMatchEnabled: boolean;
   setSpeechMatchEnabled: Dispatch<SetStateAction<boolean>>;
 }
 
 type UserConfig = {
-  stopOnCharacter: boolean;
   dataSource: "local" | "firestore" | "public" | "shared";
 };
 
@@ -103,12 +110,10 @@ export const ScriptContext = createContext<ScriptContextProps>({
   selectedCharacter: "",
   setSelectedCharacter: () => "",
   userConfig: {
-    stopOnCharacter: true,
     dataSource: "public",
   },
   gameMode: "linerun",
   setUserConfig: () => ({
-    stopOnCharacter: true,
     dataSource: "public",
   }),
   setGameMode: () => "linerun",
@@ -140,6 +145,9 @@ export const ScriptContext = createContext<ScriptContextProps>({
   // Display preferences defaults
   displayPreferences: DEFAULT_DISPLAY_PREFERENCES,
   setDisplayPreferences: () => DEFAULT_DISPLAY_PREFERENCES,
+  // Playback preferences defaults
+  playbackPreferences: defaultPreferences().playback,
+  setPlaybackPreferences: () => defaultPreferences().playback,
   // Speech matching defaults
   speechMatchEnabled: false,
   setSpeechMatchEnabled: () => false,
@@ -150,7 +158,6 @@ export const ScriptProvider = ({ children }: { children: ReactNode }) => {
   const [selectedScene, setSelectedScene] = useState<string>("");
   const [selectedCharacter, setSelectedCharacter] = useState<string>("");
   const [userConfig, setUserConfig] = useState<UserConfig>({
-    stopOnCharacter: true,
     dataSource: "public",
   });
   const [gameMode, setGameMode] = useState<"navigate" | "linerun">("linerun");
@@ -188,39 +195,31 @@ export const ScriptProvider = ({ children }: { children: ReactNode }) => {
   const [newScriptBox, setNewScriptBox] = useState<string>("");
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
-  // Display preferences state with localStorage persistence
+  // Preferences hydrate after mount so the server render matches the first client render.
   const [displayPreferences, setDisplayPreferences] =
-    useState<DisplayPreferences>(() => {
-      if (typeof window !== "undefined") {
-        const saved = localStorage.getItem("linerunner-display-preferences");
-        if (saved) {
-          try {
-            return JSON.parse(saved) as DisplayPreferences;
-          } catch {
-            return DEFAULT_DISPLAY_PREFERENCES;
-          }
-        }
-      }
-      return DEFAULT_DISPLAY_PREFERENCES;
-    });
-
-  // Speech matching preference. Read from localStorage after mount (not in
-  // the initializer) so the SSR markup matches the first client render.
+    useState<DisplayPreferences>(DEFAULT_DISPLAY_PREFERENCES);
+  const [playbackPreferences, setPlaybackPreferences] =
+    useState<PlaybackPreferences>(defaultPreferences().playback);
   const [speechMatchEnabled, setSpeechMatchEnabled] = useState(false);
-  const speechMatchLoaded = useRef(false);
+  const [prefsHydrated, setPrefsHydrated] = useState(false);
 
   useEffect(() => {
-    setSpeechMatchEnabled(
-      localStorage.getItem("linerunner-speech-match") === "true",
-    );
-    speechMatchLoaded.current = true;
+    const loaded = loadPreferences();
+    setDisplayPreferences(loaded.display);
+    setPlaybackPreferences(loaded.playback);
+    setSpeechMatchEnabled(loaded.speechMatchEnabled);
+    setPrefsHydrated(true);
   }, []);
 
-  // Persist speech matching preference (skip until the saved value is loaded)
   useEffect(() => {
-    if (!speechMatchLoaded.current) return;
-    localStorage.setItem("linerunner-speech-match", String(speechMatchEnabled));
-  }, [speechMatchEnabled]);
+    if (!prefsHydrated) return;
+    savePreferences({
+      version: 1,
+      display: displayPreferences,
+      speechMatchEnabled,
+      playback: playbackPreferences,
+    });
+  }, [prefsHydrated, displayPreferences, speechMatchEnabled, playbackPreferences]);
 
   useEffect(() => {
     setQueryParams(Object.fromEntries(searchParams));
@@ -237,16 +236,6 @@ export const ScriptProvider = ({ children }: { children: ReactNode }) => {
       }
     }
   }, [theme]);
-
-  // Persist display preferences to localStorage
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem(
-        "linerunner-display-preferences",
-        JSON.stringify(displayPreferences),
-      );
-    }
-  }, [displayPreferences]);
 
   return (
     <ScriptContext.Provider
@@ -289,6 +278,9 @@ export const ScriptProvider = ({ children }: { children: ReactNode }) => {
         // Display preferences
         displayPreferences,
         setDisplayPreferences,
+        // Playback preferences
+        playbackPreferences,
+        setPlaybackPreferences,
         // Speech matching
         speechMatchEnabled,
         setSpeechMatchEnabled,

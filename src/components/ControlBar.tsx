@@ -12,6 +12,8 @@ import {
 interface ControlBarProps {
   playScene: boolean;
   setPlayScene: React.Dispatch<React.SetStateAction<boolean>>;
+  paused: boolean;
+  setPaused: React.Dispatch<React.SetStateAction<boolean>>;
   currentLineIndex: number;
   setCurrentLineIndex: React.Dispatch<React.SetStateAction<number>>;
   currentLineSplit: string[];
@@ -24,9 +26,9 @@ interface ControlBarProps {
 export default function ControlBar({
   playScene,
   setPlayScene,
-
+  paused,
+  setPaused,
   setCurrentLineIndex,
-
   setWordIndex,
   handleLineNavigation,
   handleWordNavigation,
@@ -39,17 +41,21 @@ export default function ControlBar({
           variant="playback"
           onClick={() => {
             if (!playScene) {
+              setPaused(false);
               setPlayScene(true);
+            } else {
+              setPaused((isPaused) => !isPaused);
             }
           }}
         >
-          {playScene === false ? <FaPlay /> : <FaPause />}
+          {!playScene || paused ? <FaPlay /> : <FaPause />}
         </ControlButton>
         <ControlButton
           variant="playback"
           onClick={() => {
             setCurrentLineIndex(0);
             setWordIndex(0);
+            setPaused(false);
             if (playScene) setPlayScene(false);
           }}
         >
