@@ -10,6 +10,7 @@ import { CharacterLineDisplay } from "./CharacterLineDisplay";
 import { api } from "~/trpc/react";
 import { useSession } from "next-auth/react";
 import { useSpeechMatch } from "~/hooks/useSpeechMatch";
+import { useAutoAdvance } from "~/hooks/useAutoAdvance";
 
 // Helper to check if user is in the line's characters (outside component for memoization)
 const checkIsUserLine = (
@@ -45,6 +46,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     currentLineSplit,
     setCurrentLineSplit,
     speechMatchEnabled,
+    playbackPreferences,
   } = useContext(ScriptContext);
 
   // Fetch public, shared, and user data
@@ -97,12 +99,14 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
   const [userInput, setUserInput] = useState("");
   const [currentLine, setCurrentLine] = useState<string[]>([]);
   const [helperIndex, setHelperIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
 
   // Reset script state when data source changes
   useEffect(() => {
     setCurrentLineIndex(0);
     setWordIndex(0);
     setPlayScene(false);
+    setPaused(false);
     setAwaitingInput(false);
     setCurrentLineSplit([]);
     setUserInput("");
@@ -280,7 +284,12 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
       }
       switch (event.key) {
         case " ":
-          if (!playScene) setPlayScene(true);
+          if (!playScene) {
+            setPaused(false);
+            setPlayScene(true);
+          } else if (paused) {
+            setPaused(false);
+          }
           break;
         case "ArrowDown":
           handleLineNavigation("down");
@@ -314,6 +323,8 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     handleWordNavigation,
     handleTextInput,
     playScene,
+    paused,
+    setPaused,
     setPlayScene,
   ]);
 
@@ -330,13 +341,33 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     selectedCharacter,
   );
   const speechActive =
-    speechMatchEnabled && playScene && isUsersLine && !!currentScriptLine;
+    speechMatchEnabled && playScene && !paused && isUsersLine && !!currentScriptLine;
 
   // The advance fires from a timeout, so route it through a ref to always
   // call the latest navigation handler
   const lineNavRef = useRef(handleLineNavigation);
   useEffect(() => {
     lineNavRef.current = handleLineNavigation;
+  });
+
+  const lineCount = script?.lines.length ?? 0;
+  const lineReady = currentScriptLine
+    ? currentScriptLine.line === "" || currentLineSplit.length > 0
+    : false;
+
+  useAutoAdvance({
+    enabled: playbackPreferences.autoAdvanceOthers && !paused,
+    playScene,
+    selectedCharacter,
+    isUserLine: isUsersLine,
+    lineReady,
+    wordIndex,
+    wordCount: currentLineSplit.length,
+    isLastLine: lineCount === 0 || currentLineIndex >= lineCount - 1,
+    wordIntervalMs: playbackPreferences.wordIntervalMs,
+    lineGapMs: playbackPreferences.lineGapMs,
+    onNextWord: () => setWordIndex((index) => index + 1),
+    onNextLine: () => lineNavRef.current("down"),
   });
 
   const handleSpeechMatch = useCallback(() => {
@@ -398,7 +429,11 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="kbd-chip">↓</span>
-                      <span>reveal line, then advance</span>
+                      <span>
+                        {playbackPreferences.autoAdvanceOthers
+                          ? "your line: reveal, then advance. other lines run on their own"
+                          : "reveal line, then advance"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="kbd-chip">↑</span>
@@ -461,6 +496,8 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
         <ControlBar
           playScene={playScene}
           setPlayScene={setPlayScene}
+          paused={paused}
+          setPaused={setPaused}
           setCurrentLineIndex={setCurrentLineIndex}
           currentLineIndex={currentLineIndex}
           currentLineSplit={currentLineSplit}

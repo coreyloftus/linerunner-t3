@@ -12,6 +12,7 @@ import { RefreshButton } from "./ui/refresh-button";
 import { useScriptData } from "~/hooks/useScriptData";
 import { ThemeToggle } from "./ui/theme-toggle";
 import { DisplaySettings } from "./DisplaySettings";
+import { PlaybackSettings } from "./PlaybackSettings";
 import { AdminSharingPanel } from "./AdminSharingPanel";
 import Link from "next/link";
 
@@ -124,7 +125,7 @@ export function SidebarClient({
       >
         {/* Content area - only visible when open */}
         <div
-          className={`h-full transition-opacity duration-200 ${navOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
+          className={`h-full overflow-y-auto pb-12 transition-opacity duration-200 ${navOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
         >
           <div className="pt-3 iphone:pt-2">
             <div className="flex items-center justify-between p-2">
@@ -180,6 +181,7 @@ export function SidebarClient({
                     aria-label="Toggle speech match"
                   />
                 </div>
+                <PlaybackSettings />
                 <div className="flex items-center justify-between opacity-60">
                   <div>
                     <Label className="text-mobile-sm iphone:text-sm">
