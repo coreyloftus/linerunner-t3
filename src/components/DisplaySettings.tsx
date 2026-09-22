@@ -47,6 +47,9 @@ export function DisplaySettings() {
       <FontSizeControl
         value={displayPreferences.fontSize}
         onChange={handleFontSizeChange}
+        min={75}
+        max={300}
+        step={25}
       />
     </div>
   );

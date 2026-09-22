@@ -84,7 +84,7 @@ export interface DisplayPreferences {
   ownCharacterColor: ColorPreset;
   otherCharacterColor: ColorPreset;
   sharedLineColor: ColorPreset;
-  fontSize: number; // percentage: 75-125
+  fontSize: number; // percentage: 75-300
 }
 
 const DEFAULT_DISPLAY_PREFERENCES: DisplayPreferences = {

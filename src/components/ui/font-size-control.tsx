@@ -3,7 +3,7 @@
 import { FiMinus, FiPlus } from "react-icons/fi";
 
 interface FontSizeControlProps {
-  value: number; // percentage (75-125)
+  value: number; // percentage (75-300)
   onChange: (size: number) => void;
   min?: number;
   max?: number;
@@ -14,18 +14,18 @@ export function FontSizeControl({
   value,
   onChange,
   min = 75,
-  max = 125,
-  step = 5,
+  max = 300,
+  step = 25,
 }: FontSizeControlProps) {
   const handleDecrease = () => {
     if (value > min) {
-      onChange(value - step);
+      onChange(Math.max(min, value - step));
     }
   };
 
   const handleIncrease = () => {
     if (value < max) {
-      onChange(value + step);
+      onChange(Math.min(max, value + step));
     }
   };
 
@@ -43,7 +43,7 @@ export function FontSizeControl({
         >
           <FiMinus className="h-4 w-4" />
         </button>
-        <span className="w-12 text-center text-sm font-medium text-stone-800 dark:text-stone-200">
+        <span className="w-14 text-center text-sm font-medium text-stone-800 dark:text-stone-200">
           {value}%
         </span>
         <button
