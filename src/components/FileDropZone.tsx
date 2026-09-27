@@ -5,16 +5,24 @@ import { FaUpload, FaFile, FaX } from "react-icons/fa6";
 import { Button } from "./ui/button";
 
 interface FileDropZoneProps {
-  onFileContent: (content: string) => void;
+  onFileContent?: (content: string) => void;
+  // Receives the raw file instead of its text (for binary files like PDFs)
+  onFile?: (file: File) => void;
   acceptedTypes?: string[];
+  maxSizeBytes?: number;
+  prompt?: string;
   className?: string;
 }
 
 export const FileDropZone = ({
   onFileContent,
+  onFile,
   acceptedTypes = [".txt", ".md", ".rtf"],
+  maxSizeBytes = 1024 * 1024,
+  prompt = "Drop your script file here",
   className = "",
 }: FileDropZoneProps) => {
+  const maxSizeLabel = `${Math.round(maxSizeBytes / (1024 * 1024))}MB`;
   const [isDragOver, setIsDragOver] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -60,13 +68,16 @@ export const FileDropZone = ({
         throw new Error(`File type ${fileExtension} not supported. Please use: ${acceptedTypes.join(', ')}`);
       }
 
-      // Check file size (limit to 1MB)
-      if (fileSize > 1024 * 1024) {
-        throw new Error("File size too large. Please use files smaller than 1MB.");
+      if (fileSize > maxSizeBytes) {
+        throw new Error(`File size too large. Please use files smaller than ${maxSizeLabel}.`);
       }
 
+      if (onFile) {
+        onFile(file);
+        return;
+      }
       const content = await readFileContent(file);
-      onFileContent(content);
+      onFileContent?.(content);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to read file");
     } finally {
@@ -139,14 +150,14 @@ export const FileDropZone = ({
               <FaUpload className="h-8 w-8 text-stone-400" />
               <div>
                 <p className="text-sm font-medium text-stone-900 dark:text-stone-100">
-                  Drop your script file here
+                  {prompt}
                 </p>
                 <p className="text-xs text-stone-500 dark:text-stone-400">
                   or click to browse
                 </p>
               </div>
               <p className="text-xs text-stone-400">
-                Supported: {acceptedTypes.join(', ')} (max 1MB)
+                Supported: {acceptedTypes.join(', ')} (max {maxSizeLabel})
               </p>
             </>
           )}

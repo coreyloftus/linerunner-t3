@@ -8,6 +8,7 @@ import { SidebarClient } from "./SidebarClient";
 import ScriptBox from "./ScriptDisplay/ScriptBox";
 import ScriptViewer from "./ScriptViewer";
 import { ScriptsWorkspace } from "./ScriptsWorkspace";
+import { MelodyWorkspace } from "./Melody/MelodyWorkspace";
 
 interface GetAllResponse {
   projects: string[];
@@ -46,7 +47,7 @@ export function AppContent({ projectData, sidebarData }: AppContentProps) {
           onValueChange={setActiveTab}
           className="flex w-full flex-1 flex-col items-center justify-center"
         >
-          <TabsList className="mb-2 mt-0 grid w-full max-w-none grid-cols-4 gap-0">
+          <TabsList className="mb-2 mt-0 grid w-full max-w-none grid-cols-5 gap-0">
             <div className="flex flex-1 items-center justify-center">
               <SidebarToggle
                 onToggle={handleSidebarToggle}
@@ -69,6 +70,11 @@ export function AppContent({ projectData, sidebarData }: AppContentProps) {
               <span className="iphone:inline hidden md:hidden">Scripts</span>
               <span className="hidden md:inline">Scripts</span>
             </TabsTrigger>
+            <TabsTrigger value="melody" className="flex-1">
+              <span className="iphone:hidden">🎵</span>
+              <span className="iphone:inline hidden md:hidden">Melody</span>
+              <span className="hidden md:inline">Melody</span>
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="runner" className="mt-0">
             <ScriptBox data={projectData} />
@@ -81,6 +87,9 @@ export function AppContent({ projectData, sidebarData }: AppContentProps) {
               data={projectData}
               onPractice={() => setActiveTab("runner")}
             />
+          </TabsContent>
+          <TabsContent value="melody" className="mt-0">
+            <MelodyWorkspace />
           </TabsContent>
         </Tabs>
       </div>

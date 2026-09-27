@@ -78,3 +78,19 @@ export const mdToJSON = async (markdownContent: string): Promise<Project[]> => {
     },
   ];
 };
+
+/** Scroll el into view in its nearest scrolling box, or every scrolling ancestor when `all` */
+export function scrollWithinParent(el: Element, margin = 24, all = false) {
+  let box = el.parentElement;
+  while (box) {
+    if (/(auto|scroll)/.test(getComputedStyle(box).overflowY) && box.scrollHeight > box.clientHeight) {
+      const r = el.getBoundingClientRect();
+      const b = box.getBoundingClientRect();
+      const m = Math.min(margin, b.height / 4);
+      if (r.top < b.top + m) box.scrollBy({ top: r.top - b.top - m });
+      else if (r.bottom > b.bottom - m) box.scrollBy({ top: r.bottom - b.bottom + m });
+      if (!all) return;
+    }
+    box = box.parentElement;
+  }
+}
