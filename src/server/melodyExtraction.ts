@@ -49,7 +49,8 @@ const RECORD_MELODY_TOOL: Anthropic.Tool = {
       },
       pickupBeats: {
         type: "number",
-        description: "Length of the pickup (anacrusis) in quarter-note beats; 0 when none",
+        description:
+          "Length of the pickup (anacrusis) in quarter-note beats; 0 when none",
       },
       notes: {
         type: "array",
@@ -79,7 +80,8 @@ const RECORD_MELODY_TOOL: Anthropic.Tool = {
             },
             measure: {
               type: "integer",
-              description: "1-based measure number; a pickup measure is measure 1",
+              description:
+                "1-based measure number; a pickup measure is measure 1",
             },
           },
         },
@@ -132,6 +134,36 @@ export interface ExtractionResult {
   warnings: string[];
 }
 
+/** Turn Claude API failures into messages a user can act on */
+const toTRPCError = (err: unknown): TRPCError => {
+  console.error("[melody] extraction failed:", err);
+  if (
+    err instanceof Anthropic.AuthenticationError ||
+    err instanceof Anthropic.PermissionDeniedError
+  ) {
+    return new TRPCError({
+      code: "PRECONDITION_FAILED",
+      message: "Melody import is misconfigured: the API key was rejected.",
+    });
+  }
+  if (err instanceof Anthropic.RateLimitError) {
+    return new TRPCError({
+      code: "TOO_MANY_REQUESTS",
+      message: "Too many imports right now. Try again in a minute.",
+    });
+  }
+  if (err instanceof Anthropic.BadRequestError) {
+    return new TRPCError({
+      code: "BAD_REQUEST",
+      message: "The music reader could not open this PDF.",
+    });
+  }
+  return new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "The music reader failed. Try again.",
+  });
+};
+
 const getClient = () => {
   if (!env.ANTHROPIC_API_KEY) {
     throw new TRPCError({
@@ -150,30 +182,34 @@ export async function extractMelody(
   const client = getClient();
   const model = extractionModel();
 
-  const response = await client.messages.create({
-    model,
-    max_tokens: 16000,
-    output_config: { effort: "high" },
-    tools: [RECORD_MELODY_TOOL],
-    // Opus 5.5 rejects forced tool_choice; auto + strict + prompt does the same job
-    tool_choice: { type: "auto" },
-    messages: [
-      {
-        role: "user",
-        content: [
-          {
-            type: "document",
-            source: {
-              type: "base64",
-              media_type: "application/pdf",
-              data: pdfBase64,
+  const response = await client.messages
+    .create({
+      model,
+      max_tokens: 16000,
+      output_config: { effort: "high" },
+      tools: [RECORD_MELODY_TOOL],
+      // Opus 5.5 rejects forced tool_choice; auto + strict + prompt does the same job
+      tool_choice: { type: "auto" },
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "document",
+              source: {
+                type: "base64",
+                media_type: "application/pdf",
+                data: pdfBase64,
+              },
             },
-          },
-          { type: "text", text: EXTRACTION_PROMPT },
-        ],
-      },
-    ],
-  });
+            { type: "text", text: EXTRACTION_PROMPT },
+          ],
+        },
+      ],
+    })
+    .catch((err: unknown) => {
+      throw toTRPCError(err);
+    });
 
   if (response.stop_reason === "refusal") {
     throw new TRPCError({
@@ -232,6 +268,10 @@ export async function extractMelody(
 
   return {
     melody: draft.data as MelodyDraft,
-    warnings: [...out.warnings, ...extraWarnings, ...validateMelody(draft.data as MelodyDraft)],
+    warnings: [
+      ...out.warnings,
+      ...extraWarnings,
+      ...validateMelody(draft.data as MelodyDraft),
+    ],
   };
 }
