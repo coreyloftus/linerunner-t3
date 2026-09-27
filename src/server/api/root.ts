@@ -3,6 +3,7 @@ import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 import { scriptData } from "./routers/scriptData";
 import { firebaseRouter } from "./routers/firebase";
 import { voiceRouter } from "./routers/voice";
+import { melodyRouter } from "./routers/melody";
 
 /**
  * This is the primary router for your server.
@@ -14,6 +15,7 @@ export const appRouter = createTRPCRouter({
   scriptData: scriptData,
   firebase: firebaseRouter,
   voice: voiceRouter,
+  melody: melodyRouter,
 });
 
 // export type definition of API

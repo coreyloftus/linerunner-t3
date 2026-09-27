@@ -34,6 +34,9 @@ export const env = createEnv({
     FIREBASE_MESSAGING_SENDER_ID: z.string(),
     FIREBASE_APP_ID: z.string(),
     FIREBASE_SERVICE_ACCOUNT_KEY: z.string(),
+    // Melody import (PDF → notes via Claude); optional so the app runs without it
+    ANTHROPIC_API_KEY: z.string().optional(),
+    MELODY_EXTRACTION_MODEL: z.string().optional(),
   },
 
   /**
@@ -66,6 +69,8 @@ export const env = createEnv({
     FIREBASE_MESSAGING_SENDER_ID: process.env.FIREBASE_MESSAGING_SENDER_ID,
     FIREBASE_APP_ID: process.env.FIREBASE_APP_ID,
     FIREBASE_SERVICE_ACCOUNT_KEY: process.env.FIREBASE_SERVICE_ACCOUNT_KEY,
+    ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+    MELODY_EXTRACTION_MODEL: process.env.MELODY_EXTRACTION_MODEL,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
