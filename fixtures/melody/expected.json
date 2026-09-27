@@ -1,0 +1,185 @@
+{
+  "title": "Twinkle, Twinkle, Little Star",
+  "tempoBpm": 100,
+  "timeSignature": [
+    4,
+    4
+  ],
+  "keySignature": "C major",
+  "pickupBeats": 0,
+  "notes": [
+    {
+      "pitch": "C4",
+      "beats": 1,
+      "measure": 1,
+      "lyric": "Twin-"
+    },
+    {
+      "pitch": "C4",
+      "beats": 1,
+      "measure": 1,
+      "lyric": "kle,"
+    },
+    {
+      "pitch": "G4",
+      "beats": 1,
+      "measure": 1,
+      "lyric": "twin-"
+    },
+    {
+      "pitch": "G4",
+      "beats": 1,
+      "measure": 1,
+      "lyric": "kle,"
+    },
+    {
+      "pitch": "A4",
+      "beats": 1,
+      "measure": 2,
+      "lyric": "lit-"
+    },
+    {
+      "pitch": "A4",
+      "beats": 1,
+      "measure": 2,
+      "lyric": "tle"
+    },
+    {
+      "pitch": "G4",
+      "beats": 2,
+      "measure": 2,
+      "lyric": "star,"
+    },
+    {
+      "pitch": "F4",
+      "beats": 1.5,
+      "measure": 3,
+      "lyric": "How"
+    },
+    {
+      "pitch": "F4",
+      "beats": 0.5,
+      "measure": 3,
+      "lyric": "I"
+    },
+    {
+      "pitch": "E4",
+      "beats": 1,
+      "measure": 3,
+      "lyric": "won-"
+    },
+    {
+      "pitch": "E4",
+      "beats": 1,
+      "measure": 3,
+      "lyric": "der"
+    },
+    {
+      "pitch": "D4",
+      "beats": 1,
+      "measure": 4,
+      "lyric": "what"
+    },
+    {
+      "pitch": "D4",
+      "beats": 1,
+      "measure": 4,
+      "lyric": "you"
+    },
+    {
+      "pitch": "C4",
+      "beats": 2,
+      "measure": 4,
+      "lyric": "are!"
+    },
+    {
+      "pitch": "G4",
+      "beats": 1,
+      "measure": 5,
+      "lyric": "Up"
+    },
+    {
+      "pitch": "G4",
+      "beats": 1,
+      "measure": 5,
+      "lyric": "a-"
+    },
+    {
+      "pitch": "F4",
+      "beats": 1,
+      "measure": 5,
+      "lyric": "bove"
+    },
+    {
+      "pitch": "F4",
+      "beats": 1,
+      "measure": 5,
+      "lyric": "the"
+    },
+    {
+      "pitch": "E4",
+      "beats": 1,
+      "measure": 6,
+      "lyric": "world"
+    },
+    {
+      "pitch": "E4",
+      "beats": 1,
+      "measure": 6,
+      "lyric": "so"
+    },
+    {
+      "pitch": "D4",
+      "beats": 2,
+      "measure": 6,
+      "lyric": "high,"
+    },
+    {
+      "pitch": "G4",
+      "beats": 1.5,
+      "measure": 7,
+      "lyric": "Like"
+    },
+    {
+      "pitch": "G4",
+      "beats": 0.5,
+      "measure": 7,
+      "lyric": "a"
+    },
+    {
+      "pitch": "F4",
+      "beats": 1,
+      "measure": 7,
+      "lyric": "dia-"
+    },
+    {
+      "pitch": "F4",
+      "beats": 1,
+      "measure": 7,
+      "lyric": "mond"
+    },
+    {
+      "pitch": "E4",
+      "beats": 1,
+      "measure": 8,
+      "lyric": "in"
+    },
+    {
+      "pitch": "E4",
+      "beats": 1,
+      "measure": 8,
+      "lyric": "the"
+    },
+    {
+      "pitch": "D4",
+      "beats": 1,
+      "measure": 8,
+      "lyric": "sky."
+    },
+    {
+      "pitch": null,
+      "beats": 1,
+      "measure": 8
+    }
+  ]
+}
