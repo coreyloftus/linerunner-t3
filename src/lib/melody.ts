@@ -220,3 +220,47 @@ export const DURATION_OPTIONS: { beats: number; label: string }[] = [
 export const durationLabel = (beats: number): string =>
   DURATION_OPTIONS.find((d) => Math.abs(d.beats - beats) < 1e-6)?.label ??
   `${formatBeats(beats)} beats`;
+
+const importFileSchema = melodyDraftSchema
+  .extend({
+    sourceFileName: z.string().max(300).optional(),
+    extractionModel: z.string().max(100).optional(),
+    warnings: z.array(z.string()).optional(),
+  })
+  .passthrough();
+
+/** Parse a hand-written melody JSON file into a draft plus its warnings */
+export const parseMelodyJson = (
+  text: string,
+  fileName: string,
+): { draft: MelodyDraft; warnings: string[] } => {
+  let raw: unknown;
+  try {
+    raw = JSON.parse(text);
+  } catch {
+    throw new Error("That file is not valid JSON.");
+  }
+  const parsed = importFileSchema.safeParse(raw);
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0];
+    throw new Error(
+      `That JSON is not a melody: ${issue?.path.join(".") ?? ""} ${issue?.message ?? ""}`.trim(),
+    );
+  }
+  const d = parsed.data;
+  const draft: MelodyDraft = {
+    title: d.title,
+    tempoBpm: d.tempoBpm,
+    timeSignature: d.timeSignature,
+    ...(d.keySignature ? { keySignature: d.keySignature } : {}),
+    pickupBeats: d.pickupBeats ?? 0,
+    notes: d.notes.map((n) => ({
+      ...n,
+      pitch: n.pitch === null ? null : (normalizePitch(n.pitch) ?? n.pitch),
+    })),
+    ...(d.link ? { link: d.link } : {}),
+    sourceFileName: d.sourceFileName ?? fileName,
+    extractionModel: d.extractionModel ?? "json import",
+  };
+  return { draft, warnings: d.warnings ?? [] };
+};
