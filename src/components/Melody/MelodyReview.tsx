@@ -6,11 +6,13 @@ import { FaPlay, FaPause, FaStop, FaPlus, FaTrash } from "react-icons/fa6";
 import { api } from "~/trpc/react";
 import { Button } from "../ui/button";
 import { useMelodyPlayer } from "~/hooks/useMelodyPlayer";
+import { MelodyStaff } from "./MelodyStaff";
 import {
   badMeasures,
   DURATION_OPTIONS,
   durationLabel,
   formatBeats,
+  groupByMeasure,
   measureLength,
   normalizePitch,
   validateMelody,
@@ -35,17 +37,6 @@ const inputClass =
   "w-full rounded-md border border-border bg-surface px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring";
 const labelClass =
   "text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground";
-
-/** Note indexes grouped by measure, in measure order */
-export const groupByMeasure = (notes: MelodyNote[]) => {
-  const groups = new Map<number, number[]>();
-  notes.forEach((n, i) => {
-    const list = groups.get(n.measure) ?? [];
-    list.push(i);
-    groups.set(n.measure, list);
-  });
-  return [...groups.entries()].sort((a, b) => a[0] - b[0]);
-};
 
 export function MelodyReview({ id, draft: initial, warnings: sourceWarnings, onSaved, onCancel }: MelodyReviewProps) {
   const [draft, setDraft] = useState<MelodyDraft>(initial);
@@ -211,6 +202,18 @@ export function MelodyReview({ id, draft: initial, warnings: sourceWarnings, onS
         <span className="text-xs text-muted-foreground">
           {draft.notes.length} notes · {measures.length} measures · {formatBeats(expectedBeats)} beats per measure
         </span>
+      </div>
+
+      {/* Staff: redraws live as notes are edited */}
+      <div className="max-h-[45vh] overflow-y-auto rounded-xl border border-border bg-surface px-2 py-1 [overscroll-behavior:contain]">
+        <MelodyStaff
+          melody={draft}
+          currentNoteIndex={player.currentNoteIndex}
+          onNoteClick={(i) => {
+            setSelected(i);
+            void player.play(i);
+          }}
+        />
       </div>
 
       {/* Measures */}

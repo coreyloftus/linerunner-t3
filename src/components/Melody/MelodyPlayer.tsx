@@ -6,8 +6,9 @@ import { FiMinus, FiPlus } from "react-icons/fi";
 import { FaPlay, FaPause, FaStop, FaPen, FaDownload, FaTrash, FaRepeat } from "react-icons/fa6";
 import { Button } from "../ui/button";
 import { renderWav, useMelodyPlayer } from "~/hooks/useMelodyPlayer";
-import { type Melody } from "~/lib/melody";
-import { groupByMeasure } from "./MelodyReview";
+import { MelodyStaff } from "./MelodyStaff";
+import { groupByMeasure, type Melody } from "~/lib/melody";
+import { scrollWithinParent } from "~/lib/utils";
 
 interface MelodyPlayerProps {
   melody: Melody;
@@ -55,7 +56,7 @@ export function MelodyPlayer({ melody, onEdit, onDelete }: MelodyPlayerProps) {
   }, [loopRange]);
 
   useEffect(() => {
-    currentRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    if (currentRef.current) scrollWithinParent(currentRef.current);
   }, [player.currentNoteIndex]);
 
   const handleDownload = async () => {
@@ -73,7 +74,7 @@ export function MelodyPlayer({ melody, onEdit, onDelete }: MelodyPlayerProps) {
   };
 
   return (
-    <div className="mx-auto flex h-full max-w-3xl flex-col gap-4">
+    <div className="mx-auto flex max-w-3xl flex-col gap-4 md:h-full">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <h3 className="font-display text-xl font-semibold">{melody.title}</h3>
@@ -227,8 +228,17 @@ export function MelodyPlayer({ melody, onEdit, onDelete }: MelodyPlayerProps) {
         </div>
       </div>
 
+      {/* Staff */}
+      <div className="max-h-[65vh] min-h-[8rem] flex-shrink-0 overflow-y-auto md:max-h-[50%] rounded-xl border border-border bg-surface px-2 py-1 [overscroll-behavior:contain]">
+        <MelodyStaff
+          melody={melody}
+          currentNoteIndex={player.currentNoteIndex}
+          onNoteClick={(i) => void player.play(i)}
+        />
+      </div>
+
       {/* Lyrics */}
-      <div className="min-h-0 flex-1 overflow-y-auto rounded-xl border border-border bg-surface p-4 [overscroll-behavior:contain]">
+      <div className="max-h-[40vh] min-h-[6rem] overflow-y-auto md:max-h-none md:flex-1 rounded-xl border border-border bg-surface p-4 [overscroll-behavior:contain]">
         <div className="space-y-3 font-script text-lg leading-relaxed">
           {measures.map(([measure, indexes]) => {
             const inLoop = loop && indexes.some((i) => i >= loop.start && i <= loop.end);

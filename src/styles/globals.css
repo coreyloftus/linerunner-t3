@@ -171,3 +171,34 @@ body > * {
   font-weight: 600;
   color: hsl(var(--muted-foreground));
 }
+
+/* Melody staff (VexFlow SVG): draw in currentColor so notation follows the theme */
+.melody-staff svg [fill]:not([fill="none"]) {
+  fill: currentColor;
+}
+.melody-staff svg [stroke]:not([stroke="none"]) {
+  stroke: currentColor;
+}
+.melody-staff .vf-note {
+  cursor: pointer;
+}
+.melody-staff .vf-note:hover {
+  opacity: 0.7;
+}
+.melody-staff svg .vf-current [fill]:not([fill="none"]),
+.melody-staff svg .vf-current text {
+  fill: hsl(var(--accent));
+}
+.melody-staff svg .vf-current [stroke]:not([stroke="none"]) {
+  stroke: hsl(var(--accent));
+}
+.melody-staff .vf-bad-measure {
+  fill: hsl(var(--curtain) / 0.08);
+  stroke: hsl(var(--curtain) / 0.6);
+  stroke-width: 1.5;
+}
+.melody-staff svg text.vf-measure-number {
+  fill: hsl(var(--muted-foreground));
+  font-family: var(--font-geist-sans), sans-serif;
+  font-size: 11px;
+}

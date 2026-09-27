@@ -264,3 +264,14 @@ export const parseMelodyJson = (
   };
   return { draft, warnings: d.warnings ?? [] };
 };
+
+/** Note indexes grouped by measure, in measure order */
+export const groupByMeasure = (notes: MelodyNote[]) => {
+  const groups = new Map<number, number[]>();
+  notes.forEach((n, i) => {
+    const list = groups.get(n.measure) ?? [];
+    list.push(i);
+    groups.set(n.measure, list);
+  });
+  return [...groups.entries()].sort((a, b) => a[0] - b[0]);
+};
