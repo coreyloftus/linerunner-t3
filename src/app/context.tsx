@@ -17,7 +17,7 @@ import {
 } from "~/lib/preferences";
 
 // Project source types for distinguishing projects with the same name
-export type ProjectSource = "public" | "shared" | "user";
+export type ProjectSource = "public" | "shared" | "user" | "local";
 
 export interface SelectedProject {
   name: string;

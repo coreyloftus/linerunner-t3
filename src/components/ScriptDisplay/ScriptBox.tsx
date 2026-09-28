@@ -49,6 +49,15 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     playbackPreferences,
   } = useContext(ScriptContext);
 
+  const { data: localData } = api.scriptData.getAll.useQuery(
+    { dataSource: "local" },
+    {
+      enabled: true,
+      refetchOnWindowFocus: false,
+      refetchOnMount: true,
+    },
+  );
+
   // Fetch public, shared, and user data
   const { data: publicData } = api.scriptData.getAll.useQuery(
     { dataSource: "public" },
@@ -82,6 +91,8 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     if (!selectedProject) return data;
 
     switch (selectedProject.source) {
+      case "local":
+        return localData ?? data;
       case "public":
         return publicData ?? data;
       case "shared":
