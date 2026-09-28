@@ -36,6 +36,15 @@ export default function NewScriptSelect({
   } = useContext(ScriptContext);
   const { project, scene, character } = queryParams;
 
+  const { data: localData } = api.scriptData.getAll.useQuery(
+    { dataSource: "local" },
+    {
+      enabled: true,
+      refetchOnWindowFocus: false,
+      refetchOnMount: true,
+    },
+  );
+
   // Fetch public data (always available)
   const { data: publicData } = api.scriptData.getAll.useQuery(
     { dataSource: "public" },
@@ -67,6 +76,8 @@ export default function NewScriptSelect({
   );
 
   // Combine public, user, and shared data
+  const localProjects = localData?.projects ?? [];
+  const localAllData = localData?.allData ?? [];
   const publicProjects = publicData?.projects ?? [];
   const publicAllData = publicData?.allData ?? [];
   const userProjects = userData?.projects ?? [];
@@ -76,6 +87,10 @@ export default function NewScriptSelect({
 
   // Create hierarchical project list
   const hierarchicalProjects = [
+    ...localProjects.map((project) => ({
+      name: project,
+      type: "local" as const,
+    })),
     ...publicProjects.map((project) => ({
       name: project,
       type: "public" as const,
@@ -97,6 +112,9 @@ export default function NewScriptSelect({
     // Use selectedProject.source to determine which data to use
     let dataSource: ProjectJSON[];
     switch (selectedProject.source) {
+      case "local":
+        dataSource = localAllData;
+        break;
       case "public":
         dataSource = publicAllData;
         break;
@@ -128,6 +146,9 @@ export default function NewScriptSelect({
     // Use selectedProject.source to determine which data to use
     let dataSource: ProjectJSON[];
     switch (selectedProject.source) {
+      case "local":
+        dataSource = localAllData;
+        break;
       case "public":
         dataSource = publicAllData;
         break;
@@ -191,12 +212,14 @@ export default function NewScriptSelect({
 
       // If source is provided in URL, use it directly
       let resolvedSource: ProjectSource;
-      if (sourceParam && ["public", "shared", "user"].includes(sourceParam)) {
+      if (sourceParam && ["public", "shared", "user", "local"].includes(sourceParam)) {
         resolvedSource = sourceParam;
       } else {
         // Legacy URL support: infer source by checking which list contains the project
         resolvedSource = "public";
-        if (publicProjects.includes(projectName)) {
+        if (localProjects.includes(projectName)) {
+          resolvedSource = "local";
+        } else if (publicProjects.includes(projectName)) {
           resolvedSource = "public";
         } else if (sharedProjects.includes(projectName)) {
           resolvedSource = "shared";
@@ -224,6 +247,7 @@ export default function NewScriptSelect({
     scene,
     character,
     queryParams.source,
+    localProjects,
     publicProjects,
     sharedProjects,
     userProjects,
@@ -250,11 +274,13 @@ export default function NewScriptSelect({
         <SelectContent>
           {hierarchicalProjects.map((project, index) => (
             <SelectItem value={`${project.type}:${project.name}`} key={index}>
-              {project.type === "public"
-                ? `📁 ${project.name}`
-                : project.type === "shared"
-                  ? `🔗 ${project.name}`
-                  : `👤 ${project.name}`}
+              {project.type === "local"
+                ? `💻 ${project.name}`
+                : project.type === "public"
+                  ? `📁 ${project.name}`
+                  : project.type === "shared"
+                    ? `🔗 ${project.name}`
+                    : `👤 ${project.name}`}
             </SelectItem>
           ))}
         </SelectContent>

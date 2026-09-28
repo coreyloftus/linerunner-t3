@@ -47,6 +47,10 @@ export function ScriptsWorkspace({ data, onPractice }: ScriptsWorkspaceProps) {
   const [view, setView] = useState<WorkspaceView>("library");
   const [expandedProject, setExpandedProject] = useState<string | null>(null);
 
+  const { data: localData } = api.scriptData.getAll.useQuery(
+    { dataSource: "local" },
+    { refetchOnWindowFocus: false },
+  );
   const { data: publicData } = api.scriptData.getAll.useQuery(
     { dataSource: "public" },
     { refetchOnWindowFocus: false },
@@ -62,6 +66,12 @@ export function ScriptsWorkspace({ data, onPractice }: ScriptsWorkspaceProps) {
 
   const sections: LibrarySection[] = useMemo(
     () => [
+      {
+        key: "local",
+        title: "On this machine",
+        projects: localData?.allData ?? [],
+        emptyNote: "No JSON files in public/sceneData.",
+      },
       {
         key: "user",
         title: "Your Scripts",
@@ -81,7 +91,7 @@ export function ScriptsWorkspace({ data, onPractice }: ScriptsWorkspaceProps) {
         projects: publicData?.allData ?? data.allData,
       },
     ],
-    [userData, sharedData, publicData, data, session],
+    [localData, userData, sharedData, publicData, data, session],
   );
 
   const projectCharacters = (project: ProjectJSON) => {

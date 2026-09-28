@@ -306,6 +306,15 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
     return [...new Set(allCharacters)].filter(Boolean).sort();
   }, [formData.lines]);
 
+  const { data: localData } = api.scriptData.getAll.useQuery(
+    { dataSource: "local" },
+    {
+      enabled: true,
+      refetchOnWindowFocus: false,
+      refetchOnMount: true,
+    },
+  );
+
   // Fetch public data (always available)
   const { data: publicData, refetch } = api.scriptData.getAll.useQuery(
     { dataSource: "public" },
@@ -341,6 +350,8 @@ export const ScriptData = ({ data }: ScriptDataProps) => {
     if (!selectedProject) return data;
 
     switch (selectedProject.source) {
+      case "local":
+        return localData ?? data;
       case "public":
         return publicData ?? data;
       case "shared":
