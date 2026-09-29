@@ -16,21 +16,34 @@ export const lineAudioKey = async (character: string, text: string) => {
     .join("");
 };
 
-const manifests = new Map<string, Promise<Record<string, string>>>();
+export interface AudioManifest {
+  base: string;
+  clips: Record<string, string>;
+}
 
+const manifests = new Map<string, Promise<AudioManifest>>();
+
+const fetchClips = (url: string) =>
+  fetch(url, { cache: "no-store" })
+    .then((res) => (res.ok ? (res.json() as Promise<Record<string, string>>) : {}))
+    .catch(() => ({}));
+
+// Local files win in dev; otherwise fall back to the signed-in API route in prod
 export const loadAudioManifest = (slug: string) => {
   let manifest = manifests.get(slug);
   if (!manifest) {
-    manifest = fetch(`/sceneData/audio/${slug}/manifest.json`, {
-      cache: "no-store",
-    })
-      .then((res) => (res.ok ? (res.json() as Promise<Record<string, string>>) : {}))
-      .catch(() => ({}))
-      .then((data) => {
-        // Don't keep an empty result, so clips generated later are picked up
-        if (Object.keys(data).length === 0) manifests.delete(slug);
-        return data;
-      });
+    const sources = [`/sceneData/audio/${slug}`, `/api/line-audio/${slug}`];
+    manifest = (async () => {
+      for (const base of sources) {
+        const clips = await fetchClips(`${base}/manifest.json`);
+        if (Object.keys(clips).length > 0) return { base, clips };
+      }
+      return { base: "", clips: {} };
+    })().then((result) => {
+      // Don't keep an empty result, so clips generated later are picked up
+      if (!result.base) manifests.delete(slug);
+      return result;
+    });
     manifests.set(slug, manifest);
   }
   return manifest;
