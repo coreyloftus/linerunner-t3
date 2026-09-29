@@ -412,6 +412,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
                 // currentLineSplitIndex={currentLineSplitIndex}
                 scrollRef={scrollRef}
                 wordIndex={wordIndex}
+                projectName={selectedProject?.name}
               />
             ) : (
               <div className="flex h-full items-center justify-center">
