@@ -31,8 +31,8 @@ export const LineAudioButton = ({
       loadAudioManifest(slug),
       lineAudioKey(character, text),
     ]).then(([manifest, key]) => {
-      const file = manifest[key];
-      if (!cancelled && file) setSrc(`/sceneData/audio/${slug}/${file}`);
+      const file = manifest.clips[key];
+      if (!cancelled && file) setSrc(`${manifest.base}/${file}`);
     });
     return () => {
       cancelled = true;
