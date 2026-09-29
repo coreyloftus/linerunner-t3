@@ -1,5 +1,6 @@
 import { useContext, useEffect } from "react";
 import { ScriptContext, type ColorPreset } from "~/app/context";
+import { LineAudioButton } from "./LineAudioButton";
 
 interface CharacterLineDisplayProps {
   script:
@@ -15,6 +16,7 @@ interface CharacterLineDisplayProps {
   currentLineIndex: number;
   selectedCharacter: string;
   wordIndex: number;
+  projectName?: string;
   scrollRef: React.MutableRefObject<HTMLDivElement | null>;
 }
 
@@ -53,6 +55,7 @@ export const CharacterLineDisplay = ({
   selectedCharacter,
   scrollRef,
   wordIndex: wordDisplayIndex,
+  projectName,
 }: CharacterLineDisplayProps) => {
   const lines = script?.lines ?? [];
   const { displayPreferences } = useContext(ScriptContext);
@@ -137,6 +140,13 @@ export const CharacterLineDisplay = ({
               >
                 {line.sung ? line.line.toUpperCase() : line.line}
               </p>
+              {projectName && (
+                <LineAudioButton
+                  projectName={projectName}
+                  characters={line.characters}
+                  text={line.line}
+                />
+              )}
             </div>
           </li>
         );
@@ -181,6 +191,13 @@ export const CharacterLineDisplay = ({
                   >
                     {isSung ? lineText.toUpperCase() : lineText}
                   </p>
+                )}
+                {!isConcealed && projectName && (
+                  <LineAudioButton
+                    projectName={projectName}
+                    characters={currentChars}
+                    text={lines[currentLineIndex]?.line ?? ""}
+                  />
                 )}
               </div>
             </li>

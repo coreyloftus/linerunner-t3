@@ -45,3 +45,6 @@ yarn-error.log*
 
 # scripts
 /scripts.playwright-mcp/
+
+# generated line audio
+/public/sceneData/audio/
