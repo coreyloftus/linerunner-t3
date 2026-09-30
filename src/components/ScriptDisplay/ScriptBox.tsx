@@ -400,10 +400,10 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
   });
 
   return (
-    <div className="flex h-[90dvh] w-[95dvw] flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-xl shadow-black/5 supports-[height:100svh]:h-[90svh] dark:shadow-black/40">
-      <div className="flex h-[90%] flex-col rounded-md ">
-        <div className="pt-safe-top pb-safe-bottom flex-grow overflow-hidden">
-          <ul className="overscroll-bounce h-full overflow-y-auto px-2 [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain] [touch-action:pan-y]">
+    <div className="flex h-full w-full flex-col overflow-hidden bg-surface">
+      <div className="flex min-h-0 flex-1 flex-col">
+        <div className="min-h-0 flex-grow overflow-hidden">
+          <ul className="overscroll-bounce h-full overflow-y-auto px-2 pt-12 md:pt-0 [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain] [touch-action:pan-y]">
             {playScene ? (
               <CharacterLineDisplay
                 script={script}
@@ -504,7 +504,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
           </div>
         )}
       </div>
-      <div className="h-[10%]">
+      <div className="h-14 flex-shrink-0">
         <ControlBar
           playScene={playScene}
           setPlayScene={setPlayScene}

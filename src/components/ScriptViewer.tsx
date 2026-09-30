@@ -124,7 +124,7 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
 
     if (!playScene)
       return (
-        <p className="text-stone-900 dark:text-stone-100">
+        <p className="text-foreground">
           Ready - Line {currentLineIndex + 1} of {totalLines}
         </p>
       );
@@ -132,10 +132,10 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
     if (currentLine && currentLineSplit.length > 0) {
       return (
         <>
-          <p className="text-stone-900 dark:text-stone-100">
+          <p className="text-foreground">
             Line {currentLineIndex + 1} of {totalLines}
           </p>
-          <p className="text-stone-900 dark:text-stone-100">
+          <p className="text-foreground">
             {" "}
             Word {wordIndex + 1} of {currentLineSplit.length}
           </p>
@@ -144,17 +144,17 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
     }
 
     return (
-      <p className="text-stone-900 dark:text-stone-100">
+      <p className="text-foreground">
         Line {currentLineIndex + 1} of {totalLines}
       </p>
     );
   };
 
   return (
-    <div className="flex h-[90dvh] w-[95dvw] flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-xl shadow-black/5 supports-[height:100svh]:h-[90svh] dark:shadow-black/40">
-      <div className="flex h-full flex-col">
+    <div className="flex h-full w-full flex-col overflow-hidden bg-surface">
+      <div className="flex min-h-0 flex-1 flex-col">
         {/* Mobile-optimized header */}
-        <div className="iphone:flex-row iphone:items-center iphone:justify-between iphone:px-4 iphone:py-3 flex flex-col border-b border-border bg-surface-raised/90 px-3 py-2">
+        <div className="iphone:flex-row iphone:items-center iphone:justify-between iphone:py-3 flex min-h-14 flex-col justify-center border-b border-border bg-surface-raised/90 py-2 pl-14 pr-3 iphone:pr-4 md:pl-4">
           <h2 className="text-mobile-base iphone:text-lg iphone:mb-0 mb-1 font-display font-semibold">
             Script Viewer
           </h2>
@@ -164,17 +164,17 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
         </div>
 
         {/* Mobile-optimized content area */}
-        <div className="flex-1 overflow-hidden">
+        <div className="min-h-0 flex-1 overflow-hidden">
           <Textarea
             value={formatScriptForDisplay()}
             readOnly
             className="text-mobile-sm iphone:text-mobile-base iphone:leading-loose iphone:p-4 h-full min-h-[60px] 
                       resize-none overflow-y-auto border-0 
                       bg-transparent p-3
-                      font-script leading-relaxed text-stone-900
+                      font-script leading-relaxed text-foreground
                       [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain] [touch-action:pan-y]
                       focus-visible:ring-0
-                      dark:text-stone-100 md:text-sm"
+                      md:text-sm"
             placeholder="No script selected..."
           />
         </div>
