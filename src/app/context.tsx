@@ -13,6 +13,8 @@ import {
   defaultPreferences,
   loadPreferences,
   savePreferences,
+  type LayoutPreferences,
+  type MelodyPreferences,
   type PlaybackPreferences,
 } from "~/lib/preferences";
 
@@ -66,6 +68,12 @@ interface ScriptContextProps {
   // Playback preferences
   playbackPreferences: PlaybackPreferences;
   setPlaybackPreferences: Dispatch<SetStateAction<PlaybackPreferences>>;
+  // Layout preferences
+  layoutPreferences: LayoutPreferences;
+  setLayoutPreferences: Dispatch<SetStateAction<LayoutPreferences>>;
+  // Melody preferences
+  melodyPreferences: MelodyPreferences;
+  setMelodyPreferences: Dispatch<SetStateAction<MelodyPreferences>>;
   // Speech recognition line matching
   speechMatchEnabled: boolean;
   setSpeechMatchEnabled: Dispatch<SetStateAction<boolean>>;
@@ -148,6 +156,12 @@ export const ScriptContext = createContext<ScriptContextProps>({
   // Playback preferences defaults
   playbackPreferences: defaultPreferences().playback,
   setPlaybackPreferences: () => defaultPreferences().playback,
+  // Layout preferences defaults
+  layoutPreferences: defaultPreferences().layout,
+  setLayoutPreferences: () => defaultPreferences().layout,
+  // Melody preferences defaults
+  melodyPreferences: defaultPreferences().melody,
+  setMelodyPreferences: () => defaultPreferences().melody,
   // Speech matching defaults
   speechMatchEnabled: false,
   setSpeechMatchEnabled: () => false,
@@ -200,6 +214,10 @@ export const ScriptProvider = ({ children }: { children: ReactNode }) => {
     useState<DisplayPreferences>(DEFAULT_DISPLAY_PREFERENCES);
   const [playbackPreferences, setPlaybackPreferences] =
     useState<PlaybackPreferences>(defaultPreferences().playback);
+  const [layoutPreferences, setLayoutPreferences] =
+    useState<LayoutPreferences>(defaultPreferences().layout);
+  const [melodyPreferences, setMelodyPreferences] =
+    useState<MelodyPreferences>(defaultPreferences().melody);
   const [speechMatchEnabled, setSpeechMatchEnabled] = useState(false);
   const [prefsHydrated, setPrefsHydrated] = useState(false);
 
@@ -207,6 +225,8 @@ export const ScriptProvider = ({ children }: { children: ReactNode }) => {
     const loaded = loadPreferences();
     setDisplayPreferences(loaded.display);
     setPlaybackPreferences(loaded.playback);
+    setLayoutPreferences(loaded.layout);
+    setMelodyPreferences(loaded.melody);
     setSpeechMatchEnabled(loaded.speechMatchEnabled);
     setPrefsHydrated(true);
   }, []);
@@ -218,8 +238,17 @@ export const ScriptProvider = ({ children }: { children: ReactNode }) => {
       display: displayPreferences,
       speechMatchEnabled,
       playback: playbackPreferences,
+      layout: layoutPreferences,
+      melody: melodyPreferences,
     });
-  }, [prefsHydrated, displayPreferences, speechMatchEnabled, playbackPreferences]);
+  }, [
+    prefsHydrated,
+    displayPreferences,
+    speechMatchEnabled,
+    playbackPreferences,
+    layoutPreferences,
+    melodyPreferences,
+  ]);
 
   useEffect(() => {
     setQueryParams(Object.fromEntries(searchParams));
@@ -281,6 +310,12 @@ export const ScriptProvider = ({ children }: { children: ReactNode }) => {
         // Playback preferences
         playbackPreferences,
         setPlaybackPreferences,
+        // Layout preferences
+        layoutPreferences,
+        setLayoutPreferences,
+        // Melody preferences
+        melodyPreferences,
+        setMelodyPreferences,
         // Speech matching
         speechMatchEnabled,
         setSpeechMatchEnabled,
