@@ -142,7 +142,7 @@ export function MelodyPlayer({ melody, onEdit, onDelete }: MelodyPlayerProps) {
         </div>
 
         <div className="flex items-center gap-1.5" title={`${Math.round(melody.tempoBpm * player.tempoScale)} bpm`}>
-          <span className={`${labelClass} hidden md:inline`}>Tempo</span>
+          <span className={labelClass}>Tempo</span>
           <button
             type="button"
             className={stepButton}
@@ -179,7 +179,7 @@ export function MelodyPlayer({ melody, onEdit, onDelete }: MelodyPlayerProps) {
         </div>
 
         <div className="flex items-center gap-1.5">
-          <span className={`${labelClass} hidden md:inline`}>Zoom</span>
+          <span className={labelClass}>Zoom</span>
           <button
             type="button"
             className={stepButton}
