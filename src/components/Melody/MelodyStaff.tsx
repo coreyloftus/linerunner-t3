@@ -18,6 +18,8 @@ interface MelodyStaffProps {
   melody: Pick<Melody, "notes" | "timeSignature" | "keySignature" | "pickupBeats">;
   currentNoteIndex?: number;
   onNoteClick?: (index: number) => void;
+  /** Zoom factor; phones draw at 0.75 of it */
+  scale?: number;
   className?: string;
 }
 
@@ -125,7 +127,7 @@ function buildMeasure(
   return { measure, notes: staveNotes, indexes, voice, minWidth };
 }
 
-export function MelodyStaff({ melody, currentNoteIndex = -1, onNoteClick, className = "" }: MelodyStaffProps) {
+export function MelodyStaff({ melody, currentNoteIndex = -1, onNoteClick, scale = 1, className = "" }: MelodyStaffProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const noteElsRef = useRef<Map<number, SVGElement>>(new Map());
   const clickRef = useRef(onNoteClick);
@@ -169,13 +171,13 @@ export function MelodyStaff({ melody, currentNoteIndex = -1, onNoteClick, classN
     noteElsRef.current = new Map();
     setError(null);
     try {
-      renderStaff(vex, el, melody, width, noteElsRef.current, (i) => clickRef.current?.(i));
+      renderStaff(vex, el, melody, width, scale, noteElsRef.current, (i) => clickRef.current?.(i));
     } catch (err) {
       console.error("[MelodyStaff] render failed:", err);
       el.innerHTML = "";
       setError("This melody could not be drawn as notation.");
     }
-  }, [vex, melody, width]);
+  }, [vex, melody, width, scale]);
 
   // Highlight by class so playback never re-renders the SVG
   useEffect(() => {
@@ -186,7 +188,7 @@ export function MelodyStaff({ melody, currentNoteIndex = -1, onNoteClick, classN
       current.classList.add("vf-current");
       scrollWithinParent(current, 40, true);
     }
-  }, [currentNoteIndex, vex, melody, width]);
+  }, [currentNoteIndex, vex, melody, width, scale]);
 
   return (
     <div className={`melody-staff text-foreground ${className}`}>
@@ -202,11 +204,12 @@ function renderStaff(
   el: HTMLDivElement,
   melody: MelodyStaffProps["melody"],
   containerWidth: number,
+  zoom: number,
   noteEls: Map<number, SVGElement>,
   onClick: (index: number) => void,
 ) {
   const { Renderer, Stave, Formatter, Beam, StaveTie } = Vex;
-  const scale = containerWidth < 640 ? 0.75 : 1;
+  const scale = zoom * (containerWidth < 640 ? 0.75 : 1);
   const width = containerWidth / scale;
   const keySpec = toVexKey(melody.keySignature);
   const timeSpec = melody.timeSignature.join("/");
