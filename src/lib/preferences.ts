@@ -19,11 +19,24 @@ export interface PlaybackPreferences {
   lineGapMs: number;
 }
 
+export interface LayoutPreferences {
+  sidebarCollapsed: boolean;
+}
+
+export type MelodyView = "score" | "lyrics" | "both";
+
+export interface MelodyPreferences {
+  view: MelodyView;
+  staffScale: number;
+}
+
 export interface UserPreferences {
   version: 1;
   display: DisplayPreferences;
   speechMatchEnabled: boolean;
   playback: PlaybackPreferences;
+  layout: LayoutPreferences;
+  melody: MelodyPreferences;
 }
 
 const DEFAULT_DISPLAY: DisplayPreferences = {
@@ -39,12 +52,27 @@ const DEFAULT_PLAYBACK: PlaybackPreferences = {
   lineGapMs: 800,
 };
 
+const DEFAULT_LAYOUT: LayoutPreferences = {
+  sidebarCollapsed: false,
+};
+
+const DEFAULT_MELODY: MelodyPreferences = {
+  view: "both",
+  staffScale: 1,
+};
+
+export const STAFF_SCALE_MIN = 0.5;
+export const STAFF_SCALE_MAX = 1.5;
+export const STAFF_SCALE_STEP = 0.1;
+
 export function defaultPreferences(): UserPreferences {
   return {
     version: 1,
     display: { ...DEFAULT_DISPLAY },
     speechMatchEnabled: false,
     playback: { ...DEFAULT_PLAYBACK },
+    layout: { ...DEFAULT_LAYOUT },
+    melody: { ...DEFAULT_MELODY },
   };
 }
 
@@ -90,6 +118,27 @@ function normalizePlayback(value: unknown): PlaybackPreferences {
   };
 }
 
+function normalizeLayout(value: unknown): LayoutPreferences {
+  const raw = value && typeof value === "object" ? (value as Partial<LayoutPreferences>) : {};
+  return {
+    sidebarCollapsed: raw.sidebarCollapsed === true,
+  };
+}
+
+export function clampStaffScale(value: unknown): number {
+  const n = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(n)) return DEFAULT_MELODY.staffScale;
+  return Math.round(Math.min(STAFF_SCALE_MAX, Math.max(STAFF_SCALE_MIN, n)) * 10) / 10;
+}
+
+function normalizeMelody(value: unknown): MelodyPreferences {
+  const raw = value && typeof value === "object" ? (value as Partial<MelodyPreferences>) : {};
+  return {
+    view: raw.view === "score" || raw.view === "lyrics" || raw.view === "both" ? raw.view : DEFAULT_MELODY.view,
+    staffScale: clampStaffScale(raw.staffScale),
+  };
+}
+
 function normalize(value: unknown): UserPreferences {
   const raw = value && typeof value === "object" ? (value as Partial<UserPreferences>) : {};
   return {
@@ -97,6 +146,8 @@ function normalize(value: unknown): UserPreferences {
     display: normalizeDisplay(raw.display),
     speechMatchEnabled: raw.speechMatchEnabled === true,
     playback: normalizePlayback(raw.playback),
+    layout: normalizeLayout(raw.layout),
+    melody: normalizeMelody(raw.melody),
   };
 }
 
@@ -117,6 +168,8 @@ function migrateLegacy(): UserPreferences {
     display,
     speechMatchEnabled: localStorage.getItem("linerunner-speech-match") === "true",
     playback: defaults.playback,
+    layout: defaults.layout,
+    melody: defaults.melody,
   });
 }
 
