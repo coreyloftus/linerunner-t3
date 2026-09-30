@@ -24,23 +24,23 @@ function Stepper({
 }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-xs text-stone-600 dark:text-stone-400">{label}</span>
+      <span className="text-xs text-muted-foreground">{label}</span>
       <div className="flex items-center gap-2">
         <button
           onClick={() => onChange(Math.max(min, value - step))}
           disabled={value <= min}
-          className="flex h-7 w-7 items-center justify-center rounded-md border border-stone-300 bg-stone-100 text-stone-700 transition-colors hover:bg-stone-200 disabled:cursor-not-allowed disabled:opacity-50 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700"
+          className="flex h-7 w-7 items-center justify-center rounded-md border border-border bg-surface-raised text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
           aria-label={`Decrease ${label}`}
         >
           <FiMinus className="h-4 w-4" />
         </button>
-        <span className="w-16 text-center text-sm font-medium text-stone-800 dark:text-stone-200">
+        <span className="w-16 text-center text-sm font-medium text-foreground">
           {value} ms
         </span>
         <button
           onClick={() => onChange(Math.min(max, value + step))}
           disabled={value >= max}
-          className="flex h-7 w-7 items-center justify-center rounded-md border border-stone-300 bg-stone-100 text-stone-700 transition-colors hover:bg-stone-200 disabled:cursor-not-allowed disabled:opacity-50 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700"
+          className="flex h-7 w-7 items-center justify-center rounded-md border border-border bg-surface-raised text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
           aria-label={`Increase ${label}`}
         >
           <FiPlus className="h-4 w-4" />
