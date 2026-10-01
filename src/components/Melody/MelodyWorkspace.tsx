@@ -20,6 +20,8 @@ export function MelodyWorkspace() {
   const { data: session, status } = useSession();
   const [view, setView] = useState<View>({ kind: "empty" });
   const [jsonError, setJsonError] = useState<string | null>(null);
+  // Bumped per import so a new file replaces an open review
+  const [importCount, setImportCount] = useState(0);
   const jsonInputRef = useRef<HTMLInputElement>(null);
   const utils = api.useUtils();
 
@@ -42,6 +44,7 @@ export function MelodyWorkspace() {
     setJsonError(null);
     try {
       const { draft, warnings } = parseMelodyJson(await file.text(), file.name);
+      setImportCount((n) => n + 1);
       setView({ kind: "review", input: { draft, warnings } });
     } catch (err) {
       setJsonError(err instanceof Error ? err.message : "Could not read that file.");
@@ -167,7 +170,7 @@ export function MelodyWorkspace() {
             )}
             {view.kind === "review" && (
               <MelodyReview
-                key={view.input.id ?? "new"}
+                key={view.input.id ?? `new-${importCount}`}
                 {...view.input}
                 onSaved={(id) => setView({ kind: "player", id })}
                 onCancel={() => setView(view.input.id ? { kind: "player", id: view.input.id } : { kind: "empty" })}
