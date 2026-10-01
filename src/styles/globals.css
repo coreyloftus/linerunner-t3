@@ -199,8 +199,8 @@ body > * {
 }
 .melody-staff svg text.vf-measure-number {
   fill: currentColor;
-  opacity: 0.85;
+  opacity: 1;
   font-family: var(--font-geist-sans), sans-serif;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 800;
 }
