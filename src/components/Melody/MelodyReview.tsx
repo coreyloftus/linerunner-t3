@@ -87,18 +87,21 @@ export function MelodyReview({ id, draft: initial, warnings: sourceWarnings, onS
       notes: d.notes.map((n, j) => (j === i ? { ...n, ...patch } : n)),
     }));
 
-  const insertAfter = (i: number) => {
+  // New note copies the pitch and measure of its neighbour; `at` is where it lands
+  const insertAt = (at: number, from: number) => {
     setDraft((d) => {
-      const src = d.notes[i]!;
+      const src = d.notes[from]!;
       const note: MelodyNote = { pitch: src.pitch, beats: 1, measure: src.measure };
-      return { ...d, notes: [...d.notes.slice(0, i + 1), note, ...d.notes.slice(i + 1)] };
+      return { ...d, notes: [...d.notes.slice(0, at), note, ...d.notes.slice(at)] };
     });
-    setSelected(i + 1);
+    setSelected(at);
   };
 
+  // Selection moves to the note that takes the deleted one's place, or the new last note
   const deleteNote = (i: number) => {
+    const remaining = draft.notes.length - 1;
     setDraft((d) => ({ ...d, notes: d.notes.filter((_, j) => j !== i) }));
-    setSelected(null);
+    setSelected(remaining > 0 ? Math.min(i, remaining - 1) : null);
   };
 
   const { data: session } = useSession();
@@ -333,10 +336,12 @@ export function MelodyReview({ id, draft: initial, warnings: sourceWarnings, onS
             })}
           </div>
           <NoteEditor
-            key={selected}
+            // Remount after insert/delete so the pitch box never shows the previous note
+            key={`${selected}:${draft.notes.length}`}
             note={draft.notes[selected]}
             onChange={(patch) => updateNote(selected, patch)}
-            onInsertAfter={() => insertAfter(selected)}
+            onInsertBefore={() => insertAt(selected, selected)}
+            onInsertAfter={() => insertAt(selected + 1, selected)}
             onDelete={() => deleteNote(selected)}
           />
         </div>
@@ -425,11 +430,12 @@ export function MelodyReview({ id, draft: initial, warnings: sourceWarnings, onS
 interface NoteEditorProps {
   note: MelodyNote;
   onChange: (patch: Partial<MelodyNote>) => void;
+  onInsertBefore: () => void;
   onInsertAfter: () => void;
   onDelete: () => void;
 }
 
-function NoteEditor({ note, onChange, onInsertAfter, onDelete }: NoteEditorProps) {
+function NoteEditor({ note, onChange, onInsertBefore, onInsertAfter, onDelete }: NoteEditorProps) {
   const [pitchText, setPitchText] = useState(note.pitch ?? "");
   const pitchValid = pitchText.trim() === "" || normalizePitch(pitchText) !== null;
 
@@ -499,7 +505,10 @@ function NoteEditor({ note, onChange, onInsertAfter, onDelete }: NoteEditorProps
         />
         Tie to next
       </label>
-      <div className="col-span-2 flex gap-2 sm:col-span-6">
+      <div className="col-span-2 flex flex-wrap gap-2 sm:col-span-6">
+        <Button variant="outline" size="sm" onClick={onInsertBefore} className="gap-1.5">
+          <FaPlus className="h-3 w-3" /> Insert before
+        </Button>
         <Button variant="outline" size="sm" onClick={onInsertAfter} className="gap-1.5">
           <FaPlus className="h-3 w-3" /> Insert after
         </Button>
