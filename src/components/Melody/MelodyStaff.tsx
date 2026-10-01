@@ -295,6 +295,14 @@ function renderStaff(
       m.voice.draw(ctx, stave);
       beams.forEach((b) => b.setContext(ctx).draw());
 
+      const number = document.createElementNS(SVG_NS, "text");
+      number.setAttribute("x", String(x + w - 3));
+      number.setAttribute("y", String(stave.getYForLine(0) - 4));
+      number.setAttribute("text-anchor", "end");
+      number.setAttribute("class", "vf-measure-number");
+      number.textContent = String(m.measure);
+      svg.appendChild(number);
+
       m.notes.forEach((note, k) => {
         const index = m.indexes[k]!;
         placed.set(index, { note, system: s });
@@ -306,13 +314,6 @@ function renderStaff(
       });
       x += w;
     });
-
-    const number = document.createElementNS(SVG_NS, "text");
-    number.setAttribute("x", "2");
-    number.setAttribute("y", String(y + 22));
-    number.setAttribute("class", "vf-measure-number");
-    number.textContent = String(system[0]!.measure);
-    svg.appendChild(number);
 
     // One lyric baseline per system, under its lowest note
     const lyrics = system.flatMap((m) =>
