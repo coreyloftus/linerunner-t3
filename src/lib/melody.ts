@@ -16,6 +16,13 @@ export interface MelodyLink {
   sectionTitle: string;
 }
 
+/** A spoken line pinned to the start of a measure, e.g. dialogue over a vamp */
+export interface MelodySpokenCue {
+  measure: number;
+  character: string; // "" for a stage direction
+  line: string;
+}
+
 export interface Melody {
   id: string;
   title: string;
@@ -25,6 +32,7 @@ export interface Melody {
   pickupBeats?: number;
   notes: MelodyNote[];
   link?: MelodyLink;
+  spoken?: MelodySpokenCue[];
   sourceFileName: string;
   extractionModel: string;
   createdAt: string;
@@ -60,6 +68,12 @@ export const melodyLinkSchema = z.object({
   sectionTitle: z.string().min(1),
 });
 
+export const melodySpokenCueSchema = z.object({
+  measure: z.number().int().min(1),
+  character: z.string().max(100),
+  line: z.string().min(1).max(2000),
+});
+
 export const melodySchema = z.object({
   id: z.string(),
   title: z.string().min(1).max(200),
@@ -74,6 +88,7 @@ export const melodySchema = z.object({
   pickupBeats: z.number().min(0).max(16).optional(),
   notes: z.array(melodyNoteSchema).max(2000),
   link: melodyLinkSchema.optional(),
+  spoken: z.array(melodySpokenCueSchema).max(500).optional(),
   sourceFileName: z.string().max(300),
   extractionModel: z.string().max(100),
   createdAt: z.string(),
@@ -259,6 +274,7 @@ export const parseMelodyJson = (
       pitch: n.pitch === null ? null : (normalizePitch(n.pitch) ?? n.pitch),
     })),
     ...(d.link ? { link: d.link } : {}),
+    ...(d.spoken?.length ? { spoken: sortCues(d.spoken) } : {}),
     sourceFileName: d.sourceFileName ?? fileName,
     extractionModel: d.extractionModel ?? "json import",
   };
@@ -274,4 +290,115 @@ export const groupByMeasure = (notes: MelodyNote[]) => {
     groups.set(n.measure, list);
   });
   return [...groups.entries()].sort((a, b) => a[0] - b[0]);
+};
+
+/** Cues in show order: by measure, keeping their order within a measure */
+export const sortCues = (cues: MelodySpokenCue[]): MelodySpokenCue[] =>
+  cues
+    .map((c, i) => ({ c, i }))
+    .sort((a, b) => a.c.measure - b.c.measure || a.i - b.i)
+    .map(({ c }) => c);
+
+export const cuesByMeasure = (cues: MelodySpokenCue[] = []): Map<number, MelodySpokenCue[]> => {
+  const out = new Map<number, MelodySpokenCue[]>();
+  for (const c of sortCues(cues)) out.set(c.measure, [...(out.get(c.measure) ?? []), c]);
+  return out;
+};
+
+const wordKey = (w: string) => w.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+/** Whole words of the sung lyrics, each with the measure its last syllable lands in */
+const lyricWords = (notes: MelodyNote[]): { word: string; measure: number }[] => {
+  const words: { word: string; measure: number }[] = [];
+  let pending = "";
+  for (const n of notes) {
+    if (!n.lyric) continue;
+    const syl = n.lyric.trim();
+    if (syl.endsWith("-")) {
+      pending += syl.slice(0, -1);
+      continue;
+    }
+    for (const part of (pending + syl).split(/\s+/)) {
+      const word = wordKey(part);
+      if (word) words.push({ word, measure: n.measure });
+    }
+    pending = "";
+  }
+  return words;
+};
+
+export interface ScriptLineForCues {
+  characters: string[];
+  line: string;
+  sung?: boolean;
+}
+
+const LINE_SEARCH = 40; // how far ahead a sung line's first word may be
+const WORD_SEARCH = 4; // how far apart its later words may be
+
+/**
+ * Pin a script section's spoken lines to the melody's rest measures. Sung lines are matched to
+ * the lyrics word by word; each run of spoken lines spreads across the rest measures that follow
+ * the last matched lyric, or that open the song when no sung line came before it.
+ */
+export const placeSpokenLines = (lines: ScriptLineForCues[], notes: MelodyNote[]): MelodySpokenCue[] => {
+  const words = lyricWords(notes);
+  const measures = groupByMeasure(notes);
+  const isRest = new Set(measures.filter(([, idx]) => idx.every((i) => notes[i]!.pitch === null)).map(([m]) => m));
+  const allMeasures = measures.map(([m]) => m);
+  const firstSung = allMeasures.find((m) => !isRest.has(m)) ?? Infinity;
+
+  // Consecutive rest measures starting at the first one after `after`
+  const restRunAfter = (after: number): number[] => {
+    const run: number[] = [];
+    for (const m of allMeasures) {
+      if (m <= after) continue;
+      if (isRest.has(m)) run.push(m);
+      else if (run.length) break;
+    }
+    return run;
+  };
+
+  const cues: MelodySpokenCue[] = [];
+  let pos = 0;
+  let lastMeasure: number | null = null;
+  let pending: ScriptLineForCues[] = [];
+
+  const flush = () => {
+    if (!pending.length) return;
+    let run = lastMeasure === null ? allMeasures.filter((m) => m < firstSung) : restRunAfter(lastMeasure);
+    if (!run.length) run = [allMeasures.find((m) => m > (lastMeasure ?? 0)) ?? lastMeasure ?? allMeasures[0] ?? 1];
+    pending.forEach((l, k) => {
+      cues.push({ measure: run[Math.floor((k * run.length) / pending.length)]!, character: l.characters.join(" & "), line: l.line });
+    });
+    pending = [];
+  };
+
+  for (const l of lines) {
+    if (!l.sung) {
+      pending.push(l);
+      continue;
+    }
+    const tokens = l.line.split(/\s+/).map(wordKey).filter(Boolean);
+    let p = pos;
+    let matched = 0;
+    let lastHit = -1;
+    for (const t of tokens) {
+      const limit = Math.min(words.length, p + (matched === 0 ? LINE_SEARCH : WORD_SEARCH));
+      for (let j = p; j < limit; j++) {
+        if (words[j]!.word !== t) continue;
+        matched++;
+        lastHit = j;
+        p = j + 1;
+        break;
+      }
+    }
+    // A line that mostly is not in these lyrics is another character's part
+    if (lastHit < 0 || matched * 2 < tokens.length) continue;
+    flush();
+    pos = p;
+    lastMeasure = words[lastHit]!.measure;
+  }
+  flush();
+  return cues;
 };

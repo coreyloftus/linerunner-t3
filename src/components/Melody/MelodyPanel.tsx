@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import { MelodyStaff } from "./MelodyStaff";
-import { groupByMeasure, type Melody } from "~/lib/melody";
+import { cuesByMeasure, groupByMeasure, type Melody } from "~/lib/melody";
 import type { MelodyView } from "~/lib/preferences";
 import { scrollWithinParent } from "~/lib/utils";
 
@@ -33,6 +33,8 @@ export function MelodyPanel({
   className = "",
 }: MelodyPanelProps) {
   const measures = useMemo(() => groupByMeasure(melody.notes), [melody.notes]);
+  const cues = useMemo(() => cuesByMeasure(melody.spoken), [melody.spoken]);
+  const currentMeasure = melody.notes[currentNoteIndex]?.measure;
   const currentRef = useRef<HTMLButtonElement | null>(null);
   const showScore = view !== "lyrics";
   const showLyrics = view !== "score";
@@ -57,8 +59,14 @@ export function MelodyPanel({
           >
             {measures.map(([measure, indexes]) => {
               const inLoop = loop && indexes.some((i) => i >= loop.start && i <= loop.end);
+              const spoken = cues.get(measure) ?? [];
+              const isRest = indexes.every((i) => melody.notes[i]!.pitch === null);
+              // A bar that is only rests under dialogue shows just the dialogue
+              if (spoken.length && isRest) return <SpokenCues key={measure} measure={measure} cues={spoken} current={currentMeasure === measure} />;
               return (
-                <div key={measure} className={`flex flex-wrap items-baseline gap-x-1 rounded-md px-1 ${inLoop ? "bg-accent-soft/50" : ""}`}>
+                <div key={measure} className="space-y-3">
+                  {spoken.length > 0 && <SpokenCues measure={measure} cues={spoken} current={currentMeasure === measure} />}
+                <div className={`flex flex-wrap items-baseline gap-x-1 rounded-md px-1 ${inLoop ? "bg-accent-soft/50" : ""}`}>
                   <span className="mr-2 w-6 flex-shrink-0 text-right font-sans text-[11px] text-muted-foreground">{measure}</span>
                   {indexes.map((i) => {
                     const n = melody.notes[i]!;
@@ -84,11 +92,38 @@ export function MelodyPanel({
                     );
                   })}
                 </div>
+                </div>
               );
             })}
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function SpokenCues({ measure, cues, current }: { measure: number; cues: { character: string; line: string }[]; current: boolean }) {
+  return (
+    <div className={`flex gap-x-1 rounded-md px-1 py-0.5 transition-colors ${current ? "bg-accent-soft" : ""}`}>
+      <span className="mr-2 w-6 flex-shrink-0 pt-1 text-right font-sans text-[11px] text-muted-foreground">{measure}</span>
+      <div className="min-w-0 space-y-1 text-[0.85em]">
+        {cues.map((c, k) =>
+          c.character.trim() ? (
+            <p key={k}>
+              <span
+                className={`mr-2 font-sans text-[11px] font-semibold uppercase tracking-[0.15em] ${current ? "text-accent" : "text-muted-foreground"}`}
+              >
+                {c.character}
+              </span>
+              {c.line}
+            </p>
+          ) : (
+            <p key={k} className="italic text-muted-foreground">
+              {c.line}
+            </p>
+          ),
+        )}
+      </div>
     </div>
   );
 }
