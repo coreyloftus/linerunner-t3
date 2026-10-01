@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { FaPlay, FaPause, FaStop, FaPlus, FaTrash } from "react-icons/fa6";
 import { api } from "~/trpc/react";
@@ -46,6 +46,7 @@ const cueInputClass = inputClass.replace("w-full ", "");
 export function MelodyReview({ id, draft: initial, warnings: sourceWarnings, onSaved, onCancel }: MelodyReviewProps) {
   const [draft, setDraft] = useState<MelodyDraft>(initial);
   const [selected, setSelected] = useState<number | null>(null);
+  const [systems, setSystems] = useState<number[][]>([]);
   const [saveError, setSaveError] = useState<string | null>(null);
   const player = useMelodyPlayer(draft);
   const utils = api.useUtils();
@@ -55,6 +56,30 @@ export function MelodyReview({ id, draft: initial, warnings: sourceWarnings, onS
   const bad = useMemo(() => badMeasures(draft), [draft]);
   const measures = useMemo(() => groupByMeasure(draft.notes), [draft.notes]);
   const expectedBeats = measureLength(draft.timeSignature);
+
+  // The drawn line (system) that holds the selected note, measure by measure
+  const selectedMeasure = selected !== null ? draft.notes[selected]?.measure : undefined;
+  const lineMeasures = useMemo(() => {
+    if (selectedMeasure === undefined) return [];
+    const line = systems.find((sys) => sys.includes(selectedMeasure)) ?? [selectedMeasure];
+    return measures.filter(([m]) => line.includes(m));
+  }, [systems, measures, selectedMeasure]);
+
+  // Left/right arrows step through notes while nothing is being typed into
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (selected === null) return;
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === "INPUT" || t.tagName === "SELECT" || t.tagName === "TEXTAREA")) return;
+      if (e.key === "ArrowRight") setSelected(Math.min(draft.notes.length - 1, selected + 1));
+      else if (e.key === "ArrowLeft") setSelected(Math.max(0, selected - 1));
+      else if (e.key === "Escape") setSelected(null);
+      else return;
+      e.preventDefault();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [selected, draft.notes.length]);
 
   const updateNote = (i: number, patch: Partial<MelodyNote>) =>
     setDraft((d) => ({
@@ -234,17 +259,88 @@ export function MelodyReview({ id, draft: initial, warnings: sourceWarnings, onS
         </span>
       </div>
 
-      {/* Staff: redraws live as notes are edited */}
+      {/* Staff: redraws live as notes are edited; click a note or rest to edit it */}
       <div className="max-h-[45vh] overflow-y-auto rounded-xl border border-border bg-surface px-2 py-1 [overscroll-behavior:contain]">
         <MelodyStaff
           melody={draft}
           currentNoteIndex={player.currentNoteIndex}
-          onNoteClick={(i) => {
-            setSelected(i);
-            void player.play(i);
-          }}
+          selectedNoteIndex={selected}
+          onNoteClick={(i) => setSelected(selected === i ? null : i)}
+          onLayout={(next) => setSystems((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next))}
         />
       </div>
+
+      {/* Editor for the selected note, with the rest of its line for context */}
+      {selected === null || !draft.notes[selected] ? (
+        <p className="rounded-xl border border-dashed border-border px-3 py-4 text-center font-script text-sm text-muted-foreground">
+          Click a note or rest on the staff to edit it.
+        </p>
+      ) : (
+        <div className="space-y-3 rounded-xl border border-accent/40 bg-surface-raised/40 p-3">
+          <div className="flex items-center justify-between gap-2">
+            <span className={labelClass}>
+              Line · {lineMeasures.length > 1 ? "measures" : "measure"} {lineMeasures[0]?.[0]}
+              {lineMeasures.length > 1 ? `–${lineMeasures[lineMeasures.length - 1]![0]}` : ""}
+            </span>
+            <span className="hidden text-[11px] text-muted-foreground sm:inline">← → move · Esc closes</span>
+          </div>
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {lineMeasures.map(([measure, indexes]) => {
+              const sum = indexes.reduce((s, i) => s + draft.notes[i]!.beats, 0);
+              const isBad = bad.has(measure);
+              const lyricLine = indexes.map((i) => draft.notes[i]!.lyric).filter(Boolean).join(" ");
+              return (
+                <div
+                  key={measure}
+                  className={`min-w-fit flex-shrink-0 rounded-lg border p-2 ${isBad ? "border-curtain/60 bg-curtain/5" : "border-border bg-surface"}`}
+                >
+                  <div className="mb-1 flex items-center justify-between gap-3 px-0.5">
+                    <span className={labelClass}>m. {measure}</span>
+                    <span className={`text-[11px] ${isBad ? "font-semibold text-curtain" : "text-muted-foreground"}`}>
+                      {formatBeats(sum)} / {formatBeats(expectedBeats)}
+                    </span>
+                  </div>
+                  <p className="mb-1.5 px-0.5 font-script text-sm">{lyricLine || <span className="text-muted-foreground">—</span>}</p>
+                  <div className="flex gap-1">
+                    {indexes.map((i) => {
+                      const n = draft.notes[i]!;
+                      const isCurrent = player.currentNoteIndex === i;
+                      return (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => setSelected(i)}
+                          className={`min-w-[3.25rem] rounded-md border px-1.5 py-1 text-left transition-colors ${
+                            selected === i
+                              ? "border-accent ring-2 ring-accent/50"
+                              : "border-border hover:border-muted-foreground/50"
+                          } ${isCurrent ? "bg-accent text-accent-foreground" : "bg-surface"}`}
+                        >
+                          <span className="block font-display text-sm font-semibold">
+                            {n.pitch ?? "rest"}
+                            {n.tieToNext && <span title="Tied to next"> ⁀</span>}
+                          </span>
+                          <span className={`block text-[11px] ${isCurrent ? "" : "text-muted-foreground"}`}>
+                            {durationLabel(n.beats)}
+                          </span>
+                          <span className="block font-script text-xs">{n.lyric ?? "\u00a0"}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <NoteEditor
+            key={selected}
+            note={draft.notes[selected]}
+            onChange={(patch) => updateNote(selected, patch)}
+            onInsertAfter={() => insertAfter(selected)}
+            onDelete={() => deleteNote(selected)}
+          />
+        </div>
+      )}
 
       {/* Spoken lines */}
       <div className="space-y-2 rounded-xl border border-border bg-surface-raised/40 p-3">
@@ -307,64 +403,6 @@ export function MelodyReview({ id, draft: initial, warnings: sourceWarnings, onS
         ))}
       </div>
 
-      {/* Measures */}
-      <div className="space-y-2">
-        {measures.map(([measure, indexes]) => {
-          const sum = indexes.reduce((s, i) => s + draft.notes[i]!.beats, 0);
-          const isBad = bad.has(measure);
-          const editing = selected !== null && indexes.includes(selected) ? selected : null;
-          return (
-            <div
-              key={measure}
-              className={`rounded-xl border p-2 ${isBad ? "border-curtain/60 bg-curtain/5" : "border-border bg-surface-raised/40"}`}
-            >
-              <div className="mb-1.5 flex items-center justify-between px-1">
-                <span className={labelClass}>Measure {measure}</span>
-                <span className={`text-xs ${isBad ? "font-semibold text-curtain" : "text-muted-foreground"}`}>
-                  {formatBeats(sum)} / {formatBeats(expectedBeats)} beats
-                </span>
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {indexes.map((i) => {
-                  const n = draft.notes[i]!;
-                  const isCurrent = player.currentNoteIndex === i;
-                  return (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => setSelected(selected === i ? null : i)}
-                      className={`min-w-[4.5rem] rounded-lg border px-2 py-1 text-left transition-colors ${
-                        selected === i
-                          ? "border-accent ring-2 ring-accent/50"
-                          : "border-border hover:border-muted-foreground/50"
-                      } ${isCurrent ? "bg-accent text-accent-foreground" : "bg-surface"}`}
-                    >
-                      <span className="block font-display text-sm font-semibold">
-                        {n.pitch ?? "rest"}
-                        {n.tieToNext && <span title="Tied to next"> ⁀</span>}
-                      </span>
-                      <span className={`block text-[11px] ${isCurrent ? "" : "text-muted-foreground"}`}>
-                        {durationLabel(n.beats)}
-                      </span>
-                      <span className="block font-script text-xs">{n.lyric ?? " "}</span>
-                    </button>
-                  );
-                })}
-              </div>
-              {editing !== null && (
-                <NoteEditor
-                  key={editing}
-                  note={draft.notes[editing]!}
-                  onChange={(patch) => updateNote(editing, patch)}
-                  onInsertAfter={() => insertAfter(editing)}
-                  onDelete={() => deleteNote(editing)}
-                />
-              )}
-            </div>
-          );
-        })}
-      </div>
-
       {/* Footer */}
       <div className="sticky bottom-0 flex flex-wrap items-center justify-end gap-2 border-t border-border bg-surface/95 py-3">
         {saveError && <p className="mr-auto text-sm text-curtain">{saveError}</p>}
@@ -407,7 +445,7 @@ function NoteEditor({ note, onChange, onInsertAfter, onDelete }: NoteEditorProps
   const hasPresetDuration = DURATION_OPTIONS.some((d) => Math.abs(d.beats - note.beats) < 1e-6);
 
   return (
-    <div className="mt-2 grid grid-cols-2 gap-2 rounded-lg border border-border bg-surface p-2 sm:grid-cols-6">
+    <div className="grid grid-cols-2 gap-2 rounded-lg border border-border bg-surface p-2 sm:grid-cols-6">
       <label className="space-y-1">
         <span className={labelClass}>Pitch</span>
         <input

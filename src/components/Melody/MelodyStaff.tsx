@@ -19,7 +19,10 @@ type StaveNote = InstanceType<Vex["StaveNote"]>;
 interface MelodyStaffProps {
   melody: Pick<Melody, "notes" | "timeSignature" | "keySignature" | "pickupBeats" | "spoken">;
   currentNoteIndex?: number;
+  selectedNoteIndex?: number | null;
   onNoteClick?: (index: number) => void;
+  /** Measure numbers on each drawn line, reported after every render */
+  onLayout?: (systems: number[][]) => void;
   /** Zoom factor; phones draw at 0.75 of it */
   scale?: number;
   className?: string;
@@ -164,11 +167,21 @@ function buildMeasure(
   return { measure, notes: staveNotes, indexes, voice, minWidth };
 }
 
-export function MelodyStaff({ melody, currentNoteIndex = -1, onNoteClick, scale = 1, className = "" }: MelodyStaffProps) {
+export function MelodyStaff({
+  melody,
+  currentNoteIndex = -1,
+  selectedNoteIndex = null,
+  onNoteClick,
+  onLayout,
+  scale = 1,
+  className = "",
+}: MelodyStaffProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const noteElsRef = useRef<Map<number, SVGElement>>(new Map());
   const clickRef = useRef(onNoteClick);
   clickRef.current = onNoteClick;
+  const layoutRef = useRef(onLayout);
+  layoutRef.current = onLayout;
   const [vex, setVex] = useState<Vex | null>(null);
   const [width, setWidth] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -208,7 +221,8 @@ export function MelodyStaff({ melody, currentNoteIndex = -1, onNoteClick, scale 
     noteElsRef.current = new Map();
     setError(null);
     try {
-      renderStaff(vex, el, melody, width, scale, noteElsRef.current, (i) => clickRef.current?.(i));
+      const systems = renderStaff(vex, el, melody, width, scale, noteElsRef.current, (i) => clickRef.current?.(i));
+      layoutRef.current?.(systems);
     } catch (err) {
       console.error("[MelodyStaff] render failed:", err);
       el.innerHTML = "";
@@ -232,6 +246,12 @@ export function MelodyStaff({ melody, currentNoteIndex = -1, onNoteClick, scale 
     });
   }, [currentNoteIndex, vex, melody, width, scale]);
 
+  useEffect(() => {
+    const els = noteElsRef.current;
+    els.forEach((g) => g.classList.remove("vf-selected"));
+    if (selectedNoteIndex !== null) els.get(selectedNoteIndex)?.classList.add("vf-selected");
+  }, [selectedNoteIndex, vex, melody, width, scale]);
+
   return (
     <div className={`melody-staff text-foreground ${className}`}>
       {!vex && <p className="py-6 text-center font-script text-sm text-muted-foreground">Drawing the staff…</p>}
@@ -249,7 +269,7 @@ function renderStaff(
   zoom: number,
   noteEls: Map<number, SVGElement>,
   onClick: (index: number) => void,
-) {
+): number[][] {
   const { Renderer, Stave, Formatter, Beam, StaveTie } = Vex;
   const scale = zoom * (containerWidth < 640 ? 0.75 : 1);
   const width = containerWidth / scale;
@@ -262,7 +282,7 @@ function renderStaff(
   const built = groupByMeasure(melody.notes).map(([measure, indexes]) =>
     buildMeasure(Vex, measure, indexes, melody.notes, keySpec, melody.timeSignature, lyricFont),
   );
-  if (built.length === 0) return;
+  if (built.length === 0) return [];
 
   // Width taken by clef + key (+ time) at the start of a system
   const prefixWidth = (withTime: boolean) => {
@@ -442,4 +462,6 @@ function renderStaff(
           ];
     ties.forEach((t) => t.setContext(ctx).draw());
   });
+
+  return systems.map((system) => system.map((m) => m.measure));
 }

@@ -227,3 +227,13 @@ body > * {
 .melody-staff svg .vf-cue.vf-current .vf-cue-name {
   fill: hsl(var(--accent));
 }
+.melody-staff svg .vf-selected [fill]:not([fill="none"]),
+.melody-staff svg .vf-selected text {
+  fill: hsl(var(--accent));
+}
+.melody-staff svg .vf-selected [stroke]:not([stroke="none"]) {
+  stroke: hsl(var(--accent));
+}
+.melody-staff svg .vf-selected .vf-notehead {
+  filter: drop-shadow(0 0 3px hsl(var(--accent)));
+}
