@@ -411,8 +411,15 @@ export const AddScriptDoc = () => {
 
     // Sung lyrics are upper-case too, so shape is what separates them: a
     // speaker header is short and never ends in sentence punctuation.
+    // Drop a trailing colon and notes like "(CON'T)" from a speaker header
+    const stripHeaderNote = (text: string) =>
+      text.replace(/:\s*$/, "").replace(/\s*\([^)]*\)\s*$/, "").trim();
+
+    const isKnownCharacter = (text: string) =>
+      knownCharacters.some((name) => normalizeText(name) === normalizeText(text));
+
     const looksLikeCharacterHeader = (text: string) => {
-      const core = text.replace(/:\s*$/, "").trim();
+      const core = stripHeaderNote(text);
       if (!core || !isAllCaps(core)) return false;
       if (/[.,!?;…-]$/.test(core)) return false;
       return core.split(/\s+/).length <= 3;
@@ -420,7 +427,7 @@ export const AddScriptDoc = () => {
 
     // Resolve a header to canonical character names, registering unseen ones
     const resolveHeaderCharacters = (header: string) => {
-      const core = header.replace(/:\s*$/, "").trim();
+      const core = stripHeaderNote(header);
       return core
         .split(multiCharSeparators)
         .map((part) => part.trim())
@@ -445,9 +452,10 @@ export const AddScriptDoc = () => {
       currentLine = "";
     };
 
-    for (const line of lines) {
+    for (const [index, line] of lines.entries()) {
       const trimmedLine = line.trim();
       if (!trimmedLine) continue; // Skip empty lines
+      if (trimmedLine.startsWith("#")) continue; // Song cue, e.g. "#18 HAPPY SAD"
 
       // Check for multiple character:line patterns within a single line
       const characterPattern =
@@ -533,8 +541,16 @@ export const AddScriptDoc = () => {
         }
       }
 
-      // A standalone name line ("CINDERELLA", "CP/RP") opens that speaker's lines
-      if (looksLikeCharacterHeader(trimmedLine)) {
+      // A standalone name line ("CINDERELLA", "CP/RP") opens that speaker's lines.
+      // An unlisted name only counts between plain lines; inside a run of caps it is a lyric.
+      const nextLine = lines.slice(index + 1).find((l) => l.trim())?.trim() ?? "";
+      const prevLine = lines.slice(0, index).reverse().find((l) => l.trim())?.trim() ?? "";
+      const headerParts = stripHeaderNote(trimmedLine).split(multiCharSeparators);
+      if (
+        looksLikeCharacterHeader(trimmedLine) &&
+        (headerParts.every(isKnownCharacter) ||
+          (!!nextLine && !isAllCaps(nextLine) && !isAllCaps(prevLine)))
+      ) {
         flushCurrentLine();
         currentCharacters = resolveHeaderCharacters(trimmedLine);
         continue;
