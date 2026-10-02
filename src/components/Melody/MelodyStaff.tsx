@@ -19,7 +19,10 @@ type StaveNote = InstanceType<Vex["StaveNote"]>;
 interface MelodyStaffProps {
   melody: Pick<Melody, "notes" | "timeSignature" | "keySignature" | "pickupBeats" | "spoken">;
   currentNoteIndex?: number;
+  selectedNoteIndex?: number | null;
   onNoteClick?: (index: number) => void;
+  /** Measure numbers on each drawn line, reported after every render */
+  onLayout?: (systems: number[][]) => void;
   /** Zoom factor; phones draw at 0.75 of it */
   scale?: number;
   className?: string;
@@ -114,6 +117,12 @@ const STAVE_TOP = 30; // room for measure numbers and high notes
 const MEASURE_PADDING = 28;
 const MIN_MEASURE = 90;
 
+interface NoteSpan {
+  stem?: SVGElement;
+  top: number;
+  bottom: number;
+}
+
 interface BuiltMeasure {
   measure: number;
   notes: StaveNote[];
@@ -164,11 +173,22 @@ function buildMeasure(
   return { measure, notes: staveNotes, indexes, voice, minWidth };
 }
 
-export function MelodyStaff({ melody, currentNoteIndex = -1, onNoteClick, scale = 1, className = "" }: MelodyStaffProps) {
+export function MelodyStaff({
+  melody,
+  currentNoteIndex = -1,
+  selectedNoteIndex = null,
+  onNoteClick,
+  onLayout,
+  scale = 1,
+  className = "",
+}: MelodyStaffProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const noteElsRef = useRef<Map<number, SVGElement>>(new Map());
+  const spansRef = useRef<Map<number, NoteSpan>>(new Map());
   const clickRef = useRef(onNoteClick);
   clickRef.current = onNoteClick;
+  const layoutRef = useRef(onLayout);
+  layoutRef.current = onLayout;
   const [vex, setVex] = useState<Vex | null>(null);
   const [width, setWidth] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -206,9 +226,13 @@ export function MelodyStaff({ melody, currentNoteIndex = -1, onNoteClick, scale 
     if (!vex || !el || width < 50) return;
     el.innerHTML = "";
     noteElsRef.current = new Map();
+    spansRef.current = new Map();
     setError(null);
     try {
-      renderStaff(vex, el, melody, width, scale, noteElsRef.current, (i) => clickRef.current?.(i));
+      const systems = renderStaff(vex, el, melody, width, scale, noteElsRef.current, spansRef.current, (i) =>
+        clickRef.current?.(i),
+      );
+      layoutRef.current?.(systems);
     } catch (err) {
       console.error("[MelodyStaff] render failed:", err);
       el.innerHTML = "";
@@ -232,6 +256,27 @@ export function MelodyStaff({ melody, currentNoteIndex = -1, onNoteClick, scale 
     });
   }, [currentNoteIndex, vex, melody, width, scale]);
 
+  useEffect(() => {
+    const els = noteElsRef.current;
+    containerRef.current?.querySelectorAll(".vf-selected").forEach((e) => e.classList.remove("vf-selected"));
+    containerRef.current?.querySelectorAll(".vf-selected-box").forEach((r) => r.remove());
+    const g = selectedNoteIndex !== null ? els.get(selectedNoteIndex) : undefined;
+    const span = selectedNoteIndex !== null ? spansRef.current.get(selectedNoteIndex) : undefined;
+    if (!g || !span || !(g instanceof SVGGraphicsElement)) return;
+    g.classList.add("vf-selected");
+    span.stem?.classList.add("vf-selected");
+    // Tinted box behind the whole note: accidental to stem, top of staff to lyric
+    const box = g.getBBox();
+    const rect = document.createElementNS(SVG_NS, "rect");
+    rect.setAttribute("x", String(box.x - 5));
+    rect.setAttribute("y", String(span.top));
+    rect.setAttribute("width", String(box.width + 10));
+    rect.setAttribute("height", String(span.bottom - span.top));
+    rect.setAttribute("rx", "5");
+    rect.setAttribute("class", "vf-selected-box");
+    g.parentNode?.insertBefore(rect, g);
+  }, [selectedNoteIndex, vex, melody, width, scale]);
+
   return (
     <div className={`melody-staff text-foreground ${className}`}>
       {!vex && <p className="py-6 text-center font-script text-sm text-muted-foreground">Drawing the staff…</p>}
@@ -248,8 +293,9 @@ function renderStaff(
   containerWidth: number,
   zoom: number,
   noteEls: Map<number, SVGElement>,
+  spans: Map<number, NoteSpan>,
   onClick: (index: number) => void,
-) {
+): number[][] {
   const { Renderer, Stave, Formatter, Beam, StaveTie } = Vex;
   const scale = zoom * (containerWidth < 640 ? 0.75 : 1);
   const width = containerWidth / scale;
@@ -262,7 +308,7 @@ function renderStaff(
   const built = groupByMeasure(melody.notes).map(([measure, indexes]) =>
     buildMeasure(Vex, measure, indexes, melody.notes, keySpec, melody.timeSignature, lyricFont),
   );
-  if (built.length === 0) return;
+  if (built.length === 0) return [];
 
   // Width taken by clef + key (+ time) at the start of a system
   const prefixWidth = (withTime: boolean) => {
@@ -390,6 +436,12 @@ function renderStaff(
         .format([m.voice], Math.max(10, stave.getNoteEndX() - stave.getNoteStartX() - 10));
       m.voice.draw(ctx, stave);
       beams.forEach((b) => b.setContext(ctx).draw());
+      // Beamed stems are drawn inside the beam group, one per note in order
+      const stemOf = new Map<StaveNote, SVGElement>();
+      beams.forEach((b) => {
+        const stems = b.getSVGElement()?.querySelectorAll<SVGElement>(".vf-stem") ?? [];
+        b.getNotes().forEach((n, k) => stems[k] && stemOf.set(n as StaveNote, stems[k]));
+      });
 
       const number = document.createElementNS(SVG_NS, "text");
       number.setAttribute("x", String(x + w - 3));
@@ -402,6 +454,11 @@ function renderStaff(
       m.notes.forEach((note, k) => {
         const index = m.indexes[k]!;
         placed.set(index, { note, system: s });
+        const ys = note.isRest() ? [] : note.getYs();
+        const stemExtents = note.hasStem() && !note.isRest() ? note.getStemExtents() : null;
+        const top = Math.min(stave.getYForLine(0), ...ys, stemExtents?.topY ?? Infinity) - 10;
+        const bottom = Math.max(stave.getYForLine(4), ...ys, stemExtents?.baseY ?? -Infinity) + 10;
+        spans.set(index, { stem: stemOf.get(note), top, bottom });
         const g = note.getSVGElement();
         if (!g) return;
         g.classList.add("vf-note");
@@ -416,6 +473,13 @@ function renderStaff(
     );
     const baseline = Math.max(...lyrics.map((t) => Number(t.getAttribute("y")) || 0));
     lyrics.forEach((t) => t.setAttribute("y", String(baseline)));
+    // Stretch each note's highlight box down to cover its lyric
+    system.forEach((m) =>
+      m.indexes.forEach((i) => {
+        const span = spans.get(i);
+        if (span && melody.notes[i]!.lyric && lyrics.length) span.bottom = Math.max(span.bottom, baseline + 6);
+      }),
+    );
     // Nudge any syllable that still overlaps the one before it
     let prevRight = -Infinity;
     for (const t of lyrics) {
@@ -442,4 +506,6 @@ function renderStaff(
           ];
     ties.forEach((t) => t.setContext(ctx).draw());
   });
+
+  return systems.map((system) => system.map((m) => m.measure));
 }
