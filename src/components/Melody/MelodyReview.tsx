@@ -15,11 +15,14 @@ import {
   groupByMeasure,
   measureLength,
   normalizePitch,
+  placeSpokenLines,
+  sortCues,
   validateMelody,
   type MelodyDraft,
   type MelodyLink,
   type MelodyNote,
   type MelodySource,
+  type MelodySpokenCue,
 } from "~/lib/melody";
 
 export interface ReviewInput {
@@ -37,6 +40,8 @@ const inputClass =
   "w-full rounded-md border border-border bg-surface px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring";
 const labelClass =
   "text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground";
+// Same field look, sized by the row instead of full width
+const cueInputClass = inputClass.replace("w-full ", "");
 
 export function MelodyReview({ id, draft: initial, warnings: sourceWarnings, onSaved, onCancel }: MelodyReviewProps) {
   const [draft, setDraft] = useState<MelodyDraft>(initial);
@@ -69,6 +74,31 @@ export function MelodyReview({ id, draft: initial, warnings: sourceWarnings, onS
   const deleteNote = (i: number) => {
     setDraft((d) => ({ ...d, notes: d.notes.filter((_, j) => j !== i) }));
     setSelected(null);
+  };
+
+  const { data: session } = useSession();
+  const linkSource = draft.link?.source === "user" ? "firestore" : (draft.link?.source ?? "local");
+  const { data: linkData } = api.scriptData.getAll.useQuery(
+    { dataSource: linkSource },
+    {
+      refetchOnWindowFocus: false,
+      enabled: !!draft.link && (linkSource === "local" || linkSource === "public" || !!session?.user),
+    },
+  );
+  const sectionLines = draft.link
+    ? linkData?.allData
+        .find((p) => p.project === draft.link!.projectName)
+        ?.scenes.find((s) => s.title === draft.link!.sectionTitle)?.lines
+    : undefined;
+  const spokenInSection = sectionLines?.filter((l) => !l.sung).length ?? 0;
+
+  const setSpoken = (spoken: MelodySpokenCue[]) =>
+    setDraft((d) => ({ ...d, spoken: spoken.length ? spoken : undefined }));
+  const updateCue = (k: number, patch: Partial<MelodySpokenCue>) =>
+    setSpoken((draft.spoken ?? []).map((c, j) => (j === k ? { ...c, ...patch } : c)));
+  const addCue = () => {
+    const measure = selected !== null ? draft.notes[selected]!.measure : (measures[0]?.[0] ?? 1);
+    setSpoken(sortCues([...(draft.spoken ?? []), { measure, character: "", line: "…" }]));
   };
 
   const handleSave = async () => {
@@ -214,6 +244,67 @@ export function MelodyReview({ id, draft: initial, warnings: sourceWarnings, onS
             void player.play(i);
           }}
         />
+      </div>
+
+      {/* Spoken lines */}
+      <div className="space-y-2 rounded-xl border border-border bg-surface-raised/40 p-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className={labelClass}>Spoken lines</span>
+          <span className="text-xs text-muted-foreground">
+            {draft.spoken?.length ?? 0} · shown at the start of their measure
+          </span>
+          <div className="ml-auto flex flex-wrap gap-1.5">
+            {draft.link && spokenInSection > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                title="Replaces the spoken lines below"
+                onClick={() => setSpoken(placeSpokenLines(sectionLines ?? [], draft.notes))}
+              >
+                Pull spoken lines from {draft.link.sectionTitle}
+              </Button>
+            )}
+            <Button variant="outline" size="sm" onClick={addCue} className="gap-1.5">
+              <FaPlus className="h-3 w-3" /> Add spoken line
+            </Button>
+          </div>
+        </div>
+        {(draft.spoken ?? []).map((c, k) => (
+          <div key={k} className="flex flex-wrap items-start gap-1.5 sm:flex-nowrap">
+            <input
+              type="number"
+              min={1}
+              aria-label="Measure"
+              className={`${cueInputClass} w-16 flex-shrink-0`}
+              value={c.measure}
+              onChange={(e) => updateCue(k, { measure: Math.max(1, Math.round(Number(e.target.value) || 1)) })}
+              onBlur={() => setSpoken(sortCues(draft.spoken ?? []))}
+            />
+            <input
+              aria-label="Character"
+              placeholder="Character (blank = direction)"
+              className={`${cueInputClass} w-40 flex-shrink-0`}
+              value={c.character}
+              onChange={(e) => updateCue(k, { character: e.target.value })}
+            />
+            <textarea
+              aria-label="Spoken line"
+              rows={1}
+              className={`${cueInputClass} min-w-0 flex-1 font-script`}
+              value={c.line}
+              onChange={(e) => updateCue(k, { line: e.target.value })}
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              aria-label="Delete spoken line"
+              onClick={() => setSpoken((draft.spoken ?? []).filter((_, j) => j !== k))}
+              className="text-curtain"
+            >
+              <FaTrash className="h-3 w-3" />
+            </Button>
+          </div>
+        ))}
       </div>
 
       {/* Measures */}
@@ -401,6 +492,7 @@ function LinkPicker({ value, onChange }: { value?: MelodyLink; onChange: (link?:
     { ...opts, enabled: !!session?.user },
   );
   const { data: publicData } = api.scriptData.getAll.useQuery({ dataSource: "public" }, opts);
+  const { data: localData } = api.scriptData.getAll.useQuery({ dataSource: "local" }, opts);
 
   const projects: LinkOption[] = useMemo(() => {
     const out: LinkOption[] = [];
@@ -416,8 +508,9 @@ function LinkPicker({ value, onChange }: { value?: MelodyLink; onChange: (link?:
     add("user", userData);
     add("shared", sharedData);
     add("public", publicData);
+    add("local", localData);
     return out;
-  }, [userData, sharedData, publicData]);
+  }, [userData, sharedData, publicData, localData]);
 
   const projectKey = value ? `${value.source}::${value.projectName}` : "";
   const project = projects.find((p) => p.key === projectKey);

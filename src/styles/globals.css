@@ -205,3 +205,25 @@ body > * {
   font-size: 13px;
   font-weight: 800;
 }
+/* Spoken lines above the staff */
+.melody-staff svg .vf-cue text {
+  fill: currentColor;
+  stroke: none;
+  font-size: 13px;
+  font-weight: 400;
+}
+.melody-staff svg .vf-cue-direction text {
+  fill: hsl(var(--muted-foreground));
+  font-style: italic;
+}
+.melody-staff svg .vf-cue .vf-cue-name {
+  fill: hsl(var(--muted-foreground));
+  font-family: var(--font-geist-sans), sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+}
+.melody-staff svg .vf-cue.vf-current text,
+.melody-staff svg .vf-cue.vf-current .vf-cue-name {
+  fill: hsl(var(--accent));
+}
