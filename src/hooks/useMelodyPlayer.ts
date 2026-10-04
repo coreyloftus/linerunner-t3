@@ -27,6 +27,7 @@ const SAMPLE_URLS: Record<string, string> = Object.fromEntries(
 const SAMPLE_BASE_URL = "/audio/piano/";
 const RELEASE_FRACTION = 0.9;
 const TAIL_SECONDS = 1.5;
+const RESUME_TIMEOUT_MS = 1000;
 
 interface ScheduledNote {
   index: number;
@@ -63,6 +64,10 @@ const createSampler = (Tone: ToneModule): Promise<Sampler> =>
     }).toDestination();
   });
 
+// iOS can leave resume() pending forever after sleep, so never wait on it unbounded
+const resumeContext = (Tone: ToneModule) =>
+  Promise.race([Tone.start(), new Promise((resolve) => setTimeout(resolve, RESUME_TIMEOUT_MS))]);
+
 export function useMelodyPlayer(melody: Pick<Melody, "notes" | "tempoBpm"> | null) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -82,9 +87,19 @@ export function useMelodyPlayer(melody: Pick<Melody, "notes" | "tempoBpm"> | nul
   loopRef.current = loop;
 
   const ensureReady = useCallback(async () => {
+    // Resume before any await so iOS still counts the tap as the gesture
+    const resuming = toneRef.current ? resumeContext(toneRef.current) : null;
     if (!toneRef.current) toneRef.current = await import("tone");
     const Tone = toneRef.current;
-    await Tone.start();
+    await (resuming ?? resumeContext(Tone));
+    // Stuck "interrupted" or closed: start over on a fresh context and reload the samples
+    const state = Tone.getContext().state;
+    if (state !== "running" && state !== "suspended") {
+      samplerRef.current?.dispose();
+      samplerRef.current = null;
+      Tone.setContext(new Tone.Context(), true);
+      await resumeContext(Tone);
+    }
     if (!samplerRef.current) {
       setIsLoading(true);
       try {
@@ -212,6 +227,15 @@ export function useMelodyPlayer(melody: Pick<Melody, "notes" | "tempoBpm"> | nul
       applyLoop(Tone, loopRef.current);
     }
   }, [melody, schedule, applyLoop]);
+
+  // The context freezes when the page hides; pause so the UI and Transport match on return
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "hidden" && toneRef.current?.getTransport().state === "started") pause();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, [pause]);
 
   useEffect(() => {
     return () => {
