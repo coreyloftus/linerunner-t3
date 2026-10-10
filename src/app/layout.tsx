@@ -24,7 +24,6 @@ const courierPrime = Courier_Prime({
 export const metadata = {
   title: "LineRunner",
   description: "LineRunner",
-  icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
 export default function RootLayout({
