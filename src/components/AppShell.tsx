@@ -1,6 +1,7 @@
 "use client";
 
 import { useContext, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { type ProjectJSON } from "~/server/api/routers/scriptData";
 import { ScriptContext } from "~/app/context";
 import { type AppMode } from "~/lib/app-mode";
@@ -32,10 +33,26 @@ function isEditableTarget(target: EventTarget | null) {
 }
 
 export function AppShell({ projectData, sidebarData }: AppShellProps) {
-  const { layoutPreferences, setLayoutPreferences } =
+  const router = useRouter();
+  const { layoutPreferences, setLayoutPreferences, queryParams } =
     useContext(ScriptContext);
   const [mode, setMode] = useState<AppMode>("runner");
   const [mobileOpen, setMobileOpen] = useState(false);
+  const melodyParam = queryParams.melody;
+
+  // ?melody=<id> opens the Melody tab
+  useEffect(() => {
+    if (melodyParam) setMode("melody");
+  }, [melodyParam]);
+
+  const handleModeChange = (next: AppMode) => {
+    setMode(next);
+    if (next !== "melody" && melodyParam) {
+      const params = new URLSearchParams(window.location.search);
+      params.delete("melody");
+      router.push(`?${params.toString()}`);
+    }
+  };
 
   const setCollapsed = (sidebarCollapsed: boolean) => {
     setLayoutPreferences((prev) => ({ ...prev, sidebarCollapsed }));
@@ -67,7 +84,7 @@ export function AppShell({ projectData, sidebarData }: AppShellProps) {
         projects={sidebarData.projects}
         allData={sidebarData.allData}
         mode={mode}
-        onModeChange={setMode}
+        onModeChange={handleModeChange}
         collapsed={layoutPreferences.sidebarCollapsed}
         onCollapsedChange={setCollapsed}
         mobileOpen={mobileOpen}
@@ -82,7 +99,7 @@ export function AppShell({ projectData, sidebarData }: AppShellProps) {
           {mode === "scripts" && (
             <ScriptsWorkspace
               data={projectData}
-              onPractice={() => setMode("runner")}
+              onPractice={() => handleModeChange("runner")}
             />
           )}
           {mode === "melody" && <MelodyWorkspace />}

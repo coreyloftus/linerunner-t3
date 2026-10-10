@@ -1,9 +1,11 @@
 "use client";
 
-import { useRef, useState, type ChangeEvent } from "react";
+import { useContext, useEffect, useRef, useState, type ChangeEvent } from "react";
+import { useRouter } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import { FaFilePdf, FaFileImport, FaMusic } from "react-icons/fa6";
 import { api } from "~/trpc/react";
+import { ScriptContext } from "~/app/context";
 import { melodyDraftSchema, parseMelodyJson } from "~/lib/melody";
 import { Button } from "../ui/button";
 import { MelodyImport } from "./MelodyImport";
@@ -24,6 +26,26 @@ export function MelodyWorkspace() {
   const [importCount, setImportCount] = useState(0);
   const jsonInputRef = useRef<HTMLInputElement>(null);
   const utils = api.useUtils();
+  const router = useRouter();
+  const { queryParams } = useContext(ScriptContext);
+  const melodyParam = queryParams.melody;
+
+  useEffect(() => {
+    if (melodyParam) setView({ kind: "player", id: melodyParam });
+  }, [melodyParam]);
+
+  // Keeps ?melody=<id> in the URL so a melody can be linked to directly
+  const setMelodyParam = (id: string | null) => {
+    const params = new URLSearchParams(window.location.search);
+    if (id) params.set("melody", id);
+    else params.delete("melody");
+    router.push(`?${params.toString()}`);
+  };
+
+  const openMelody = (id: string) => {
+    setView({ kind: "player", id });
+    if (id !== melodyParam) setMelodyParam(id);
+  };
 
   const signedIn = !!session?.user;
   const { data: melodies, isLoading: listLoading } = api.melody.list.useQuery(undefined, {
@@ -55,6 +77,7 @@ export function MelodyWorkspace() {
     await deleteMelody.mutateAsync({ id });
     await utils.melody.list.invalidate();
     setView({ kind: "empty" });
+    setMelodyParam(null);
   };
 
   const showPlayer = view.kind === "player" && !!melody && !melodyError;
@@ -70,7 +93,7 @@ export function MelodyWorkspace() {
               <select
                 aria-label="Saved melodies"
                 value={selectedId ?? ""}
-                onChange={(e) => e.target.value && setView({ kind: "player", id: e.target.value })}
+                onChange={(e) => e.target.value && openMelody(e.target.value)}
                 className="h-9 min-w-0 flex-1 truncate rounded-md border border-border bg-surface px-2 text-sm md:max-w-xs"
               >
                 <option value="" disabled>
@@ -151,7 +174,7 @@ export function MelodyWorkspace() {
                       <li key={m.id}>
                         <button
                           type="button"
-                          onClick={() => setView({ kind: "player", id: m.id })}
+                          onClick={() => openMelody(m.id)}
                           className="w-full rounded-xl border border-border bg-surface-raised px-4 py-3 text-left transition-colors hover:bg-accent-soft"
                         >
                           <span className="block truncate font-medium">{m.title}</span>
@@ -172,7 +195,7 @@ export function MelodyWorkspace() {
               <MelodyReview
                 key={view.input.id ?? `new-${importCount}`}
                 {...view.input}
-                onSaved={(id) => setView({ kind: "player", id })}
+                onSaved={openMelody}
                 onCancel={() => setView(view.input.id ? { kind: "player", id: view.input.id } : { kind: "empty" })}
               />
             )}
