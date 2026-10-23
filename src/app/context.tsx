@@ -42,8 +42,8 @@ interface ScriptContextProps {
   allProjects: GetAllResponse;
   setAllProjects: Dispatch<SetStateAction<GetAllResponse>>;
   // Theme state
-  theme: "light" | "dark";
-  setTheme: Dispatch<SetStateAction<"light" | "dark">>;
+  theme: ThemePreference;
+  setTheme: Dispatch<SetStateAction<ThemePreference>>;
   // Script playback state
   currentLineIndex: number;
   setCurrentLineIndex: Dispatch<SetStateAction<number>>;
@@ -110,6 +110,8 @@ const DEFAULT_DISPLAY_PREFERENCES: DisplayPreferences = {
 };
 
 // Create the context with default values
+export type ThemePreference = "system" | "light" | "dark";
+
 export const ScriptContext = createContext<ScriptContextProps>({
   selectedProject: null,
   setSelectedProject: () => null,
@@ -130,8 +132,8 @@ export const ScriptContext = createContext<ScriptContextProps>({
   allProjects: { projects: [], allData: [] },
   setAllProjects: () => ({ projects: [], allData: [] }),
   // Theme defaults
-  theme: "light",
-  setTheme: () => "light",
+  theme: "system",
+  setTheme: () => "system",
   // Script playback state defaults
   currentLineIndex: 0,
   setCurrentLineIndex: () => 0,
@@ -182,17 +184,11 @@ export const ScriptProvider = ({ children }: { children: ReactNode }) => {
     allData: [],
   });
 
-  // Theme state with localStorage persistence
-  const [theme, setTheme] = useState<"light" | "dark">(() => {
-    if (typeof window !== "undefined") {
-      const savedTheme = localStorage.getItem("linerunner-theme");
-      if (savedTheme === "light" || savedTheme === "dark") {
-        return savedTheme;
-      }
-      // Default to system preference
-      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-    }
-    return "light";
+  // Theme preference; "system" is stored as no localStorage entry
+  const [theme, setTheme] = useState<ThemePreference>(() => {
+    if (typeof window === "undefined") return "system";
+    const saved = localStorage.getItem("linerunner-theme");
+    return saved === "light" || saved === "dark" ? saved : "system";
   });
 
   // Script playback state
@@ -254,16 +250,20 @@ export const ScriptProvider = ({ children }: { children: ReactNode }) => {
     setQueryParams(Object.fromEntries(searchParams));
   }, [searchParams]);
 
-  // Persist theme changes to localStorage and apply to document
+  // Apply the theme to the document, following the system setting when the preference is "system"
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("linerunner-theme", theme);
-      if (theme === "dark") {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-      }
-    }
+    if (theme === "system") localStorage.removeItem("linerunner-theme");
+    else localStorage.setItem("linerunner-theme", theme);
+    const query = window.matchMedia("(prefers-color-scheme: dark)");
+    const apply = () =>
+      document.documentElement.classList.toggle(
+        "dark",
+        theme === "dark" || (theme === "system" && query.matches),
+      );
+    apply();
+    if (theme !== "system") return;
+    query.addEventListener("change", apply);
+    return () => query.removeEventListener("change", apply);
   }, [theme]);
 
   return (

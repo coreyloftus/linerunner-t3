@@ -1,7 +1,7 @@
 "use client";
 
 import { useContext, useEffect, useState } from "react";
-import { IoSunny, IoMoon } from "react-icons/io5";
+import { IoSunny, IoMoon, IoDesktopOutline } from "react-icons/io5";
 import { Button } from "./button";
 import { ScriptContext } from "~/app/context";
 
@@ -12,29 +12,26 @@ export function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const toggleTheme = () => {
-    setTheme(theme === "light" ? "dark" : "light");
+  const next = { system: "light", light: "dark", dark: "system" } as const;
+  const icons = {
+    system: <IoDesktopOutline className="h-4 w-4" />,
+    light: <IoSunny className="h-4 w-4" />,
+    dark: <IoMoon className="h-4 w-4" />,
   };
 
   return (
     <Button
-      onClick={toggleTheme}
+      onClick={() => setTheme(next[theme])}
       variant="outline"
       size="sm"
       className="min-h-[44px] min-w-[44px] touch-manipulation rounded-lg iphone:min-h-[36px] iphone:min-w-[36px]"
       aria-label={
         mounted
-          ? `Switch to ${theme === "light" ? "dark" : "light"} mode`
+          ? `Theme: ${theme}. Switch to ${next[theme]}`
           : "Toggle theme"
       }
     >
-      {!mounted ? (
-        <span className="h-4 w-4" />
-      ) : theme === "light" ? (
-        <IoMoon className="h-4 w-4 transition-transform duration-200" />
-      ) : (
-        <IoSunny className="h-4 w-4 transition-transform duration-200" />
-      )}
+      {mounted ? icons[theme] : <span className="h-4 w-4" />}
     </Button>
   );
 }
