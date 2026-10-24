@@ -85,7 +85,7 @@ export function MelodyWorkspace() {
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden bg-surface">
-      <div className="flex min-h-14 items-center gap-2 border-b border-border bg-surface-raised/90 py-2 pl-12 pr-3 iphone:pr-4 md:pl-4">
+      <div className="flex min-h-14 items-center gap-2 border-b border-border bg-surface-raised/90 py-2 pl-14 pr-3 iphone:pr-4 md:pl-4">
         <h2 className="flex-shrink-0 font-display text-mobile-base font-semibold iphone:text-lg">Melody</h2>
         {signedIn && (
           <div className="flex min-w-0 flex-1 items-center justify-end gap-1.5">
