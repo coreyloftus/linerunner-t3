@@ -5,6 +5,7 @@ import { firebaseRouter } from "./routers/firebase";
 import { voiceRouter } from "./routers/voice";
 import { melodyRouter } from "./routers/melody";
 import { lastSpotRouter } from "./routers/lastSpot";
+import { shareRouter } from "./routers/share";
 
 /**
  * This is the primary router for your server.
@@ -18,6 +19,7 @@ export const appRouter = createTRPCRouter({
   voice: voiceRouter,
   melody: melodyRouter,
   lastSpot: lastSpotRouter,
+  share: shareRouter,
 });
 
 // export type definition of API

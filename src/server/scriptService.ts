@@ -3,6 +3,7 @@ import path from "path";
 import { FirestoreService } from "./firebase";
 import { DEMO_PROJECT, LOCAL_SOURCE_ENABLED } from "~/lib/sources";
 import demoScript from "../../data/sceneData/the-importance-of-being-earnest.json";
+import { resolveShareContent } from "./shares";
 
 // Bundled shows live outside public/ so the site never serves them as files
 const LOCAL_DIRECTORY = path.join(process.cwd(), "data/sceneData");
@@ -185,15 +186,22 @@ export class ScriptService {
     try {
       const sharedProjects = await FirestoreService.getSharedProjectsForUser(userEmail);
 
-      // Ensure all projects have characters arrays and convert to ProjectJSON
-      const allData: ProjectJSON[] = sharedProjects.map((doc) => ({
-        ...this.ensureCharactersArray({
-          project: doc.project,
-          scenes: doc.scenes,
-          characters: doc.characters,
-        }),
-        sharedBy: doc.ownerId,
-      }));
+      // User shares read the owner's current show; old admin shares use their stored copy
+      const resolved = await Promise.all(
+        sharedProjects.map(async (doc) => ({
+          doc,
+          content: await resolveShareContent(doc),
+        })),
+      );
+      const allData: ProjectJSON[] = resolved
+        .filter(
+          (r): r is { doc: (typeof r)["doc"]; content: RawProject } =>
+            r.content !== null,
+        )
+        .map(({ doc, content }) => ({
+          ...this.ensureCharactersArray(content),
+          sharedBy: doc.ownerId,
+        }));
 
       const projects = allData.map((doc) => doc.project);
       return {

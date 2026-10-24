@@ -8,6 +8,10 @@ export interface SharedProjectJSON extends ProjectJSON {
   id?: string;
   ownerId: string;
   allowedUsers: string[];
+  // Set on user shares, which read the owner's doc instead of storing scenes
+  sourceDocId?: string;
+  ownerName?: string;
+  shareToken?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

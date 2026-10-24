@@ -63,7 +63,7 @@ export function AdminSharingPanel() {
 
   // Find if selected project is already shared
   const selectedSharedProject = sharedProjects?.find(
-    (sp) => sp.project === selectedProject,
+    (sp) => sp.project === selectedProject && !sp.sourceDocId,
   );
 
   const handleShareProject = async (): Promise<void> => {
@@ -160,7 +160,7 @@ export function AdminSharingPanel() {
           </SelectTrigger>
           <SelectContent>
             {projectsList.map((project) => {
-              const isShared = sharedProjects?.some((sp) => sp.project === project);
+              const isShared = sharedProjects?.some((sp) => sp.project === project && !sp.sourceDocId);
               return (
                 <SelectItem key={project} value={project}>
                   {isShared ? `🔗 ${project}` : project}
