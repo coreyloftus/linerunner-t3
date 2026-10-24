@@ -11,6 +11,7 @@ import ScriptBox from "./ScriptDisplay/ScriptBox";
 import ScriptViewer from "./ScriptViewer";
 import { ScriptsWorkspace } from "./ScriptsWorkspace";
 import { MelodyWorkspace } from "./Melody/MelodyWorkspace";
+import { useLastSpot } from "~/hooks/useLastSpot";
 
 interface GetAllResponse {
   projects: string[];
@@ -39,6 +40,7 @@ export function AppShell({ projectData, sidebarData }: AppShellProps) {
   const [mode, setMode] = useState<AppMode>("runner");
   const [mobileOpen, setMobileOpen] = useState(false);
   const melodyParam = queryParams.melody;
+  useLastSpot(mode, setMode);
 
   // ?melody=<id> opens the Melody tab
   useEffect(() => {

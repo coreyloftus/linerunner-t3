@@ -5,6 +5,7 @@ import { type ProjectJSON } from "../server/api/routers/scriptData";
 import { Textarea } from "./ui/textarea";
 import { api } from "~/trpc/react";
 import { useSession } from "next-auth/react";
+import { useRestoreLine } from "~/hooks/useLastSpot";
 
 interface ScriptViewerProps {
   data: {
@@ -80,6 +81,7 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
   const script = currentData.allData
     .find((project) => project.project === selectedProject?.name)
     ?.scenes.find((scene) => scene.title === selectedScene);
+  useRestoreLine(script?.lines.length ?? 0);
 
   const formatScriptForDisplay = () => {
     if (!script?.lines) {
