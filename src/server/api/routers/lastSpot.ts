@@ -14,9 +14,13 @@ export const lastSpotRouter = createTRPCRouter({
   save: protectedProcedure
     .input(lastSpotSchema)
     .mutation(async ({ ctx, input }) => {
+      // Firestore rejects undefined fields, so drop the empty ones
+      const lastSpot = Object.fromEntries(
+        Object.entries(input).filter(([, value]) => value !== undefined),
+      );
       await userRef(ctx.session.user.email!).set(
-        { lastSpot: input },
-        { merge: true },
+        { lastSpot },
+        { mergeFields: ["lastSpot"] },
       );
     }),
 });
