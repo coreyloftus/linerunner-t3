@@ -2,7 +2,7 @@
 import { useCallback, useContext, useEffect, useState, useRef } from "react";
 // import { Button } from "../ui/button";
 // import { Input } from "../ui/input";
-import { FaMicrophone } from "react-icons/fa6";
+import { FaAlignLeft, FaMicrophone } from "react-icons/fa6";
 import { ScriptContext } from "~/app/context";
 import { type ProjectJSON } from "../../server/api/routers/scriptData";
 import ControlBar from "../ControlBar";
@@ -112,6 +112,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
   const [currentLine, setCurrentLine] = useState<string[]>([]);
   const [helperIndex, setHelperIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [showFullScript, setShowFullScript] = useState(false);
 
   // Reset script state when data source changes
   useEffect(() => {
@@ -176,10 +177,12 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
   }, [playScene, proceedWithScene, currentLineIndex]);
 
   useEffect(() => {
+    // The full script centers the current line itself
+    if (showFullScript) return;
     if (scrollRef.current) {
       scrollRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
     }
-  }, [script?.lines, currentLineIndex]);
+  }, [script?.lines, currentLineIndex, showFullScript]);
 
   // "linerun" mode -- handle user input
   const handleSubmit = useCallback(() => {
@@ -214,7 +217,12 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
         setWordIndex(0); // Show character name only
 
         // Check if the new line is for the player character
-        if (checkIsUserLine(script.lines?.[newIndex]?.characters, selectedCharacter)) {
+        if (
+          checkIsUserLine(
+            script.lines?.[newIndex]?.characters,
+            selectedCharacter,
+          )
+        ) {
           setAwaitingInput(true);
         } else {
           setAwaitingInput(false);
@@ -234,7 +242,12 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
             setWordIndex(0); // Show character name only
 
             // Check if the new line is for the player character
-            if (checkIsUserLine(script.lines?.[newIndex]?.characters, selectedCharacter)) {
+            if (
+              checkIsUserLine(
+                script.lines?.[newIndex]?.characters,
+                selectedCharacter,
+              )
+            ) {
               setAwaitingInput(true);
             } else {
               setAwaitingInput(false);
@@ -354,7 +367,11 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     selectedCharacter,
   );
   const speechActive =
-    speechMatchEnabled && playScene && !paused && isUsersLine && !!currentScriptLine;
+    speechMatchEnabled &&
+    playScene &&
+    !paused &&
+    isUsersLine &&
+    !!currentScriptLine;
 
   // The advance fires from a timeout, so route it through a ref to always
   // call the latest navigation handler
@@ -404,10 +421,28 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
   return (
     <div className="flex h-full w-full flex-col overflow-hidden bg-surface">
       <div className="flex min-h-0 flex-1 flex-col">
-        <div className="min-h-0 flex-grow overflow-hidden">
-          <ul className="overscroll-bounce h-full overflow-y-auto px-2 pt-12 md:pt-0 [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain] [touch-action:pan-y]">
-            {playScene ? (
+        <div className="relative min-h-0 flex-grow overflow-hidden">
+          {script && (
+            <button
+              type="button"
+              onClick={(event) => {
+                setShowFullScript((show) => !show);
+                // Drop focus so Space keeps playing the scene
+                event.currentTarget.blur();
+              }}
+              aria-pressed={showFullScript}
+              aria-label="Show full script"
+              title="Show full script"
+              className={`absolute right-2 top-2 z-20 flex h-10 touch-manipulation items-center gap-2 rounded-full border px-3 text-sm shadow-sm backdrop-blur-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${showFullScript ? "border-accent/50 bg-accent-soft text-foreground" : "border-border bg-surface-raised/80 text-muted-foreground hover:bg-muted"}`}
+            >
+              <FaAlignLeft className="h-4 w-4" />
+              <span className="hidden sm:inline">Full script</span>
+            </button>
+          )}
+          <ul className="overscroll-bounce h-full overflow-y-auto px-2 pt-12 [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain] [touch-action:pan-y]">
+            {playScene || (showFullScript && script) ? (
               <CharacterLineDisplay
+                showAll={showFullScript}
                 script={script}
                 currentLineIndex={currentLineIndex}
                 selectedCharacter={selectedCharacter}
