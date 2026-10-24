@@ -7,6 +7,7 @@ import { ScriptContext } from "~/app/context";
 import { type AppMode } from "~/lib/app-mode";
 import { SidebarClient } from "./SidebarClient";
 import { MobileMenuButton } from "./MobileMenuButton";
+import { MobileTabBar } from "./MobileTabBar";
 import ScriptBox from "./ScriptDisplay/ScriptBox";
 import ScriptViewer from "./ScriptViewer";
 import { ScriptsWorkspace } from "./ScriptsWorkspace";
@@ -93,20 +94,26 @@ export function AppShell({ projectData, sidebarData }: AppShellProps) {
         onMobileOpenChange={setMobileOpen}
       />
 
-      <main className="relative flex min-h-0 min-w-0 flex-1 md:p-2 md:pl-0">
-        <MobileMenuButton onClick={() => setMobileOpen(true)} />
-        <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden md:rounded-2xl md:border md:border-border md:shadow-xl md:shadow-black/5 dark:md:shadow-black/40">
-          {mode === "runner" && <ScriptBox data={projectData} />}
-          {mode === "viewer" && <ScriptViewer data={projectData} />}
-          {mode === "scripts" && (
-            <ScriptsWorkspace
-              data={projectData}
-              onPractice={() => handleModeChange("runner")}
-            />
-          )}
-          {mode === "melody" && <MelodyWorkspace />}
-        </div>
-      </main>
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <main className="relative flex min-h-0 min-w-0 flex-1 md:p-2 md:pl-0">
+          <MobileMenuButton
+            mode={mode}
+            onClick={() => setMobileOpen(true)}
+          />
+          <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden md:rounded-2xl md:border md:border-border md:shadow-xl md:shadow-black/5 dark:md:shadow-black/40">
+            {mode === "runner" && <ScriptBox data={projectData} />}
+            {mode === "viewer" && <ScriptViewer data={projectData} />}
+            {mode === "scripts" && (
+              <ScriptsWorkspace
+                data={projectData}
+                onPractice={() => handleModeChange("runner")}
+              />
+            )}
+            {mode === "melody" && <MelodyWorkspace />}
+          </div>
+        </main>
+        <MobileTabBar mode={mode} onModeChange={handleModeChange} />
+      </div>
     </div>
   );
 }

@@ -466,7 +466,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
                     Know <span className="italic text-accent">every</span> line.
                   </h1>
                   <p className="mt-4 font-script text-base text-muted-foreground">
-                    Open the menu, pick a scene and your character,
+                    Pick a scene and your character,
                     <br className="hidden md:block" /> then press play.
                   </p>
 
