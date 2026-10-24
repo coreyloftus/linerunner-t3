@@ -42,11 +42,32 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
  * ZodErrors so that you get typesafety on the frontend if your procedure fails due to validation
  * errors on the backend.
  */
+// "Scene 2, line 14: A line can be at most 5,000 characters long."
+const describeZodIssue = (issue: ZodError["issues"][number] | undefined) => {
+  if (!issue) return undefined;
+  const where: string[] = [];
+  issue.path.forEach((key, i) => {
+    const index = issue.path[i + 1];
+    if (typeof index !== "number") return;
+    if (key === "scenes") where.push(`Scene ${index + 1}`);
+    if (key === "lines") where.push(`line ${index + 1}`);
+  });
+  const prefix = where.join(", ");
+  return prefix
+    ? `${prefix.charAt(0).toUpperCase()}${prefix.slice(1)}: ${issue.message}`
+    : issue.message;
+};
+
 const t = initTRPC.context<typeof createTRPCContext>().create({
   transformer: superjson,
   errorFormatter({ shape, error }) {
     return {
       ...shape,
+      // Clients show error.message; make input errors readable instead of raw JSON
+      message:
+        error.cause instanceof ZodError
+          ? describeZodIssue(error.cause.issues[0]) ?? shape.message
+          : shape.message,
       data: {
         ...shape.data,
         zodError:

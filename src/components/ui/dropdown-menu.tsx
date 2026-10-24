@@ -59,7 +59,7 @@ export function DropdownMenu({
       {open && (
         <div
           className={cn(
-            "bg-popover text-popover-foreground absolute top-full z-50 mt-1 min-w-[8rem] overflow-hidden rounded-md border shadow-md",
+            "bg-popover text-popover-foreground absolute bottom-full z-50 mb-1 min-w-[8rem] overflow-hidden rounded-md border shadow-md",
             align === "start" && "left-0",
             align === "center" && "left-1/2 -translate-x-1/2 transform",
             align === "end" && "right-0",

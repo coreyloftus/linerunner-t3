@@ -7,6 +7,7 @@ import { resolveShareContent } from "./shares";
 
 // Bundled shows live outside public/ so the site never serves them as files
 const LOCAL_DIRECTORY = path.join(process.cwd(), "data/sceneData");
+import { showSizeError } from "~/lib/script-limits";
 
 export interface ProjectJSON {
   project: string;
@@ -422,6 +423,13 @@ export class ScriptService {
         // Regenerate characters array for all scenes
         const updatedCharacters = this.generateCharactersFromScenes(updatedScenes);
 
+        const sizeError = showSizeError({
+          ...existingProjectDoc,
+          scenes: updatedScenes,
+          characters: updatedCharacters,
+        });
+        if (sizeError) return { success: false, message: sizeError };
+
         console.log(
           "🔍 [ScriptService.saveFirestoreScript] Updating existing project",
         );
@@ -467,6 +475,9 @@ export class ScriptService {
             },
           ]),
         };
+
+        const sizeError = showSizeError(scriptData);
+        if (sizeError) return { success: false, message: sizeError };
 
         const documentId = await FirestoreService.addUserDocument(
           userId,
@@ -589,6 +600,13 @@ export class ScriptService {
 
       // Regenerate characters array for all scenes
       const updatedCharacters = this.generateCharactersFromScenes(updatedScenes);
+
+      const sizeError = showSizeError({
+        ...existingProjectDoc,
+        scenes: updatedScenes,
+        characters: updatedCharacters,
+      });
+      if (sizeError) return { success: false, message: sizeError };
 
       // Update scenes and characters arrays
       await FirestoreService.updateUserDocument(

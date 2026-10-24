@@ -4,12 +4,15 @@ import { signIn, signOut, useSession } from "next-auth/react";
 import { Button } from "./ui/button";
 import { DropdownMenu, DropdownMenuItem } from "./ui/dropdown-menu";
 import { ScriptContext } from "~/app/context";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
+import Link from "next/link";
 import { isAdminEmail } from "~/lib/admin";
+import { DeleteAccountDialog } from "./DeleteAccountDialog";
 
 export const AuthButton = () => {
   const { data: session, status } = useSession();
   const { setIsAdmin } = useContext(ScriptContext);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   // Set admin status in useEffect to avoid setState during render
   useEffect(() => {
@@ -38,6 +41,18 @@ export const AuthButton = () => {
         >
           Sign out
         </button>
+        <button
+          type="button"
+          onClick={() => setDeleteOpen(true)}
+          className="mt-1 min-h-[44px] w-full rounded-lg text-sm text-curtain transition-colors hover:bg-curtain/10 md:min-h-[36px]"
+        >
+          Delete account
+        </button>
+        <DeleteAccountDialog
+          open={deleteOpen}
+          onOpenChange={setDeleteOpen}
+          email={session.user?.email ?? ""}
+        />
       </div>
     );
   }
@@ -102,6 +117,12 @@ export const AuthButton = () => {
         </svg>
         Sign in with Discord
       </DropdownMenuItem>
+      <Link
+        href="/privacy"
+        className="flex min-h-[44px] w-full items-center justify-center bg-surface px-2 text-sm text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+      >
+        What we store
+      </Link>
     </DropdownMenu>
   );
 };

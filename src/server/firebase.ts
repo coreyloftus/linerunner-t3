@@ -2,6 +2,9 @@ import { adminDb } from "~/lib/firebase-admin";
 import type { DocumentData, WhereFilterOp } from "firebase-admin/firestore";
 import type { ProjectJSON } from "./scriptService";
 import { FieldValue } from "firebase-admin/firestore";
+import { TRPCError } from "@trpc/server";
+import { isAdminEmail } from "~/lib/admin";
+import { SCRIPT_LIMITS, SHOW_LIMIT_MESSAGE } from "~/lib/script-limits";
 
 // Shared project structure stored in shared_projects collection
 export interface SharedProjectJSON extends ProjectJSON {
@@ -198,6 +201,13 @@ export class FirestoreService {
     try {
       const userDocRef = adminDb.collection("users").doc(userId);
       const subcollectionRef = userDocRef.collection(subcollectionName);
+
+      if (subcollectionName === "uploaded_data" && !isAdminEmail(userId)) {
+        const count = (await subcollectionRef.count().get()).data().count;
+        if (count >= SCRIPT_LIMITS.maxShowsPerUser) {
+          throw new TRPCError({ code: "FORBIDDEN", message: SHOW_LIMIT_MESSAGE });
+        }
+      }
 
       console.log("🔥 [FirestoreService.addUserDocument] Adding document...");
       const docRef = await subcollectionRef.add(data);
@@ -413,6 +423,35 @@ export class FirestoreService {
       console.error("Error querying documents:", error);
       throw error;
     }
+  }
+
+  // Delete everything stored for a user: their doc, every subcollection, and their place in shares
+  static async deleteUserData(
+    email: string,
+  ): Promise<{ sharesDeleted: number; sharesLeft: number }> {
+    const shares = adminDb.collection("shared_projects");
+    const [owned, joined] = await Promise.all([
+      shares.where("ownerId", "==", email).get(),
+      shares.where("allowedUsers", "array-contains", email).get(),
+    ]);
+
+    const writer = adminDb.bulkWriter();
+    const ownedIds = new Set(owned.docs.map((doc) => doc.id));
+    owned.docs.forEach((doc) => void writer.delete(doc.ref));
+    const left = joined.docs.filter((doc) => !ownedIds.has(doc.id));
+    left.forEach(
+      (doc) =>
+        void writer.update(doc.ref, {
+          allowedUsers: FieldValue.arrayRemove(email),
+          updatedAt: FieldValue.serverTimestamp(),
+        }),
+    );
+    await writer.close();
+
+    // Also clears subcollections under a parent doc that was never written
+    await adminDb.recursiveDelete(adminDb.collection("users").doc(email));
+
+    return { sharesDeleted: owned.size, sharesLeft: left.length };
   }
 
   // ============ SHARED PROJECTS METHODS ============

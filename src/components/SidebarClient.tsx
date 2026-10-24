@@ -351,11 +351,19 @@ export function SidebarClient({
           {/* Account and credit */}
           <div className={`mt-auto space-y-4 px-3 pb-3 pt-6 ${expandedOnly}`}>
             <AuthButton />
-            <Link href="https://www.coreyloftus.com" target="_blank">
-              <div className="font-script text-sm text-muted-foreground transition-colors hover:text-foreground">
-                LineRunner by Corey
-              </div>
-            </Link>
+            <div className="flex items-center justify-between gap-3">
+              <Link href="https://www.coreyloftus.com" target="_blank">
+                <div className="font-script text-sm text-muted-foreground transition-colors hover:text-foreground">
+                  LineRunner by Corey
+                </div>
+              </Link>
+              <Link
+                href="/privacy"
+                className="flex min-h-[44px] items-center text-sm text-muted-foreground transition-colors hover:text-foreground"
+              >
+                Privacy
+              </Link>
+            </div>
           </div>
         </div>
       </aside>
