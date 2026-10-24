@@ -13,6 +13,8 @@ import ScriptViewer from "./ScriptViewer";
 import { ScriptsWorkspace } from "./ScriptsWorkspace";
 import { MelodyWorkspace } from "./Melody/MelodyWorkspace";
 import { useLastSpot } from "~/hooks/useLastSpot";
+import { useMyCharacter } from "~/hooks/useMyCharacter";
+import { type WorkspaceView } from "./ScriptsWorkspace";
 
 interface GetAllResponse {
   projects: string[];
@@ -41,14 +43,17 @@ export function AppShell({ projectData, sidebarData }: AppShellProps) {
   const [mode, setMode] = useState<AppMode>("runner");
   const [mobileOpen, setMobileOpen] = useState(false);
   const melodyParam = queryParams.melody;
+  const [scriptsView, setScriptsView] = useState<WorkspaceView>("library");
   useLastSpot(mode, setMode);
+  useMyCharacter();
 
   // ?melody=<id> opens the Melody tab
   useEffect(() => {
     if (melodyParam) setMode("melody");
   }, [melodyParam]);
 
-  const handleModeChange = (next: AppMode) => {
+  const handleModeChange = (next: AppMode, view: WorkspaceView = "library") => {
+    setScriptsView(view);
     setMode(next);
     if (next !== "melody" && melodyParam) {
       const params = new URLSearchParams(window.location.search);
@@ -101,11 +106,17 @@ export function AppShell({ projectData, sidebarData }: AppShellProps) {
             onClick={() => setMobileOpen(true)}
           />
           <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden md:rounded-2xl md:border md:border-border md:shadow-xl md:shadow-black/5 dark:md:shadow-black/40">
-            {mode === "runner" && <ScriptBox data={projectData} />}
+            {mode === "runner" && (
+              <ScriptBox
+                data={projectData}
+                onAddScript={() => handleModeChange("scripts", "new")}
+              />
+            )}
             {mode === "viewer" && <ScriptViewer data={projectData} />}
             {mode === "scripts" && (
               <ScriptsWorkspace
                 data={projectData}
+                initialView={scriptsView}
                 onPractice={() => handleModeChange("runner")}
               />
             )}

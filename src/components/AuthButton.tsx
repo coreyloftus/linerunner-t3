@@ -26,22 +26,19 @@ export const AuthButton = () => {
 
   if (session) {
     return (
-      <DropdownMenu
-        trigger={
-          <div className="rounded-md border border-gray-300 bg-gray-50/50 px-3 py-2 shadow-lg transition-all duration-200 hover:bg-gray-50 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 min-h-[44px] flex items-center dark:border-stone-700 dark:bg-stone-800/50 dark:text-stone-100 dark:hover:bg-stone-700">
-            {session.user?.email ?? "User"}
-          </div>
-        }
-      >
-        <DropdownMenuItem
-          className="bg-gray-50/50 p-3 hover:cursor-pointer hover:bg-gray-50 dark:bg-stone-800/50 dark:text-stone-100 dark:hover:bg-stone-700"
+      <div className="rounded-xl border border-border bg-surface-raised/60 p-3">
+        <p className="text-xs text-muted-foreground">Signed in as</p>
+        <p className="break-all text-sm font-semibold">
+          {session.user?.email ?? "Unknown account"}
+        </p>
+        <button
+          type="button"
           onClick={() => signOut()}
+          className="mt-2 min-h-[44px] w-full rounded-lg border border-border text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground md:min-h-[36px]"
         >
-          <div className="flex h-full w-full items-center justify-center">
-            <span>Sign out</span>
-          </div>
-        </DropdownMenuItem>
-      </DropdownMenu>
+          Sign out
+        </button>
+      </div>
     );
   }
 

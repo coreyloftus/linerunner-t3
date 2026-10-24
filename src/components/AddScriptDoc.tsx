@@ -7,7 +7,7 @@ import { Button } from "./ui/button";
 import { ScriptContext } from "~/app/context";
 import { api } from "~/trpc/react";
 import { useToast } from "~/components/ui/use-toast";
-import { useSession } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import {
   Select,
   SelectContent,
@@ -16,9 +16,57 @@ import {
   SelectValue,
 } from "./ui/select";
 import { FileDropZone } from "./FileDropZone";
+import { FaArrowLeft } from "react-icons/fa6";
+import { applyRenames, parseScript, type ParsedLine } from "~/lib/parse-script";
 
-export const AddScriptDoc = () => {
+const PRIMARY =
+  "h-12 w-full rounded-xl bg-accent text-base font-semibold text-accent-foreground shadow-sm hover:bg-accent/90 md:w-auto md:px-8";
+const FIELD_LABEL = "mb-1.5 block text-sm font-medium";
+const FIELD = "h-12 text-base md:h-10 md:text-sm";
+const SECTION_LABEL =
+  "text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground";
+
+const INPUT_METHODS: { id: "text" | "file"; label: string }[] = [
+  { id: "text", label: "Paste" },
+  { id: "file", label: "Upload file" },
+];
+
+const SCRIPT_PLACEHOLDER = `Paste a scene here.
+
+STANLEY
+Stella!!!
+
+BLANCHE: I have always depended on the kindness of strangers.`;
+
+const FORMAT_EXAMPLES = [
+  { title: "Name on its own line", example: "STANLEY\nStella!!!" },
+  {
+    title: "Name, colon, line",
+    example: "NUNS: Have you seen Maria?",
+  },
+  {
+    title: "Several characters at once",
+    example: "MARIA & TONY: Tonight, tonight!\nNUNS/MOTHER ABBESS: How do you solve a problem like Maria?",
+  },
+  {
+    title: "Sung lines in caps",
+    example: "MARIA\nTHE HILLS ARE ALIVE WITH THE SOUND OF MUSIC",
+  },
+];
+
+interface AddScriptDocProps {
+  // Called after a scene is saved to the user's shows
+  onSaved?: (projectName: string, sceneTitle: string) => void;
+}
+
+// Characters in order of first appearance
+const charactersIn = (lines: ParsedLine[]) => [
+  ...new Set(lines.flatMap((line) => line.characters)),
+];
+
+export const AddScriptDoc = ({ onSaved }: AddScriptDocProps = {}) => {
   const { data: session } = useSession();
+  const utils = api.useUtils();
   const {
     scriptCharacterNames,
     setScriptCharacterNames,
@@ -39,6 +87,11 @@ export const AddScriptDoc = () => {
   const [copyTargetUserId, setCopyTargetUserId] = useState("");
   const [copyProjectName, setCopyProjectName] = useState("");
   const [characterInput, setCharacterInput] = useState("");
+  const [step, setStep] = useState<"input" | "preview">("input");
+  const [parsedLines, setParsedLines] = useState<ParsedLine[]>([]);
+  // Preview fixes: new display names, and characters folded into another one
+  const [names, setNames] = useState<Record<string, string>>({});
+  const [mergedInto, setMergedInto] = useState<Record<string, string>>({});
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
 
@@ -100,18 +153,21 @@ export const AddScriptDoc = () => {
     );
 
   const createScriptMutation = api.scriptData.createScript.useMutation({
-    onSuccess: (data) => {
+    onSuccess: async (data, variables) => {
       if (data.success) {
         toast({
-          title: "Success!",
-          description: data.message,
+          title: "Saved",
+          description: `${variables.sceneTitle} is in ${variables.projectName}.`,
         });
+        await utils.scriptData.getAll.invalidate();
+        onSaved?.(variables.projectName, variables.sceneTitle);
         // Clear the form
         setProjectName("");
         setSceneTitle("");
         setNewScriptBox("");
         setScriptCharacterNames([]);
         setIsNewProject(false);
+        resetPreview();
       } else {
         toast({
           title: "Error",
@@ -175,6 +231,7 @@ export const AddScriptDoc = () => {
           setSelectedDocumentId("");
           setSelectedSubcollection("");
           setIsAdminMode(false);
+          resetPreview();
         } else {
           toast({
             title: "Error",
@@ -235,13 +292,74 @@ export const AddScriptDoc = () => {
     }
   };
 
+  const resetPreview = () => {
+    setStep("input");
+    setParsedLines([]);
+    setNames({});
+    setMergedInto({});
+  };
+
+  // Opens the preview for parsed lines; a PDF import can call this with its own lines
+  const showPreview = (lines: ParsedLine[]) => {
+    if (lines.length === 0) {
+      toast({
+        title: "No lines found",
+        description:
+          "Put each name in caps on its own line, or use NAME: line.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setParsedLines(lines);
+    setNames({});
+    setMergedInto({});
+    setStep("preview");
+  };
+
+  const previewText = (script: string) => {
+    if (!script.trim()) {
+      toast({
+        title: "Nothing to preview",
+        description: "Paste a script or upload a file first.",
+        variant: "destructive",
+      });
+      return;
+    }
+    showPreview(parseScript(script, scriptCharacterNames));
+  };
+
   const handleFileContent = (content: string) => {
     setNewScriptBox(content);
-    toast({
-      title: "File Loaded",
-      description: "Script content has been loaded from file.",
-    });
+    previewText(content);
   };
+
+  // Follows merges to the character a name was folded into
+  const rootOf = (name: string): string => {
+    const seen = new Set<string>();
+    let current = name;
+    while (mergedInto[current] && !seen.has(current)) {
+      seen.add(current);
+      current = mergedInto[current]!;
+    }
+    return current;
+  };
+  const finalName = (name: string) => {
+    const root = rootOf(name);
+    return names[root]?.trim() ?? root;
+  };
+  const merge = (name: string, target: string) =>
+    setMergedInto((prev) => ({ ...prev, [name]: target }));
+  const unmerge = (name: string) =>
+    setMergedInto(({ [name]: _removed, ...rest }) => rest);
+  const originalCharacters = charactersIn(parsedLines);
+  const renames = Object.fromEntries(
+    originalCharacters.map((name) => [name, finalName(name) || name]),
+  );
+  const previewLines = applyRenames(parsedLines, renames);
+  const lineCounts = parsedLines.reduce<Record<string, number>>((counts, line) => {
+    line.characters.forEach((name) => (counts[name] = (counts[name] ?? 0) + 1));
+    return counts;
+  }, {});
 
   const handleCopyProject = () => {
     if (!copySourceUserId.trim()) {
@@ -278,11 +396,11 @@ export const AddScriptDoc = () => {
     });
   };
 
-  const handleAddScript = (script: string) => {
+  const handleAddScript = () => {
     if (!projectName.trim()) {
       toast({
-        title: "Error",
-        description: "Please enter a project name",
+        title: "Name the show",
+        description: "Add a show name before you save.",
         variant: "destructive",
       });
       return;
@@ -290,23 +408,14 @@ export const AddScriptDoc = () => {
 
     if (!sceneTitle.trim()) {
       toast({
-        title: "Error",
-        description: "Please enter a scene title",
+        title: "Name the scene",
+        description: "Add a scene title before you save.",
         variant: "destructive",
       });
       return;
     }
 
-    if (!script.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter script content",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const parsedLines = parseScript(script, scriptCharacterNames);
+    const parsedLines = previewLines;
 
     if (parsedLines.length === 0) {
       toast({
@@ -317,12 +426,6 @@ export const AddScriptDoc = () => {
       });
       return;
     }
-
-    // Determine data source based on selected project
-    const userProjects = userData?.projects ?? [];
-    const publicProjects = publicData?.projects ?? [];
-    const isUserProject = userProjects.includes(projectName.trim());
-    const isPublicProject = publicProjects.includes(projectName.trim());
 
     // Use admin mutation if in admin mode
     if (isAdminMode) {
@@ -349,261 +452,55 @@ export const AddScriptDoc = () => {
         subcollectionName: selectedSubcollection,
       });
     } else {
-      // Determine data source based on project type
-      let dataSource: "firestore" | "public" = "firestore";
-
-      if (isPublicProject) {
-        // Only allow adding to public projects in admin mode
-        toast({
-          title: "Error",
-          description: "You can only add to public projects in admin mode",
-          variant: "destructive",
-        });
-        return;
-      } else if (isUserProject) {
-        dataSource = "firestore";
-      } else {
-        // New project - default to firestore
-        dataSource = "firestore";
-      }
-
+      // Outside admin mode a scene always goes to the user's own shows
       createScriptMutation.mutate({
         projectName: projectName.trim(),
         sceneTitle: sceneTitle.trim(),
         lines: parsedLines,
-        dataSource: dataSource,
+        dataSource: "firestore",
       });
     }
-  };
-
-  // Character names come from the user, but scripts routinely contain speakers
-  // the user did not list. A standalone upper-case line that looks like a name
-  // ("CINDERELLA", "CP/RP") is treated as a speaker header and registered on
-  // the fly, so an incomplete list no longer swallows a whole character.
-  const parseScript = (script: string, characterNames: string[]) => {
-    const lines = script.split(/\n/);
-    const parsedLines: { characters: string[]; line: string; sung?: boolean }[] =
-      [];
-    const knownCharacters = [...characterNames];
-    let currentCharacters: string[] = [];
-    let currentLine = "";
-
-    const multiCharSeparators = /\s*[&\/,]\s*/;
-
-    // Helper function to normalize text by removing spaces
-    const normalizeText = (text: string) =>
-      text.toLowerCase().replace(/\s+/g, "");
-
-    // Remove punctuation, then check whether what remains is all upper-case
-    const isAllCaps = (text: string) => {
-      const cleanedText = text.replace(/[^a-zA-Z]/g, "");
-      return (
-        cleanedText.length > 0 && cleanedText === cleanedText.toUpperCase()
-      );
-    };
-
-    // Helper function to check if a line is sung (all caps)
-    const isSungLine = (text: string) => isAllCaps(text);
-
-    // Sung lyrics are upper-case too, so shape is what separates them: a
-    // speaker header is short and never ends in sentence punctuation.
-    // Drop a trailing colon and notes like "(CON'T)" from a speaker header
-    const stripHeaderNote = (text: string) =>
-      text.replace(/:\s*$/, "").replace(/\s*\([^)]*\)\s*$/, "").trim();
-
-    const isKnownCharacter = (text: string) =>
-      knownCharacters.some((name) => normalizeText(name) === normalizeText(text));
-
-    const looksLikeCharacterHeader = (text: string) => {
-      const core = stripHeaderNote(text);
-      if (!core || !isAllCaps(core)) return false;
-      if (/[.,!?;…-]$/.test(core)) return false;
-      return core.split(/\s+/).length <= 3;
-    };
-
-    // Resolve a header to canonical character names, registering unseen ones
-    const resolveHeaderCharacters = (header: string) => {
-      const core = stripHeaderNote(header);
-      return core
-        .split(multiCharSeparators)
-        .map((part) => part.trim())
-        .filter((part) => part.length > 0)
-        .map((part) => {
-          const known = knownCharacters.find(
-            (name) => normalizeText(name) === normalizeText(part),
-          );
-          if (known) return known;
-          knownCharacters.push(part);
-          return part;
-        });
-    };
-
-    const flushCurrentLine = () => {
-      if (currentCharacters.length > 0 && currentLine.trim()) {
-        parsedLines.push({
-          characters: [...currentCharacters],
-          line: currentLine.trim(),
-        });
-      }
-      currentLine = "";
-    };
-
-    for (const [index, line] of lines.entries()) {
-      const trimmedLine = line.trim();
-      if (!trimmedLine) continue; // Skip empty lines
-      if (trimmedLine.startsWith("#")) continue; // Song cue, e.g. "#18 HAPPY SAD"
-
-      // Check for multiple character:line patterns within a single line
-      const characterPattern =
-        knownCharacters.length > 0
-          ? new RegExp(
-              `\\b(${knownCharacters
-                .map((name) => name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
-                .join("|")})\\s*:`,
-              "gi",
-            )
-          : null;
-
-      const matches = characterPattern
-        ? [...trimmedLine.matchAll(characterPattern)]
-        : [];
-
-      if (matches.length > 1) {
-        // Multiple character patterns found in this line - split them up
-        flushCurrentLine();
-        for (let i = 0; i < matches.length; i++) {
-          const match = matches[i];
-          if (!match) continue;
-
-          const nextMatch = matches[i + 1];
-          const characterName = match[1];
-          if (!characterName) continue;
-
-          const startIndex = (match.index ?? 0) + match[0].length;
-          const endIndex = nextMatch
-            ? (nextMatch.index ?? 0)
-            : trimmedLine.length;
-          const dialogue = trimmedLine.substring(startIndex, endIndex).trim();
-
-          const foundCharacter = knownCharacters.find(
-            (name) => normalizeText(name) === normalizeText(characterName),
-          );
-
-          if (foundCharacter && dialogue) {
-            const isSung = isSungLine(dialogue);
-            parsedLines.push({
-              characters: [foundCharacter],
-              line: dialogue,
-              ...(isSung && { sung: true }),
-            });
-            currentCharacters = [foundCharacter];
-          }
-        }
-        continue;
-      }
-
-      // Check for "CHARACTER: line" format, including "CHAR1/CHAR2: line"
-      const colonIndex = trimmedLine.indexOf(":");
-      if (colonIndex > 0) {
-        const potentialCharacter = trimmedLine.substring(0, colonIndex).trim();
-        const potentialLine = trimmedLine.substring(colonIndex + 1).trim();
-
-        if (potentialLine) {
-          const potentialCharacters = potentialCharacter
-            .split(multiCharSeparators)
-            .map((c) => c.trim())
-            .filter((c) => c.length > 0);
-
-          const allKnown =
-            potentialCharacters.length > 0 &&
-            potentialCharacters.every((pc) =>
-              knownCharacters.some(
-                (name) => normalizeText(name) === normalizeText(pc),
-              ),
-            );
-
-          if (allKnown || looksLikeCharacterHeader(potentialCharacter)) {
-            flushCurrentLine();
-            const resolved = resolveHeaderCharacters(potentialCharacter);
-            const isSung = isSungLine(potentialLine);
-            parsedLines.push({
-              characters: resolved,
-              line: potentialLine,
-              ...(isSung && { sung: true }),
-            });
-            currentCharacters = resolved;
-            continue;
-          }
-        }
-      }
-
-      // A standalone name line ("CINDERELLA", "CP/RP") opens that speaker's lines.
-      // An unlisted name only counts between plain lines; inside a run of caps it is a lyric.
-      const nextLine = lines.slice(index + 1).find((l) => l.trim())?.trim() ?? "";
-      const prevLine = lines.slice(0, index).reverse().find((l) => l.trim())?.trim() ?? "";
-      const headerParts = stripHeaderNote(trimmedLine).split(multiCharSeparators);
-      if (
-        looksLikeCharacterHeader(trimmedLine) &&
-        (headerParts.every(isKnownCharacter) ||
-          (!!nextLine && !isAllCaps(nextLine) && !isAllCaps(prevLine)))
-      ) {
-        flushCurrentLine();
-        currentCharacters = resolveHeaderCharacters(trimmedLine);
-        continue;
-      }
-
-      // Upper-case, but not a speaker header, so it is a sung lyric
-      if (isSungLine(trimmedLine)) {
-        flushCurrentLine();
-        if (currentCharacters.length > 0) {
-          parsedLines.push({
-            characters: [...currentCharacters],
-            line: trimmedLine,
-            sung: true,
-          });
-        }
-        continue;
-      }
-
-      // Regular dialogue for the current speaker
-      if (currentCharacters.length > 0) {
-        currentLine += (currentLine ? " " : "") + trimmedLine;
-      }
-    }
-
-    // Save the last lines
-    flushCurrentLine();
-
-    return parsedLines;
   };
 
   // If user is not authenticated, show message
   if (!session?.user) {
     return (
-      <div className="flex h-full w-full flex-col items-center justify-center">
-        <div className="text-center">
-          <h2 className="mb-4 font-display text-lg font-semibold">
-            Authentication Required
+      <div className="flex h-full w-full flex-col items-center justify-center p-6">
+        <div className="max-w-sm text-center">
+          <h2 className="mb-2 font-display text-2xl font-semibold">
+            Sign in to add a script
           </h2>
-          <p className="text-muted-foreground">
-            Please sign in to add scripts to the database.
+          <p className="mb-6 font-script text-muted-foreground">
+            Your shows stay with your account.
           </p>
+          <Button onClick={() => signIn("google")} className={PRIMARY}>
+            Sign in with Google
+          </Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="h-full w-full">
+    <div className="h-full w-full overflow-y-auto [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain]">
       <>
-        <div className="flex h-full w-full flex-col">
-          <div className="flex h-full flex-col">
-            <div className="flex items-center justify-between border-b border-border bg-surface-raised/60 px-4 py-2">
-              <div className="flex items-center gap-4">
-                <p className="text-sm text-muted-foreground">
-                  Import a new script
-                </p>
-              </div>
+        <div className="mx-auto flex w-full max-w-3xl flex-col">
+          <div className="flex flex-col">
+            <div className="flex min-h-12 items-center justify-between gap-3 border-b border-border px-4 py-2">
+              {step === "preview" ? (
+                <button
+                  type="button"
+                  onClick={() => setStep("input")}
+                  className="-ml-2 flex min-h-[44px] items-center gap-2 rounded-lg px-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+                >
+                  <FaArrowLeft className="h-3.5 w-3.5" />
+                  Edit text
+                </button>
+              ) : (
+                <h3 className="font-display text-lg font-semibold">
+                  Add a script
+                </h3>
+              )}
               {isAdmin && (
                 <div className="flex items-center gap-2">
                   <label className="text-sm text-stone-700 dark:text-stone-300">
@@ -742,232 +639,293 @@ export const AddScriptDoc = () => {
               </div>
             )}
 
-            {/* Project and Scene inputs */}
-            <div className="flex flex-col gap-2 p-2">
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <div className="flex-1">
-                  <p className="mb-1 text-sm">
-                    Project Name:
-                  </p>
-                  <div className="space-y-2">
-                    <Select
-                      onValueChange={handleProjectChange}
-                      value={isNewProject ? "new" : projectName}
+            {step === "input" ? (
+              <div className="flex flex-col gap-4 p-4">
+                {/* How the script gets in; a PDF import adds a method here and calls showPreview */}
+                <div className="flex rounded-xl border border-border bg-surface p-1">
+                  {INPUT_METHODS.map(({ id, label }) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => setInputMethod(id)}
+                      aria-pressed={inputMethod === id}
+                      className={`min-h-[44px] flex-1 rounded-lg px-3 text-sm font-medium transition-colors ${
+                        inputMethod === id
+                          ? "bg-accent font-semibold text-accent-foreground shadow-sm"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select existing project or add new..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {/* Show user projects (always available to user) */}
-                        {userData?.projects.map((project) => (
-                          <SelectItem key={project} value={project}>
-                            👤 {project}
-                          </SelectItem>
-                        ))}
-                        {/* Show public projects only in admin mode */}
-                        {isAdminMode &&
-                          publicData?.projects.map((project) => (
-                            <SelectItem key={project} value={project}>
-                              📁 {project}
-                            </SelectItem>
-                          ))}
-                        <SelectItem value="new">+ Add New Project</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {isNewProject && (
-                      <Input
-                        placeholder="Enter new project name..."
-                        value={projectName}
-                        onChange={(e) => setProjectName(e.target.value)}
-                      />
-                    )}
-                  </div>
+                      {label}
+                    </button>
+                  ))}
                 </div>
-                <div className="flex-1">
-                  <p className="mb-1 text-sm">
-                    Scene Title:
-                  </p>
-                  <Input
-                    placeholder="Enter scene title..."
-                    value={sceneTitle}
-                    onChange={(e) => setSceneTitle(e.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
 
-            {/* inputs for character names */}
-            <div className="flex flex-col gap-2 p-2">
-              <p className="text-sm">
-                Character names separated by commas:
-              </p>
-              <Input
-                placeholder="Rosenkrantz, Guildenstern, etc."
-                value={characterInput}
-                onChange={(e) => handleAddCharacters(e)}
-                onBlur={handleCharacterInputBlur}
-              />
-            </div>
-
-            {/* Input method tabs and content */}
-            <div className="flex-1 flex flex-col">
-              {/* Tabs */}
-              <div className="flex border-b border-border">
-                <button
-                  className={`border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
-                    inputMethod === "text"
-                      ? "border-accent text-foreground"
-                      : "border-transparent text-muted-foreground hover:text-foreground"
-                  }`}
-                  onClick={() => setInputMethod("text")}
-                >
-                  Text Input
-                </button>
-                <button
-                  className={`border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
-                    inputMethod === "file"
-                      ? "border-accent text-foreground"
-                      : "border-transparent text-muted-foreground hover:text-foreground"
-                  }`}
-                  onClick={() => setInputMethod("file")}
-                >
-                  File Upload
-                </button>
-              </div>
-
-              {/* Tab content */}
-              <div className="flex-1 p-2">
                 {inputMethod === "text" ? (
                   <Textarea
                     value={newScriptBox}
                     onChange={(e) => setNewScriptBox(e.target.value)}
-                    className="h-full w-full resize-none overflow-y-auto border-0 bg-transparent text-sm leading-relaxed text-stone-900 focus-visible:ring-0 dark:text-stone-100 [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain] [touch-action:pan-y]"
-                    placeholder={`Copy/paste your raw script here.
-
-Character names should be in all caps or use CHARACTER: line format.
-Ex:
-STANLEY
-Stella!!!
-
-Or:
-SOLO: DIXIT DOMINUS DOMINO MEO: SEDE A DEXTRIS MEIS.
-RESPONSE: DONEC PONAM INIMICOS TUOS, SCABELLEUM PEDUM TUORUM.
-
-For lines spoken by multiple characters at once, use & or / or , to separate:
-MARIA & TONY: Tonight, tonight, won't be just any night!
-NUNS/MOTHER ABBESS: How do you solve a problem like Maria?
-
-Sung lines should be in all caps between two character names.
-Ex:
-MARIA
-THE HILLS ARE ALIVE WITH THE SOUND OF MUSIC
-WITH SONGS THEY HAVE SUNG FOR A THOUSAND YEARS
-`}
+                    aria-label="Script text"
+                    className="min-h-[40vh] resize-y rounded-xl border-border bg-surface-raised/60 p-3 font-script text-base leading-relaxed md:text-sm [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain]"
+                    placeholder={SCRIPT_PLACEHOLDER}
                   />
                 ) : (
-                  <div className="h-full flex flex-col gap-4">
-                    <div className="flex-shrink-0">
-                      <FileDropZone
-                        onFileContent={handleFileContent}
-                        acceptedTypes={[".txt", ".md", ".rtf"]}
-                      />
-                    </div>
-                    
-                    <div className="flex-1 flex gap-4">
-                      {/* Format Instructions */}
-                      <div className="flex-1 border border-stone-200 dark:border-stone-700 rounded-md p-4 bg-stone-50 dark:bg-stone-900">
-                        <h3 className="text-sm font-semibold text-stone-900 dark:text-stone-100 mb-3">
-                          Required File Format
-                        </h3>
-                        <div className="text-xs text-stone-600 dark:text-stone-400 space-y-3">
-                          <div>
-                            <p className="font-medium mb-1">Option 1: Character: Line format</p>
-                            <div className="bg-white dark:bg-stone-800 border rounded p-2 font-mono text-xs">
-                              <div>SOLO: DIXIT DOMINUS DOMINO MEO: SEDE A DEXTRIS MEIS.</div>
-                              <div>RESPONSE: DONEC PONAM INIMICOS TUOS, SCABELLEUM PEDUM TUORUM.</div>
-                              <div>NUNS: Have you seen Maria? Isn&apos;t Maria back yet?</div>
-                            </div>
-                          </div>
-                          
-                          <div>
-                            <p className="font-medium mb-1">Option 2: Character names on separate lines</p>
-                            <div className="bg-white dark:bg-stone-800 border rounded p-2 font-mono text-xs">
-                              <div>STANLEY</div>
-                              <div>Stella!!!</div>
-                              <div></div>
-                              <div>BLANCHE</div>
-                              <div>I have always depended on the kindness of strangers.</div>
-                            </div>
-                          </div>
-                          
-                          <div>
-                            <p className="font-medium mb-1">Multiple characters speaking together</p>
-                            <div className="bg-white dark:bg-stone-800 border rounded p-2 font-mono text-xs">
-                              <div>MARIA & TONY: Tonight, tonight!</div>
-                              <div>NUNS/MOTHER ABBESS: How do you solve a problem like Maria?</div>
-                            </div>
-                          </div>
-
-                          <div>
-                            <p className="font-medium mb-1">Sung lines (all caps between characters)</p>
-                            <div className="bg-white dark:bg-stone-800 border rounded p-2 font-mono text-xs">
-                              <div>MARIA</div>
-                              <div>THE HILLS ARE ALIVE WITH THE SOUND OF MUSIC</div>
-                              <div>WITH SONGS THEY HAVE SUNG FOR A THOUSAND YEARS</div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Content Preview */}
-                      {newScriptBox && (
-                        <div className="flex-1 border border-stone-200 dark:border-stone-700 rounded-md p-4 bg-stone-50 dark:bg-stone-900">
-                          <h3 className="text-sm font-semibold text-stone-900 dark:text-stone-100 mb-3">
-                            Loaded Content Preview
-                          </h3>
-                          <div className="text-sm text-stone-700 dark:text-stone-300 max-h-64 overflow-y-auto">
-                            {newScriptBox.split('\n').slice(0, 15).map((line, idx) => (
-                              <div key={idx} className="whitespace-pre-wrap font-mono text-xs leading-relaxed">
-                                {line || '\u00A0'}
-                              </div>
-                            ))}
-                            {newScriptBox.split('\n').length > 15 && (
-                              <div className="text-stone-400 italic mt-2 text-xs">
-                                ... and {newScriptBox.split('\n').length - 15} more lines
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  <FileDropZone
+                    onFileContent={handleFileContent}
+                    acceptedTypes={[".txt", ".md", ".rtf"]}
+                  />
                 )}
+
+                <div>
+                  <label htmlFor="character-names" className={FIELD_LABEL}>
+                    Character names{" "}
+                    <span className="font-normal text-muted-foreground">
+                      (optional)
+                    </span>
+                  </label>
+                  <Input
+                    id="character-names"
+                    placeholder="Rosencrantz, Guildenstern"
+                    value={characterInput}
+                    onChange={(e) => handleAddCharacters(e)}
+                    onBlur={handleCharacterInputBlur}
+                    className={FIELD}
+                  />
+                  <p className="mt-1.5 text-xs text-muted-foreground">
+                    Names in caps are found on their own. List any that get
+                    missed.
+                  </p>
+                </div>
+
+                <details className="rounded-xl border border-border bg-surface-raised/40 px-3">
+                  <summary className="flex min-h-[44px] cursor-pointer list-none items-center text-sm font-medium [&::-webkit-details-marker]:hidden">
+                    Formats that work
+                  </summary>
+                  <div className="space-y-3 pb-3 text-xs text-muted-foreground">
+                    {FORMAT_EXAMPLES.map(({ title, example }) => (
+                      <div key={title}>
+                        <p className="mb-1 font-medium text-foreground">
+                          {title}
+                        </p>
+                        <pre className="whitespace-pre-wrap rounded-lg border border-border bg-surface p-2 font-script">
+                          {example}
+                        </pre>
+                      </div>
+                    ))}
+                  </div>
+                </details>
+
+                <Button
+                  onClick={() => previewText(newScriptBox)}
+                  className={PRIMARY}
+                >
+                  Preview
+                </Button>
               </div>
-            </div>
-            <div className="p-2">
-              <Button
-                className="w-fit"
-                variant="outline"
-                onClick={() => handleAddScript(newScriptBox)}
-                disabled={
-                  createScriptMutation.isPending ||
-                  createAdminScriptMutation.isPending ||
-                  isLoadingUserProjects ||
-                  (isAdminMode &&
-                    (isLoadingCollections ||
-                      isLoadingSubcollections ||
-                      isLoadingDocumentIds))
-                }
-              >
-                {createScriptMutation.isPending ||
-                createAdminScriptMutation.isPending
-                  ? "Saving..."
-                  : "Add Script"}
-              </Button>
-            </div>
+            ) : (
+              <div className="flex flex-col gap-6 p-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label htmlFor="show-name" className={FIELD_LABEL}>
+                      Show
+                    </label>
+                    {(userData?.projects.length ?? 0) > 0 || isAdminMode ? (
+                      <div className="space-y-2">
+                        <Select
+                          onValueChange={handleProjectChange}
+                          value={isNewProject ? "new" : projectName}
+                        >
+                          <SelectTrigger id="show-name" className={FIELD}>
+                            <SelectValue placeholder="Pick a show" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="new">+ New show</SelectItem>
+                            {userData?.projects.map((project) => (
+                              <SelectItem key={project} value={project}>
+                                {project}
+                              </SelectItem>
+                            ))}
+                            {/* Public shows only in admin mode */}
+                            {isAdminMode &&
+                              publicData?.projects.map((project) => (
+                                <SelectItem
+                                  key={`public:${project}`}
+                                  value={project}
+                                >
+                                  📁 {project}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                        {isNewProject && (
+                          <Input
+                            placeholder="Show name"
+                            aria-label="New show name"
+                            value={projectName}
+                            onChange={(e) => setProjectName(e.target.value)}
+                            className={FIELD}
+                          />
+                        )}
+                      </div>
+                    ) : (
+                      <Input
+                        id="show-name"
+                        placeholder="Show name"
+                        value={projectName}
+                        onChange={(e) => setProjectName(e.target.value)}
+                        className={FIELD}
+                      />
+                    )}
+                  </div>
+                  <div>
+                    <label htmlFor="scene-title" className={FIELD_LABEL}>
+                      Scene
+                    </label>
+                    <Input
+                      id="scene-title"
+                      placeholder="Act 1, Scene 2"
+                      value={sceneTitle}
+                      onChange={(e) => setSceneTitle(e.target.value)}
+                      className={FIELD}
+                    />
+                  </div>
+                </div>
+
+                <section>
+                  <p className={SECTION_LABEL}>
+                    Characters · {new Set(Object.values(renames)).size}
+                  </p>
+                  <p className="mb-3 mt-1 text-sm text-muted-foreground">
+                    Fix a name, or merge two into one.
+                  </p>
+                  <ul className="divide-y divide-border rounded-xl border border-border bg-surface-raised/60">
+                    {originalCharacters.map((name) => {
+                      const merged = !!mergedInto[name];
+                      const count = lineCounts[name] ?? 0;
+                      const countLabel = `${count} ${count === 1 ? "line" : "lines"}`;
+                      return (
+                        <li key={name} className="flex items-start gap-2 p-3">
+                          {merged ? (
+                            <>
+                              <p className="min-h-[44px] min-w-0 flex-1 text-sm">
+                                <span className="text-muted-foreground line-through">
+                                  {name}
+                                </span>{" "}
+                                into{" "}
+                                <span className="font-semibold">
+                                  {finalName(name)}
+                                </span>
+                                <span className="block text-xs text-muted-foreground">
+                                  {countLabel}
+                                </span>
+                              </p>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => unmerge(name)}
+                              >
+                                Undo
+                              </Button>
+                            </>
+                          ) : (
+                            <>
+                              <div className="min-w-0 flex-1">
+                                <Input
+                                  aria-label={`Name for ${name}`}
+                                  value={names[name] ?? name}
+                                  onChange={(e) =>
+                                    setNames((prev) => ({
+                                      ...prev,
+                                      [name]: e.target.value,
+                                    }))
+                                  }
+                                  className="h-11 font-semibold"
+                                />
+                                <p className="mt-1 text-xs text-muted-foreground">
+                                  {countLabel}
+                                </p>
+                              </div>
+                              {originalCharacters.length > 1 && (
+                                <Select
+                                  value=""
+                                  onValueChange={(target) =>
+                                    merge(name, target)
+                                  }
+                                >
+                                  <SelectTrigger
+                                    aria-label={`Merge ${name} into`}
+                                    className="h-11 w-auto min-w-[6.5rem] text-sm"
+                                  >
+                                    <SelectValue placeholder="Merge" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {originalCharacters
+                                      .filter(
+                                        (other) =>
+                                          other !== name && !mergedInto[other],
+                                      )
+                                      .map((other) => (
+                                        <SelectItem key={other} value={other}>
+                                          Into {finalName(other)}
+                                        </SelectItem>
+                                      ))}
+                                  </SelectContent>
+                                </Select>
+                              )}
+                            </>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </section>
+
+                <section>
+                  <p className={SECTION_LABEL}>
+                    {sceneTitle.trim() || "Scene"} · {previewLines.length}{" "}
+                    {previewLines.length === 1 ? "line" : "lines"}
+                  </p>
+                  <ol className="mt-3 space-y-3 rounded-xl border border-border bg-surface-raised/40 p-4">
+                    {previewLines.map((line, index) => (
+                      <li key={index}>
+                        <p className="text-xs font-semibold uppercase tracking-[0.15em]">
+                          {line.characters.join(" & ")}
+                        </p>
+                        <p
+                          className={`font-script text-sm leading-relaxed ${line.sung ? "italic text-muted-foreground" : ""}`}
+                        >
+                          {line.line}
+                        </p>
+                      </li>
+                    ))}
+                  </ol>
+                </section>
+
+                <div className="sticky bottom-0 -mx-4 border-t border-border bg-surface/95 p-4 backdrop-blur-sm">
+                  <Button
+                    onClick={handleAddScript}
+                    className={PRIMARY}
+                    disabled={
+                      createScriptMutation.isPending ||
+                      createAdminScriptMutation.isPending ||
+                      isLoadingUserProjects ||
+                      (isAdminMode &&
+                        (isLoadingCollections ||
+                          isLoadingSubcollections ||
+                          isLoadingDocumentIds))
+                    }
+                  >
+                    {createScriptMutation.isPending ||
+                    createAdminScriptMutation.isPending
+                      ? "Saving…"
+                      : "Save scene"}
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </>
     </div>
   );
 };
+
