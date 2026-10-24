@@ -16,6 +16,8 @@ import {
   SelectValue,
 } from "./ui/select";
 import { FileDropZone } from "./FileDropZone";
+import { ScriptPdfImport } from "./ScriptPdfImport";
+import { type ImportedShow } from "~/lib/script-import";
 import { FaArrowLeft } from "react-icons/fa6";
 import { applyRenames, parseScript, type ParsedLine } from "~/lib/parse-script";
 
@@ -26,9 +28,10 @@ const FIELD = "h-12 text-base md:h-10 md:text-sm";
 const SECTION_LABEL =
   "text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground";
 
-const INPUT_METHODS: { id: "text" | "file"; label: string }[] = [
+const INPUT_METHODS: { id: "text" | "file" | "pdf"; label: string }[] = [
   { id: "text", label: "Paste" },
   { id: "file", label: "Upload file" },
+  { id: "pdf", label: "PDF" },
 ];
 
 const SCRIPT_PLACEHOLDER = `Paste a scene here.
@@ -82,7 +85,11 @@ export const AddScriptDoc = ({ onSaved }: AddScriptDocProps = {}) => {
   const [selectedDocumentId, setSelectedDocumentId] = useState("");
   const [selectedSubcollection, setSelectedSubcollection] = useState("");
   const [isAdminMode, setIsAdminMode] = useState(false);
-  const [inputMethod, setInputMethod] = useState<"text" | "file">("text");
+  const [inputMethod, setInputMethod] = useState<"text" | "file" | "pdf">(
+    "text",
+  );
+  const [pdfShow, setPdfShow] = useState<ImportedShow | null>(null);
+  const [savingAll, setSavingAll] = useState(false);
   const [copySourceUserId, setCopySourceUserId] = useState("");
   const [copyTargetUserId, setCopyTargetUserId] = useState("");
   const [copyProjectName, setCopyProjectName] = useState("");
@@ -151,6 +158,50 @@ export const AddScriptDoc = ({ onSaved }: AddScriptDocProps = {}) => {
           !!session?.user && isAdmin && isAdminMode && !!selectedCollection,
       },
     );
+
+  // Saves PDF scenes one by one without the single-scene success handling
+  const saveSceneMutation = api.scriptData.createScript.useMutation();
+  const { data: pdfStatus } = api.scriptData.pdfImportStatus.useQuery(
+    undefined,
+    { enabled: !!session?.user, refetchOnWindowFocus: false },
+  );
+  // PDF import only shows once the server has a Claude key
+  const inputMethods = INPUT_METHODS.filter(
+    ({ id }) => id !== "pdf" || pdfStatus?.enabled,
+  );
+
+  const saveAllPdfScenes = async () => {
+    if (!pdfShow) return;
+    const name = projectName.trim() || pdfShow.project;
+    setSavingAll(true);
+    try {
+      for (const scene of pdfShow.scenes) {
+        const result = await saveSceneMutation.mutateAsync({
+          projectName: name,
+          sceneTitle: scene.title,
+          lines: scene.lines,
+          dataSource: "firestore",
+        });
+        if (!result.success) throw new Error(result.message);
+      }
+      toast({
+        title: "Saved",
+        description: `${pdfShow.scenes.length} scenes are in ${name}.`,
+      });
+      await utils.scriptData.getAll.invalidate();
+      onSaved?.(name, pdfShow.scenes[0]?.title ?? "");
+      setPdfShow(null);
+      setProjectName("");
+    } catch (error) {
+      toast({
+        title: "Couldn't save every scene",
+        description: (error as Error).message,
+        variant: "destructive",
+      });
+    } finally {
+      setSavingAll(false);
+    }
+  };
 
   const createScriptMutation = api.scriptData.createScript.useMutation({
     onSuccess: async (data, variables) => {
@@ -643,7 +694,7 @@ export const AddScriptDoc = ({ onSaved }: AddScriptDocProps = {}) => {
               <div className="flex flex-col gap-4 p-4">
                 {/* How the script gets in; a PDF import adds a method here and calls showPreview */}
                 <div className="flex rounded-xl border border-border bg-surface p-1">
-                  {INPUT_METHODS.map(({ id, label }) => (
+                  {inputMethods.map(({ id, label }) => (
                     <button
                       key={id}
                       type="button"
@@ -660,7 +711,72 @@ export const AddScriptDoc = ({ onSaved }: AddScriptDocProps = {}) => {
                   ))}
                 </div>
 
-                {inputMethod === "text" ? (
+                {inputMethod === "pdf" ? (
+                  pdfShow ? (
+                    <div className="flex flex-col gap-3">
+                      <div>
+                        <label htmlFor="pdf-show-name" className={FIELD_LABEL}>
+                          Show name
+                        </label>
+                        <Input
+                          id="pdf-show-name"
+                          value={projectName || pdfShow.project}
+                          onChange={(e) => setProjectName(e.target.value)}
+                          className={FIELD}
+                        />
+                      </div>
+                      <ul className="divide-y divide-border rounded-xl border border-border bg-surface-raised/60">
+                        {pdfShow.scenes.map((scene) => (
+                          <li
+                            key={scene.title}
+                            className="flex min-h-[52px] items-center justify-between gap-2 px-3"
+                          >
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-medium">
+                                {scene.title}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {scene.lines.length} lines
+                              </p>
+                            </div>
+                            <Button
+                              variant="outline"
+                              className="min-h-[44px]"
+                              onClick={() => {
+                                if (!projectName) setProjectName(pdfShow.project);
+                                setSceneTitle(scene.title);
+                                showPreview(scene.lines);
+                              }}
+                            >
+                              Review
+                            </Button>
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          className="min-h-[44px]"
+                          onClick={() => setPdfShow(null)}
+                          disabled={savingAll}
+                        >
+                          Start over
+                        </Button>
+                        <Button
+                          className={`${PRIMARY} flex-1`}
+                          onClick={() => void saveAllPdfScenes()}
+                          disabled={savingAll}
+                        >
+                          {savingAll
+                            ? "Saving…"
+                            : `Save all ${pdfShow.scenes.length} scenes`}
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <ScriptPdfImport onParsed={(result) => setPdfShow(result.show)} />
+                  )
+                ) : inputMethod === "text" ? (
                   <Textarea
                     value={newScriptBox}
                     onChange={(e) => setNewScriptBox(e.target.value)}
