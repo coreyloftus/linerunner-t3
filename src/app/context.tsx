@@ -47,6 +47,9 @@ interface ScriptContextProps {
   // Script playback state
   currentLineIndex: number;
   setCurrentLineIndex: Dispatch<SetStateAction<number>>;
+  // Saved line to jump to once the restored scene's lines load
+  pendingLineIndex: number | null;
+  setPendingLineIndex: Dispatch<SetStateAction<number | null>>;
   wordIndex: number;
   setWordIndex: Dispatch<SetStateAction<number>>;
   playScene: boolean;
@@ -137,6 +140,8 @@ export const ScriptContext = createContext<ScriptContextProps>({
   // Script playback state defaults
   currentLineIndex: 0,
   setCurrentLineIndex: () => 0,
+  pendingLineIndex: null,
+  setPendingLineIndex: () => null,
   wordIndex: 0,
   setWordIndex: () => 0,
   playScene: false,
@@ -193,6 +198,9 @@ export const ScriptProvider = ({ children }: { children: ReactNode }) => {
 
   // Script playback state
   const [currentLineIndex, setCurrentLineIndex] = useState<number>(0);
+  const [pendingLineIndex, setPendingLineIndex] = useState<number | null>(
+    null,
+  );
   const [wordIndex, setWordIndex] = useState<number>(0);
   const [playScene, setPlayScene] = useState<boolean>(false);
   const [awaitingInput, setAwaitingInput] = useState<boolean>(false);
@@ -289,6 +297,8 @@ export const ScriptProvider = ({ children }: { children: ReactNode }) => {
         // Script playback state
         currentLineIndex,
         setCurrentLineIndex,
+        pendingLineIndex,
+        setPendingLineIndex,
         wordIndex,
         setWordIndex,
         playScene,

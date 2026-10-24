@@ -11,6 +11,7 @@ import { api } from "~/trpc/react";
 import { useSession } from "next-auth/react";
 import { useSpeechMatch } from "~/hooks/useSpeechMatch";
 import { useAutoAdvance } from "~/hooks/useAutoAdvance";
+import { useRestoreLine } from "~/hooks/useLastSpot";
 
 // Helper to check if user is in the line's characters (outside component for memoization)
 const checkIsUserLine = (
@@ -134,6 +135,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
   const script = currentData.allData
     .find((project) => project.project === selectedProject?.name)
     ?.scenes.find((scene) => scene.title === selectedScene);
+  useRestoreLine(script?.lines.length ?? 0);
 
   // event loop - simplified for manual navigation only
   const proceedWithScene = useCallback(() => {
