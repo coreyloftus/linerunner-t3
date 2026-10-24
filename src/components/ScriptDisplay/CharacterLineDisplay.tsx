@@ -1,4 +1,4 @@
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useRef } from "react";
 import { ScriptContext, type ColorPreset } from "~/app/context";
 import { LineAudioButton } from "./LineAudioButton";
 
@@ -18,6 +18,8 @@ interface CharacterLineDisplayProps {
   wordIndex: number;
   projectName?: string;
   scrollRef: React.MutableRefObject<HTMLDivElement | null>;
+  // Shows every line of the scene, with the current line fully revealed
+  showAll?: boolean;
 }
 
 const npcLineStyling = "justify-end text-right";
@@ -56,9 +58,11 @@ export const CharacterLineDisplay = ({
   scrollRef,
   wordIndex: wordDisplayIndex,
   projectName,
+  showAll = false,
 }: CharacterLineDisplayProps) => {
   const lines = script?.lines ?? [];
   const { displayPreferences } = useContext(ScriptContext);
+  const currentRef = useRef<HTMLLIElement | null>(null);
 
   // Get color class based on line type (uses character color preferences)
   const getLineColorClass = (characters: string[]): string => {
@@ -83,13 +87,20 @@ export const CharacterLineDisplay = ({
   };
 
   useEffect(() => {
+    if (showAll) {
+      currentRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+      return;
+    }
     if (scrollRef.current) {
       scrollRef.current.scrollIntoView({
         behavior: "smooth",
         block: "nearest",
       });
     }
-  }, [currentLineIndex, wordDisplayIndex, scrollRef]);
+  }, [currentLineIndex, wordDisplayIndex, scrollRef, showAll]);
   // Get alignment class based on line type
   const getAlignmentClass = (characters: string[]) => {
     if (isMultiCharacter(characters)) {
@@ -110,60 +121,71 @@ export const CharacterLineDisplay = ({
     );
   };
 
+  // Renders a line before or after the current one
+  const renderOtherLine = (
+    line: NonNullable<typeof script>["lines"][number],
+    index: number,
+  ) => {
+    const sameAsPrev = isSameCharactersAsPrev(index);
+    const isMulti = isMultiCharacter(line.characters);
+    return (
+      <li
+        key={index}
+        className="flex flex-col justify-center gap-2 px-3 py-2 opacity-75 transition-opacity hover:opacity-100"
+      >
+        <div
+          className={`flex flex-col gap-0.5 ${getAlignmentClass(line.characters)} ${isMulti ? multiCharacterContainerStyling : ""}`}
+        >
+          {!sameAsPrev && (
+            <p
+              className={`font-sans text-[0.8em] font-bold uppercase tracking-[0.2em] ${getNameColorClass(line.characters) || "text-muted-foreground"}`}
+            >
+              {formatCharacters(line.characters)}
+            </p>
+          )}
+          {/* sung & spoken lines have different styling */}
+          <p
+            className={`font-script text-[1.2em] leading-relaxed ${line.sung ? "italic" : ""} ${getLineColorClass(line.characters)}`}
+          >
+            {line.sung ? line.line.toUpperCase() : line.line}
+          </p>
+          {projectName && (
+            <LineAudioButton
+              projectName={projectName}
+              characters={line.characters}
+              text={line.line}
+            />
+          )}
+        </div>
+      </li>
+    );
+  };
+
   return (
     <div
       className="mx-auto max-w-3xl py-3"
       style={{ fontSize: `${displayPreferences.fontSize}%` }}
     >
       {/* revealed lines */}
-      {script?.lines.slice(0, currentLineIndex).map((line, index) => {
-        const sameAsPrev = isSameCharactersAsPrev(index);
-        const isMulti = isMultiCharacter(line.characters);
-        return (
-          <li
-            key={index}
-            className="flex flex-col justify-center gap-2 px-3 py-2 opacity-75 transition-opacity hover:opacity-100"
-          >
-            <div
-              className={`flex flex-col gap-0.5 ${getAlignmentClass(line.characters)} ${isMulti ? multiCharacterContainerStyling : ""}`}
-            >
-              {!sameAsPrev && (
-                <p
-                  className={`font-sans text-[0.8em] font-bold uppercase tracking-[0.2em] ${getNameColorClass(line.characters) || "text-muted-foreground"}`}
-                >
-                  {formatCharacters(line.characters)}
-                </p>
-              )}
-              {/* sung & spoken lines have different styling */}
-              <p
-                className={`font-script text-[1.2em] leading-relaxed ${line.sung ? "italic" : ""} ${getLineColorClass(line.characters)}`}
-              >
-                {line.sung ? line.line.toUpperCase() : line.line}
-              </p>
-              {projectName && (
-                <LineAudioButton
-                  projectName={projectName}
-                  characters={line.characters}
-                  text={line.line}
-                />
-              )}
-            </div>
-          </li>
-        );
-      })}
+      {lines
+        .slice(0, currentLineIndex)
+        .map((line, index) => renderOtherLine(line, index))}
       <div>
         {/* current line display */}
         {(() => {
           const currentChars = lines[currentLineIndex]?.characters ?? [];
           const isMulti = isMultiCharacter(currentChars);
           const isSung = lines[currentLineIndex]?.sung === true;
-          const lineText = lines[currentLineIndex]?.line
-            .split(" ")
-            .slice(0, wordDisplayIndex)
-            .join(" ") ?? "";
+          const fullLine = lines[currentLineIndex]?.line ?? "";
+          const lineText = showAll
+            ? fullLine
+            : fullLine.split(" ").slice(0, wordDisplayIndex).join(" ");
           const isConcealed = lineText === "" && currentChars.length > 0;
           return (
-            <li className="flex flex-col justify-center gap-2 px-1 py-1">
+            <li
+              ref={currentRef}
+              className="flex flex-col justify-center gap-2 px-1 py-1"
+            >
               <div
                 className={`flex flex-col gap-0.5 rounded-xl bg-accent/[0.07] px-2 py-2 ring-1 ring-accent/20 ${currentChars.length > 0 ? getAlignmentClass(currentChars) : ""} ${isMulti ? multiCharacterContainerStyling : ""}`}
               >
@@ -204,6 +226,13 @@ export const CharacterLineDisplay = ({
           );
         })()}
       </div>
+      {/* upcoming lines */}
+      {showAll &&
+        lines
+          .slice(currentLineIndex + 1)
+          .map((line, offset) =>
+            renderOtherLine(line, currentLineIndex + 1 + offset),
+          )}
       {/* for scrolling to bottom */}
       <div ref={scrollRef}></div>
     </div>
