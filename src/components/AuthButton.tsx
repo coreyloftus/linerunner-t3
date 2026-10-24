@@ -4,12 +4,15 @@ import { signIn, signOut, useSession } from "next-auth/react";
 import { Button } from "./ui/button";
 import { DropdownMenu, DropdownMenuItem } from "./ui/dropdown-menu";
 import { ScriptContext } from "~/app/context";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
+import Link from "next/link";
 import { isAdminEmail } from "~/lib/admin";
+import { DeleteAccountDialog } from "./DeleteAccountDialog";
 
 export const AuthButton = () => {
   const { data: session, status } = useSession();
   const { setIsAdmin } = useContext(ScriptContext);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   // Set admin status in useEffect to avoid setState during render
   useEffect(() => {
@@ -26,22 +29,31 @@ export const AuthButton = () => {
 
   if (session) {
     return (
-      <DropdownMenu
-        trigger={
-          <div className="rounded-md border border-gray-300 bg-gray-50/50 px-3 py-2 shadow-lg transition-all duration-200 hover:bg-gray-50 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 min-h-[44px] flex items-center dark:border-stone-700 dark:bg-stone-800/50 dark:text-stone-100 dark:hover:bg-stone-700">
-            {session.user?.email ?? "User"}
-          </div>
-        }
-      >
-        <DropdownMenuItem
-          className="bg-gray-50/50 p-3 hover:cursor-pointer hover:bg-gray-50 dark:bg-stone-800/50 dark:text-stone-100 dark:hover:bg-stone-700"
+      <div className="rounded-xl border border-border bg-surface-raised/60 p-3">
+        <p className="text-xs text-muted-foreground">Signed in as</p>
+        <p className="break-all text-sm font-semibold">
+          {session.user?.email ?? "Unknown account"}
+        </p>
+        <button
+          type="button"
           onClick={() => signOut()}
+          className="mt-2 min-h-[44px] w-full rounded-lg border border-border text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground md:min-h-[36px]"
         >
-          <div className="flex h-full w-full items-center justify-center">
-            <span>Sign out</span>
-          </div>
-        </DropdownMenuItem>
-      </DropdownMenu>
+          Sign out
+        </button>
+        <button
+          type="button"
+          onClick={() => setDeleteOpen(true)}
+          className="mt-1 min-h-[44px] w-full rounded-lg text-sm text-curtain transition-colors hover:bg-curtain/10 md:min-h-[36px]"
+        >
+          Delete account
+        </button>
+        <DeleteAccountDialog
+          open={deleteOpen}
+          onOpenChange={setDeleteOpen}
+          email={session.user?.email ?? ""}
+        />
+      </div>
     );
   }
 
@@ -105,6 +117,12 @@ export const AuthButton = () => {
         </svg>
         Sign in with Discord
       </DropdownMenuItem>
+      <Link
+        href="/privacy"
+        className="flex min-h-[44px] w-full items-center justify-center bg-surface px-2 text-sm text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+      >
+        What we store
+      </Link>
     </DropdownMenu>
   );
 };

@@ -1,8 +1,11 @@
+import { z } from "zod";
 import { adminDb } from "~/lib/firebase-admin";
 import { lastSpotSchema, type LastSpot } from "~/lib/last-spot";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 
 const userRef = (userId: string) => adminDb.collection("users").doc(userId);
+
+const myCharactersSchema = z.record(z.string(), z.string());
 
 export const lastSpotRouter = createTRPCRouter({
   get: protectedProcedure.query(async ({ ctx }): Promise<LastSpot | null> => {
@@ -21,6 +24,30 @@ export const lastSpotRouter = createTRPCRouter({
       await userRef(ctx.session.user.email!).set(
         { lastSpot },
         { mergeFields: ["lastSpot"] },
+      );
+    }),
+
+  // The character this user plays in each show, keyed by "source:project"
+  myCharacters: protectedProcedure.query(
+    async ({ ctx }): Promise<Record<string, string>> => {
+      const doc = await userRef(ctx.session.user.email!).get();
+      const parsed = myCharactersSchema.safeParse(doc.data()?.myCharacters);
+      return parsed.success ? parsed.data : {};
+    },
+  ),
+
+  saveMyCharacter: protectedProcedure
+    .input(
+      z.object({
+        show: z.string().min(1).max(400),
+        character: z.string().min(1).max(300),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      // An object merge keeps show names with dots or slashes as one map key
+      await userRef(ctx.session.user.email!).set(
+        { myCharacters: { [input.show]: input.character } },
+        { merge: true },
       );
     }),
 });

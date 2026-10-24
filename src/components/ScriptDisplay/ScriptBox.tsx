@@ -12,6 +12,11 @@ import { useSession } from "next-auth/react";
 import { useSpeechMatch } from "~/hooks/useSpeechMatch";
 import { useAutoAdvance } from "~/hooks/useAutoAdvance";
 import { useRestoreLine } from "~/hooks/useLastSpot";
+import { useMyShows } from "~/hooks/useMyShows";
+import { usePickCharacter } from "~/hooks/useMyCharacter";
+import { useOpenShow } from "~/hooks/useOpenShow";
+import { DEMO_PROJECT, LOCAL_SOURCE_ENABLED } from "~/lib/sources";
+import { NewUserWelcome, SignedOutWelcome } from "../Welcome";
 
 // Helper to check if user is in the line's characters (outside component for memoization)
 const checkIsUserLine = (
@@ -24,11 +29,15 @@ interface ScriptBoxProps {
     projects: string[];
     allData: ProjectJSON[];
   };
+  onAddScript?: () => void;
 }
 
-export default function ScriptBox({ data }: ScriptBoxProps) {
+export default function ScriptBox({ data, onAddScript }: ScriptBoxProps) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const { data: session } = useSession();
+  const { signedIn, sessionLoading, isEmpty } = useMyShows();
+  const pickCharacter = usePickCharacter();
+  const openShow = useOpenShow();
   const {
     selectedProject,
     selectedScene,
@@ -53,7 +62,7 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
   const { data: localData } = api.scriptData.getAll.useQuery(
     { dataSource: "local" },
     {
-      enabled: true,
+      enabled: LOCAL_SOURCE_ENABLED,
       refetchOnWindowFocus: false,
       refetchOnMount: true,
     },
@@ -137,6 +146,18 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
     .find((project) => project.project === selectedProject?.name)
     ?.scenes.find((scene) => scene.title === selectedScene);
   useRestoreLine(script?.lines.length ?? 0);
+
+  const sceneCharacters = [
+    ...new Set(script?.lines.flatMap((line) => line.characters) ?? []),
+  ].sort((a, b) => a.localeCompare(b));
+
+  const tryDemo = () => {
+    const demo = (publicData?.allData ?? data.allData).find(
+      (project) => project.project === DEMO_PROJECT,
+    );
+    const scene = demo?.scenes[0]?.title;
+    if (demo && scene) openShow(demo.project, "public", scene);
+  };
 
   // event loop - simplified for manual navigation only
   const proceedWithScene = useCallback(() => {
@@ -451,6 +472,42 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
                 wordIndex={wordIndex}
                 projectName={selectedProject?.name}
               />
+            ) : !script && !signedIn && !sessionLoading ? (
+              <div className="flex min-h-full items-center justify-center py-6">
+                <SignedOutWelcome onTryDemo={tryDemo} />
+              </div>
+            ) : !script && isEmpty && onAddScript ? (
+              <div className="flex min-h-full items-center justify-center py-6">
+                <NewUserWelcome onAddScript={onAddScript} />
+              </div>
+            ) : script && !selectedCharacter ? (
+              <div className="flex min-h-full items-center justify-center py-6">
+                <div className="w-full max-w-md px-6 text-center">
+                  <p className="truncate text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                    {selectedProject?.name} · {selectedScene}
+                  </p>
+                  <h2 className="mt-3 font-display text-3xl font-semibold">
+                    Who are you playing?
+                  </h2>
+                  <div className="mt-6 flex flex-wrap justify-center gap-2">
+                    {sceneCharacters.map((character) => (
+                      <button
+                        key={character}
+                        type="button"
+                        onClick={() => pickCharacter(character)}
+                        className="min-h-[44px] touch-manipulation rounded-full border border-border bg-surface-raised px-4 text-sm font-medium transition-colors hover:border-accent/50 hover:bg-accent-soft"
+                      >
+                        {character}
+                      </button>
+                    ))}
+                  </div>
+                  {signedIn && (
+                    <p className="mt-5 text-xs text-muted-foreground">
+                      Remembered for this show.
+                    </p>
+                  )}
+                </div>
+              </div>
             ) : (
               <div className="flex h-full items-center justify-center">
                 <div className="max-w-md px-6 text-center">
@@ -466,8 +523,17 @@ export default function ScriptBox({ data }: ScriptBoxProps) {
                     Know <span className="italic text-accent">every</span> line.
                   </h1>
                   <p className="mt-4 font-script text-base text-muted-foreground">
-                    Pick a scene and your character,
-                    <br className="hidden md:block" /> then press play.
+                    {script ? (
+                      <>
+                        You&apos;re {selectedCharacter} in {selectedScene}.
+                        <br className="hidden md:block" /> Press play.
+                      </>
+                    ) : (
+                      <>
+                        Pick a scene and your character,
+                        <br className="hidden md:block" /> then press play.
+                      </>
+                    )}
                   </p>
 
                   {/* Keyboard cues */}

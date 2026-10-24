@@ -1,98 +1,111 @@
 "use client";
 
-import { useContext, useMemo, useState } from "react";
-import { useSession } from "next-auth/react";
-import { FaPlay, FaPen, FaPlus, FaChevronDown } from "react-icons/fa6";
+import { useContext, useState } from "react";
+import {
+  FaPlay,
+  FaPen,
+  FaPlus,
+  FaChevronDown,
+  FaShareNodes,
+  FaCopy,
+} from "react-icons/fa6";
 import { type ProjectJSON } from "~/server/api/routers/scriptData";
 import { ScriptContext, type ProjectSource } from "~/app/context";
 import { api } from "~/trpc/react";
+import { LOCAL_SOURCE_ENABLED } from "~/lib/sources";
+import { useMyShows } from "~/hooks/useMyShows";
+import { useOpenShow } from "~/hooks/useOpenShow";
 import { Button } from "./ui/button";
 import { ScriptData } from "./ScriptData";
 import { AddScriptDoc } from "./AddScriptDoc";
+import { NewUserWelcome, SignedOutWelcome } from "./Welcome";
+import { ShareShowDialog } from "./ShareShowDialog";
 
 interface GetAllResponse {
   projects: string[];
   allData: ProjectJSON[];
 }
 
+export type WorkspaceView = "library" | "editor" | "new";
+
 interface ScriptsWorkspaceProps {
   data: GetAllResponse;
   onPractice: () => void;
+  initialView?: WorkspaceView;
 }
 
-type WorkspaceView = "library" | "editor" | "new";
+interface LibraryShow {
+  project: ProjectJSON;
+  source: ProjectSource;
+}
 
 interface LibrarySection {
-  key: ProjectSource;
+  key: string;
   title: string;
-  projects: ProjectJSON[];
+  shows: LibraryShow[];
   emptyNote?: string;
 }
 
 const VIEW_LABELS: { value: WorkspaceView; label: string }[] = [
   { value: "library", label: "Library" },
   { value: "editor", label: "Editor" },
-  { value: "new", label: "Add New" },
+  { value: "new", label: "Add" },
 ];
 
-export function ScriptsWorkspace({ data, onPractice }: ScriptsWorkspaceProps) {
-  const { data: session } = useSession();
-  const {
-    setSelectedProject,
-    setSelectedScene,
-    setSelectedCharacter,
-    selectedProject,
-    selectedScene,
-  } = useContext(ScriptContext);
-  const [view, setView] = useState<WorkspaceView>("library");
-  const [expandedProject, setExpandedProject] = useState<string | null>(null);
+const SECTION_LABEL =
+  "text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground";
+
+// "corey@example.com" reads as "corey"
+const ownerName = (email: string) => email.split("@")[0] ?? email;
+
+export function ScriptsWorkspace({
+  data,
+  onPractice,
+  initialView = "library",
+}: ScriptsWorkspaceProps) {
+  const { selectedProject, selectedScene } = useContext(ScriptContext);
+  const openShow = useOpenShow();
+  const [view, setView] = useState<WorkspaceView>(initialView);
+  const [expandedShow, setExpandedShow] = useState<string | null>(null);
+  const [sharing, setSharing] = useState<{
+    name: string;
+    mode: "owner" | "shared";
+  } | null>(null);
+  const { signedIn, sessionLoading, shows: myShows, isEmpty } = useMyShows();
 
   const { data: localData } = api.scriptData.getAll.useQuery(
     { dataSource: "local" },
-    { refetchOnWindowFocus: false },
+    { enabled: LOCAL_SOURCE_ENABLED, refetchOnWindowFocus: false },
   );
   const { data: publicData } = api.scriptData.getAll.useQuery(
     { dataSource: "public" },
     { refetchOnWindowFocus: false },
   );
-  const { data: sharedData } = api.scriptData.getAll.useQuery(
-    { dataSource: "shared" },
-    { enabled: !!session?.user, refetchOnWindowFocus: false },
-  );
-  const { data: userData } = api.scriptData.getAll.useQuery(
-    { dataSource: "firestore" },
-    { enabled: !!session?.user, refetchOnWindowFocus: false },
-  );
+  const publicShows = (publicData?.allData ?? data.allData).map((project) => ({
+    project,
+    source: "public" as const,
+  }));
 
-  const sections: LibrarySection[] = useMemo(
-    () => [
-      {
-        key: "local",
-        title: "On this machine",
-        projects: localData?.allData ?? [],
-        emptyNote: "No JSON files in public/sceneData.",
-      },
-      {
-        key: "user",
-        title: "Your Scripts",
-        projects: userData?.allData ?? [],
-        emptyNote: session?.user
-          ? "Nothing here yet — import a script with Add New."
-          : "Sign in to keep your own scripts.",
-      },
-      {
-        key: "shared",
-        title: "Shared With You",
-        projects: sharedData?.allData ?? [],
-      },
-      {
-        key: "public",
-        title: "Public Library",
-        projects: publicData?.allData ?? data.allData,
-      },
-    ],
-    [localData, userData, sharedData, publicData, data, session],
-  );
+  const sections: LibrarySection[] = [];
+  if (signedIn && !isEmpty) {
+    sections.push({ key: "mine", title: "My shows", shows: myShows });
+  }
+  sections.push({
+    key: "public",
+    title: signedIn ? "Public Library" : "Try a demo",
+    shows: publicShows,
+  });
+  if (LOCAL_SOURCE_ENABLED) {
+    sections.push({
+      key: "local",
+      title: "On this machine",
+      shows: (localData?.allData ?? []).map((project) => ({
+        project,
+        source: "local" as const,
+      })),
+      emptyNote: "No JSON files in data/sceneData.",
+    });
+  }
 
   const projectCharacters = (project: ProjectJSON) => {
     const chars = project.scenes.flatMap((scene) =>
@@ -101,31 +114,24 @@ export function ScriptsWorkspace({ data, onPractice }: ScriptsWorkspaceProps) {
     return [...new Set(chars)];
   };
 
-  const selectScene = (
-    project: ProjectJSON,
-    source: ProjectSource,
-    sceneTitle: string,
-  ) => {
-    setSelectedProject({ name: project.project, source });
-    setSelectedScene(sceneTitle);
-    setSelectedCharacter("");
-  };
-
-  const handleEdit = (
-    project: ProjectJSON,
-    source: ProjectSource,
-    sceneTitle: string,
-  ) => {
-    selectScene(project, source, sceneTitle);
+  const handleEdit = (show: LibraryShow, sceneTitle: string) => {
+    openShow(show.project.project, show.source, sceneTitle);
     setView("editor");
   };
 
-  const handlePractice = (
-    project: ProjectJSON,
-    source: ProjectSource,
-    sceneTitle: string,
-  ) => {
-    selectScene(project, source, sceneTitle);
+  const handlePractice = (show: LibraryShow, sceneTitle: string) => {
+    openShow(show.project.project, show.source, sceneTitle);
+    onPractice();
+  };
+
+  const handleTryDemo = () => {
+    const demo = publicShows[0];
+    const scene = demo?.project.scenes[0]?.title;
+    if (demo && scene) handlePractice(demo, scene);
+  };
+
+  const handleSaved = (projectName: string, sceneTitle: string) => {
+    openShow(projectName, "user", sceneTitle);
     onPractice();
   };
 
@@ -142,12 +148,13 @@ export function ScriptsWorkspace({ data, onPractice }: ScriptsWorkspaceProps) {
               key={value}
               type="button"
               onClick={() => setView(value)}
-              className={`rounded-md px-3 py-1.5 text-mobile-xs font-medium transition-colors iphone:text-sm ${
+              className={`flex min-h-[40px] items-center gap-1.5 rounded-md px-3 text-mobile-xs font-medium transition-colors iphone:text-sm ${
                 view === value
                   ? "bg-accent font-semibold text-accent-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
+              {value === "new" && <FaPlus className="h-3 w-3" />}
               {label}
             </button>
           ))}
@@ -159,55 +166,73 @@ export function ScriptsWorkspace({ data, onPractice }: ScriptsWorkspaceProps) {
         {view === "library" && (
           <div className="h-full overflow-y-auto p-3 [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain] iphone:p-4">
             <div className="mx-auto max-w-3xl space-y-6">
+              {!signedIn && !sessionLoading && (
+                <div className="py-6">
+                  <SignedOutWelcome onTryDemo={handleTryDemo} />
+                </div>
+              )}
+              {isEmpty && (
+                <div className="py-6">
+                  <NewUserWelcome onAddScript={() => setView("new")} />
+                </div>
+              )}
+
               {sections.map((section) => (
                 <section key={section.key}>
                   <div className="mb-2 flex items-center gap-3">
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                      {section.title}
-                    </p>
+                    <p className={SECTION_LABEL}>{section.title}</p>
                     <span className="h-px flex-1 bg-border" />
-                    {section.key === "user" && session?.user && (
+                    {section.key === "mine" && (
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => setView("new")}
-                        className="gap-1.5"
+                        className="gap-1.5 border-border bg-surface-raised hover:bg-muted dark:border-border dark:bg-surface-raised dark:hover:bg-muted"
                       >
                         <FaPlus className="h-3 w-3" />
-                        New Script
+                        Add a script
                       </Button>
                     )}
                   </div>
 
-                  {section.projects.length === 0 ? (
+                  {section.shows.length === 0 ? (
                     <p className="py-3 font-script text-sm text-muted-foreground">
                       {section.emptyNote ?? "Nothing here yet."}
                     </p>
                   ) : (
                     <div className="space-y-2">
-                      {section.projects.map((project) => {
-                        const projectKey = `${section.key}:${project.project}`;
-                        const isExpanded = expandedProject === projectKey;
+                      {section.shows.map((show) => {
+                        const { project, source } = show;
+                        const showKey = `${source}:${project.project}`;
+                        const isExpanded = expandedShow === showKey;
                         const characters = projectCharacters(project);
                         return (
                           <div
-                            key={projectKey}
+                            key={showKey}
                             className="overflow-hidden rounded-xl border border-border bg-surface-raised/60"
                           >
+                            <div className="flex items-center">
                             <button
                               type="button"
                               onClick={() =>
-                                setExpandedProject(
-                                  isExpanded ? null : projectKey,
-                                )
+                                setExpandedShow(isExpanded ? null : showKey)
                               }
-                              className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left transition-colors hover:bg-muted/50 iphone:px-4"
+                              aria-expanded={isExpanded}
+                              className="flex min-h-[56px] min-w-0 flex-1 items-center justify-between gap-3 px-3 py-3 text-left transition-colors hover:bg-muted/50 iphone:px-4"
                             >
                               <div className="min-w-0">
                                 <p className="truncate font-display text-base font-semibold">
                                   {project.project}
                                 </p>
                                 <p className="truncate text-xs text-muted-foreground">
+                                  {project.sharedBy && (
+                                    <span
+                                      title={project.sharedBy}
+                                      className="mr-1.5 inline-block rounded-full bg-accent-soft px-2 py-0.5 font-medium text-foreground"
+                                    >
+                                      Shared by {ownerName(project.sharedBy)}
+                                    </span>
+                                  )}
                                   {project.scenes.length}{" "}
                                   {project.scenes.length === 1
                                     ? "scene"
@@ -223,13 +248,33 @@ export function ScriptsWorkspace({ data, onPractice }: ScriptsWorkspaceProps) {
                                 className={`h-3.5 w-3.5 flex-shrink-0 text-muted-foreground transition-transform ${isExpanded ? "rotate-180" : ""}`}
                               />
                             </button>
+                            {(source === "user" || source === "shared") && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setSharing({
+                                    name: project.project,
+                                    mode: source === "user" ? "owner" : "shared",
+                                  })
+                                }
+                                className="flex h-11 w-11 flex-shrink-0 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
+                                aria-label={`${source === "user" ? "Share" : "Copy"} ${project.project}`}
+                              >
+                                {source === "user" ? (
+                                  <FaShareNodes className="h-4 w-4" />
+                                ) : (
+                                  <FaCopy className="h-4 w-4" />
+                                )}
+                              </button>
+                            )}
+                            </div>
 
                             {isExpanded && (
                               <ul className="border-t border-border">
                                 {project.scenes.map((scene) => {
                                   const isCurrent =
                                     selectedProject?.name === project.project &&
-                                    selectedProject.source === section.key &&
+                                    selectedProject.source === source &&
                                     selectedScene === scene.title;
                                   return (
                                     <li
@@ -252,11 +297,7 @@ export function ScriptsWorkspace({ data, onPractice }: ScriptsWorkspaceProps) {
                                           variant="outline"
                                           size="sm"
                                           onClick={() =>
-                                            handlePractice(
-                                              project,
-                                              section.key,
-                                              scene.title,
-                                            )
+                                            handlePractice(show, scene.title)
                                           }
                                           className="gap-1.5"
                                           aria-label={`Practice ${scene.title}`}
@@ -270,11 +311,7 @@ export function ScriptsWorkspace({ data, onPractice }: ScriptsWorkspaceProps) {
                                           variant="outline"
                                           size="sm"
                                           onClick={() =>
-                                            handleEdit(
-                                              project,
-                                              section.key,
-                                              scene.title,
-                                            )
+                                            handleEdit(show, scene.title)
                                           }
                                           className="gap-1.5"
                                           aria-label={`Edit ${scene.title}`}
@@ -302,8 +339,16 @@ export function ScriptsWorkspace({ data, onPractice }: ScriptsWorkspaceProps) {
         )}
 
         {view === "editor" && <ScriptData data={data} />}
-        {view === "new" && <AddScriptDoc />}
+        {view === "new" && <AddScriptDoc onSaved={handleSaved} />}
       </div>
+      {sharing && (
+        <ShareShowDialog
+          projectName={sharing.name}
+          mode={sharing.mode}
+          open
+          onOpenChange={(open) => !open && setSharing(null)}
+        />
+      )}
     </div>
   );
 }

@@ -7,6 +7,24 @@ import {
 } from "~/server/api/trpc";
 import { ScriptService, type GetAllResponse } from "~/server/scriptService";
 import { FirestoreService, type SharedProjectJSON } from "~/server/firebase";
+import {
+  linesInputSchema,
+  nameSchema,
+  showInputSchema,
+} from "~/lib/script-limits";
+import {
+  MAX_SCRIPT_PDF_BYTES,
+  PDF_IMPORTS_PER_MONTH,
+  type ScriptImportResult,
+} from "~/lib/script-import";
+import {
+  extractScript,
+  importsUsed,
+  refundImport,
+  reserveImport,
+  scriptImportEnabled,
+} from "~/server/scriptExtraction";
+import { TRPCError } from "@trpc/server";
 
 export type {
   ProjectJSON,
@@ -31,7 +49,7 @@ export const scriptData = createTRPCRouter({
         }
         return ScriptService.getScripts("firestore", ctx.session.user.email);
       } else if (input.dataSource === "public") {
-        return ScriptService.getScripts("public");
+        return ScriptService.getScripts("public", ctx.session?.user?.email ?? undefined);
       } else if (input.dataSource === "shared") {
         if (!ctx.session?.user?.email) {
           throw new Error(
@@ -64,7 +82,7 @@ export const scriptData = createTRPCRouter({
           ctx.session.user.email,
         );
       } else if (input.dataSource === "public") {
-        return ScriptService.getScenes(input.project, "public");
+        return ScriptService.getScenes(input.project, "public", ctx.session?.user?.email ?? undefined);
       } else if (input.dataSource === "shared") {
         if (!ctx.session?.user?.email) {
           throw new Error(
@@ -107,6 +125,7 @@ export const scriptData = createTRPCRouter({
           input.project,
           input.scene,
           "public",
+          ctx.session?.user?.email ?? undefined,
         );
       } else if (input.dataSource === "shared") {
         if (!ctx.session?.user?.email) {
@@ -147,7 +166,7 @@ export const scriptData = createTRPCRouter({
           ctx.session.user.email,
         );
       } else if (input.dataSource === "public") {
-        return ScriptService.getLines(input.project, input.scene, "public");
+        return ScriptService.getLines(input.project, input.scene, "public", ctx.session?.user?.email ?? undefined);
       } else if (input.dataSource === "shared") {
         if (!ctx.session?.user?.email) {
           throw new Error(
@@ -168,15 +187,9 @@ export const scriptData = createTRPCRouter({
   createScript: protectedProcedure
     .input(
       z.object({
-        projectName: z.string(),
-        sceneTitle: z.string(),
-        lines: z.array(
-          z.object({
-            characters: z.array(z.string()),
-            line: z.string(),
-            sung: z.boolean().optional(),
-          }),
-        ),
+        projectName: nameSchema("A show name"),
+        sceneTitle: nameSchema("A scene title"),
+        lines: linesInputSchema,
         dataSource: z.enum(["local", "firestore"]).default("local"),
       }),
     )
@@ -233,23 +246,9 @@ export const scriptData = createTRPCRouter({
   updateScript: protectedProcedure
     .input(
       z.object({
-        projectName: z.string(),
-        sceneTitle: z.string(),
-        updatedScript: z.object({
-          project: z.string(),
-          scenes: z.array(
-            z.object({
-              title: z.string(),
-              lines: z.array(
-                z.object({
-                  characters: z.array(z.string()),
-                  line: z.string(),
-                  sung: z.boolean().optional(),
-                }),
-              ),
-            }),
-          ),
-        }),
+        projectName: nameSchema("A show name"),
+        sceneTitle: nameSchema("A scene title"),
+        updatedScript: showInputSchema,
         dataSource: z.enum(["local", "firestore"]).default("firestore"),
       }),
     )
@@ -415,5 +414,50 @@ export const scriptData = createTRPCRouter({
         success: true,
         message: "Shared project deleted successfully",
       };
+    }),
+
+  // ============ PDF SCRIPT IMPORT ============
+
+  // Whether PDF import is on, and how many imports are left this month
+  pdfImportStatus: protectedProcedure.query(async ({ ctx }) => {
+    const used = await importsUsed(ctx.session.user.email!);
+    return {
+      enabled: scriptImportEnabled(),
+      limit: PDF_IMPORTS_PER_MONTH,
+      remaining: Math.max(0, PDF_IMPORTS_PER_MONTH - used),
+    };
+  }),
+
+  extractFromPdf: protectedProcedure
+    .input(
+      z.object({
+        fileName: z.string().min(1).max(300),
+        pdfBase64: z.string().min(1),
+      }),
+    )
+    .mutation(async ({ ctx, input }): Promise<ScriptImportResult> => {
+      const bytes = Buffer.from(input.pdfBase64, "base64");
+      if (bytes.length > MAX_SCRIPT_PDF_BYTES) {
+        throw new TRPCError({
+          code: "PAYLOAD_TOO_LARGE",
+          message: "PDF is over 3 MB.",
+        });
+      }
+      if (bytes.subarray(0, 4).toString("latin1") !== "%PDF") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "That file is not a PDF.",
+        });
+      }
+      // Reserve first so two tabs can't both take the last import
+      const userId = ctx.session.user.email!;
+      const remaining = await reserveImport(userId);
+      try {
+        const result = await extractScript(input.pdfBase64, input.fileName);
+        return { ...result, remaining };
+      } catch (err) {
+        await refundImport(userId);
+        throw err;
+      }
     }),
 });

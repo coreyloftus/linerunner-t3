@@ -8,6 +8,7 @@ import {
 import { FirestoreService, db as adminDb } from "~/server/firebase";
 import { type WhereFilterOp } from "firebase/firestore";
 import { testFirebaseConnection } from "~/lib/firebase-admin-test";
+import { showInputSchema, showSizeError } from "~/lib/script-limits";
 
 export type FirestoreFilter = {
   field: string;
@@ -147,8 +148,8 @@ export const firebaseRouter = createTRPCRouter({
   addUserDocument: protectedProcedure
     .input(
       z.object({
-        subcollectionName: z.string(),
-        data: z.record(z.string(), z.any()),
+        subcollectionName: z.literal("uploaded_data"),
+        data: showInputSchema,
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -166,6 +167,9 @@ export const firebaseRouter = createTRPCRouter({
             "/" +
             input.subcollectionName,
         );
+
+        const sizeError = showSizeError(input.data);
+        if (sizeError) return { success: false, error: sizeError };
 
         const documentId = await FirestoreService.addUserDocument(
           ctx.session.user.email,
