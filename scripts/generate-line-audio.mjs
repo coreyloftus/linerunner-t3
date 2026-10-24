@@ -9,8 +9,8 @@ const run = flags.includes("--run");
 const sceneFlag = flags.indexOf("--scene");
 const sceneFilter = sceneFlag >= 0 ? flags[sceneFlag + 1] : null;
 
-const dir = "public/sceneData";
-const outDir = `${dir}/audio/${slug}`;
+const dir = "data/sceneData";
+const outDir = `public/sceneData/audio/${slug}`;
 const script = JSON.parse(await readFile(`${dir}/${slug}.json`, "utf8"));
 const voices = JSON.parse(await readFile(`${dir}/${slug}.voices.json`, "utf8"));
 

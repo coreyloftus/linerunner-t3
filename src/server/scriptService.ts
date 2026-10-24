@@ -1,11 +1,17 @@
 import fs from "fs";
 import path from "path";
 import { FirestoreService } from "./firebase";
+import { DEMO_PROJECT, LOCAL_SOURCE_ENABLED } from "~/lib/sources";
+import demoScript from "../../data/sceneData/the-importance-of-being-earnest.json";
+
+// Bundled shows live outside public/ so the site never serves them as files
+const LOCAL_DIRECTORY = path.join(process.cwd(), "data/sceneData");
 
 export interface ProjectJSON {
   project: string;
   scenes: SceneJSON[];
   characters?: string[]; // Optional for backward compatibility
+  sharedBy?: string; // Owner's email, set on shows shared with the user
 }
 
 export interface LineJSON {
@@ -102,12 +108,12 @@ export class ScriptService {
 
   // Load scripts from local files
   static async getLocalScripts(): Promise<GetAllResponse> {
-    const directory = path.join(process.cwd(), "public/sceneData");
-    const files = fs.readdirSync(directory);
+    if (!LOCAL_SOURCE_ENABLED) return { projects: [], allData: [] };
+    const files = fs.readdirSync(LOCAL_DIRECTORY);
     const allData: ProjectJSON[] = files
-      .filter((file) => file.endsWith(".json"))
+      .filter((file) => file.endsWith(".json") && !file.endsWith(".voices.json"))
       .map((file) => {
-        const data = fs.readFileSync(path.join(directory, file), "utf8");
+        const data = fs.readFileSync(path.join(LOCAL_DIRECTORY, file), "utf8");
         // A file may hold a single project or an array of them
         const parsed = JSON.parse(data) as RawProject | RawProject[];
         const projects = Array.isArray(parsed) ? parsed : [parsed];
@@ -146,13 +152,19 @@ export class ScriptService {
     }
   }
 
-  // Load public scripts from Firestore
-  static async getPublicScripts(): Promise<GetAllResponse> {
+  // Load public scripts from Firestore; signed-out visitors only get the demo show
+  static async getPublicScripts(signedIn: boolean): Promise<GetAllResponse> {
     try {
       const documents = await FirestoreService.getPublicScripts<ProjectJSON>();
 
       // Ensure all projects have characters arrays
-      const allData = documents.map(doc => this.ensureCharactersArray(doc));
+      let allData = documents.map(doc => this.ensureCharactersArray(doc));
+      if (!allData.some((doc) => doc.project === DEMO_PROJECT)) {
+        allData.push(this.normalizeProject(demoScript as RawProject));
+      }
+      if (!signedIn) {
+        allData = allData.filter((doc) => doc.project === DEMO_PROJECT);
+      }
       const projects = allData.map((doc) => doc.project);
       return {
         projects,
@@ -174,10 +186,13 @@ export class ScriptService {
       const sharedProjects = await FirestoreService.getSharedProjectsForUser(userEmail);
 
       // Ensure all projects have characters arrays and convert to ProjectJSON
-      const allData: ProjectJSON[] = sharedProjects.map(doc => this.ensureCharactersArray({
-        project: doc.project,
-        scenes: doc.scenes,
-        characters: doc.characters,
+      const allData: ProjectJSON[] = sharedProjects.map((doc) => ({
+        ...this.ensureCharactersArray({
+          project: doc.project,
+          scenes: doc.scenes,
+          characters: doc.characters,
+        }),
+        sharedBy: doc.ownerId,
       }));
 
       const projects = allData.map((doc) => doc.project);
@@ -205,7 +220,7 @@ export class ScriptService {
     } else if (dataSource === "firestore" && userId) {
       return this.getFirestoreScripts(userId);
     } else if (dataSource === "public") {
-      return this.getPublicScripts();
+      return this.getPublicScripts(!!userId);
     } else if (dataSource === "shared" && userId) {
       return this.getSharedScripts(userId);
     } else {
@@ -268,6 +283,7 @@ export class ScriptService {
   ): Promise<{ success: boolean; message: string }> {
     try {
       if (dataSource === "local") {
+        if (!LOCAL_SOURCE_ENABLED) throw new Error("Local scripts are dev only");
         return this.saveLocalScript(projectName, sceneTitle, lines);
       } else if (dataSource === "firestore" && userId) {
         return this.saveFirestoreScript(projectName, sceneTitle, lines, userId);
@@ -287,7 +303,7 @@ export class ScriptService {
     lines: LineJSON[],
   ): Promise<{ success: boolean; message: string }> {
     try {
-      const directory = path.join(process.cwd(), "public/sceneData");
+      const directory = LOCAL_DIRECTORY;
 
       // Create directory if it doesn't exist
       if (!fs.existsSync(directory)) {

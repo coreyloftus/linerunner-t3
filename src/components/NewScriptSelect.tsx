@@ -13,6 +13,7 @@ import { type ProjectJSON } from "../server/api/routers/scriptData";
 import { Label } from "./ui/label";
 import { api } from "~/trpc/react";
 import { useSession } from "next-auth/react";
+import { LOCAL_SOURCE_ENABLED } from "~/lib/sources";
 
 const LABEL = "text-base md:text-sm";
 const TRIGGER = "h-12 text-base md:h-9 md:text-sm";
@@ -44,7 +45,7 @@ export default function NewScriptSelect({
   const { data: localData } = api.scriptData.getAll.useQuery(
     { dataSource: "local" },
     {
-      enabled: true,
+      enabled: LOCAL_SOURCE_ENABLED,
       refetchOnWindowFocus: false,
       refetchOnMount: true,
     },

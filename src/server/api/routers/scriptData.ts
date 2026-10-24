@@ -31,7 +31,7 @@ export const scriptData = createTRPCRouter({
         }
         return ScriptService.getScripts("firestore", ctx.session.user.email);
       } else if (input.dataSource === "public") {
-        return ScriptService.getScripts("public");
+        return ScriptService.getScripts("public", ctx.session?.user?.email ?? undefined);
       } else if (input.dataSource === "shared") {
         if (!ctx.session?.user?.email) {
           throw new Error(
@@ -64,7 +64,7 @@ export const scriptData = createTRPCRouter({
           ctx.session.user.email,
         );
       } else if (input.dataSource === "public") {
-        return ScriptService.getScenes(input.project, "public");
+        return ScriptService.getScenes(input.project, "public", ctx.session?.user?.email ?? undefined);
       } else if (input.dataSource === "shared") {
         if (!ctx.session?.user?.email) {
           throw new Error(
@@ -107,6 +107,7 @@ export const scriptData = createTRPCRouter({
           input.project,
           input.scene,
           "public",
+          ctx.session?.user?.email ?? undefined,
         );
       } else if (input.dataSource === "shared") {
         if (!ctx.session?.user?.email) {
@@ -147,7 +148,7 @@ export const scriptData = createTRPCRouter({
           ctx.session.user.email,
         );
       } else if (input.dataSource === "public") {
-        return ScriptService.getLines(input.project, input.scene, "public");
+        return ScriptService.getLines(input.project, input.scene, "public", ctx.session?.user?.email ?? undefined);
       } else if (input.dataSource === "shared") {
         if (!ctx.session?.user?.email) {
           throw new Error(
