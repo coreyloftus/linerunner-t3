@@ -69,7 +69,7 @@ export const AddScriptDoc = () => {
   // Fetch collections for admin mode
   const { data: collectionsData, isLoading: isLoadingCollections } =
     api.firebase.getCollections.useQuery(
-      { adminEmail: session?.user?.email ?? "" },
+      undefined,
       {
         enabled: !!session?.user && isAdmin && isAdminMode,
       },
@@ -80,7 +80,6 @@ export const AddScriptDoc = () => {
     api.firebase.getSubcollections.useQuery(
       {
         collectionName: selectedCollection,
-        adminEmail: session?.user?.email ?? "",
       },
       {
         enabled:
@@ -93,7 +92,6 @@ export const AddScriptDoc = () => {
     api.firebase.getDocumentIds.useQuery(
       {
         collectionName: selectedCollection,
-        adminEmail: session?.user?.email ?? "",
       },
       {
         enabled:
@@ -277,7 +275,6 @@ export const AddScriptDoc = () => {
       sourceUserId: copySourceUserId.trim(),
       targetUserId: copyTargetUserId.trim(),
       projectName: copyProjectName.trim(),
-      adminEmail: session?.user?.email ?? "",
     });
   };
 
@@ -350,7 +347,6 @@ export const AddScriptDoc = () => {
         collectionName: selectedCollection,
         documentId: selectedDocumentId,
         subcollectionName: selectedSubcollection,
-        adminEmail: session?.user?.email ?? "",
       });
     } else {
       // Determine data source based on project type

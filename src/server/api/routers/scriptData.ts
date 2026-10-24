@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   createTRPCRouter,
   publicProcedure,
+  adminProcedure,
   protectedProcedure,
 } from "~/server/api/trpc";
 import { ScriptService, type GetAllResponse } from "~/server/scriptService";
@@ -201,7 +202,7 @@ export const scriptData = createTRPCRouter({
       }
     }),
 
-  createAdminScript: protectedProcedure
+  createAdminScript: adminProcedure
     .input(
       z.object({
         projectName: z.string(),
@@ -216,15 +217,9 @@ export const scriptData = createTRPCRouter({
         collectionName: z.string(),
         documentId: z.string(),
         subcollectionName: z.string(),
-        adminEmail: z.string(),
       }),
     )
     .mutation(async ({ input }) => {
-      // Check if user is admin
-      if (input.adminEmail !== "coreyloftus@gmail.com") {
-        throw new Error("Admin access required");
-      }
-
       return ScriptService.saveAdminScript(
         input.projectName,
         input.sceneTitle,
@@ -276,37 +271,33 @@ export const scriptData = createTRPCRouter({
       }
     }),
 
-  copyProjectBetweenUsers: protectedProcedure
+  copyProjectBetweenUsers: adminProcedure
     .input(
       z.object({
         sourceUserId: z.string().min(1, "Source user ID is required"),
         targetUserId: z.string().min(1, "Target user ID is required"),
         projectName: z.string().min(1, "Project name is required"),
-        adminEmail: z.string().email("Valid admin email is required"),
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       return FirestoreService.copyProjectBetweenUsers(
         input.sourceUserId,
         input.targetUserId,
         input.projectName,
-        input.adminEmail,
+        ctx.session.user.email,
       );
     }),
 
   // ============ SHARED PROJECT ADMIN PROCEDURES ============
 
   // Get all shared projects (admin only - for management UI)
-  getAllSharedProjects: protectedProcedure
+  getAllSharedProjects: adminProcedure
     .query(async ({ ctx }): Promise<SharedProjectJSON[]> => {
-      if (ctx.session.user.email !== "coreyloftus@gmail.com") {
-        throw new Error("Admin access required");
-      }
       return FirestoreService.getAllSharedProjects();
     }),
 
   // Share an existing project from admin's collection
-  shareExistingProject: protectedProcedure
+  shareExistingProject: adminProcedure
     .input(
       z.object({
         projectName: z.string().min(1, "Project name is required"),
@@ -314,9 +305,6 @@ export const scriptData = createTRPCRouter({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      if (ctx.session.user.email !== "coreyloftus@gmail.com") {
-        throw new Error("Admin access required");
-      }
 
       // Get the project from admin's Firestore collection
       const adminScripts = await ScriptService.getScripts(
@@ -347,7 +335,7 @@ export const scriptData = createTRPCRouter({
     }),
 
   // Update permissions for a shared project
-  updateSharedProjectPermissions: protectedProcedure
+  updateSharedProjectPermissions: adminProcedure
     .input(
       z.object({
         projectId: z.string().min(1, "Project ID is required"),
@@ -355,9 +343,6 @@ export const scriptData = createTRPCRouter({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      if (ctx.session.user.email !== "coreyloftus@gmail.com") {
-        throw new Error("Admin access required");
-      }
 
       await FirestoreService.updateSharedProjectPermissions(
         input.projectId,
@@ -372,7 +357,7 @@ export const scriptData = createTRPCRouter({
     }),
 
   // Sync/update a shared project's content from admin's source project
-  syncSharedProject: protectedProcedure
+  syncSharedProject: adminProcedure
     .input(
       z.object({
         sharedProjectId: z.string().min(1, "Shared project ID is required"),
@@ -380,9 +365,6 @@ export const scriptData = createTRPCRouter({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      if (ctx.session.user.email !== "coreyloftus@gmail.com") {
-        throw new Error("Admin access required");
-      }
 
       // Get the source project from admin's Firestore collection
       const adminScripts = await ScriptService.getScripts(
@@ -416,16 +398,13 @@ export const scriptData = createTRPCRouter({
     }),
 
   // Delete a shared project
-  deleteSharedProject: protectedProcedure
+  deleteSharedProject: adminProcedure
     .input(
       z.object({
         projectId: z.string().min(1, "Project ID is required"),
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      if (ctx.session.user.email !== "coreyloftus@gmail.com") {
-        throw new Error("Admin access required");
-      }
 
       await FirestoreService.deleteSharedProject(
         input.projectId,

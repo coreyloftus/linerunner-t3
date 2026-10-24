@@ -8,6 +8,7 @@
  */
 
 import { initTRPC, TRPCError } from "@trpc/server";
+import { isAdminEmail } from "~/lib/admin";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
@@ -102,5 +103,16 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
       // infers the `session` as non-nullable
       session: { ...ctx.session, user: ctx.session.user },
     },
+  });
+});
+
+// Signed in as the app admin, checked against the session, never the request
+export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
+  const email = ctx.session.user.email;
+  if (!email || !isAdminEmail(email)) {
+    throw new TRPCError({ code: "FORBIDDEN" });
+  }
+  return next({
+    ctx: { session: { ...ctx.session, user: { ...ctx.session.user, email } } },
   });
 });
