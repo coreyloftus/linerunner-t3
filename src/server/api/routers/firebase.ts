@@ -181,7 +181,7 @@ export const firebaseRouter = createTRPCRouter({
     .input(
       z.object({
         collectionName: z.string(),
-        data: z.record(z.any()),
+        data: z.record(z.string(), z.any()),
       }),
     )
     .mutation(async ({ input }) => {
@@ -225,7 +225,7 @@ export const firebaseRouter = createTRPCRouter({
     .input(
       z.object({
         subcollectionName: z.string(),
-        data: z.record(z.any()),
+        data: z.record(z.string(), z.any()),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -276,7 +276,7 @@ export const firebaseRouter = createTRPCRouter({
       z.object({
         collectionName: z.string(),
         documentId: z.string(),
-        data: z.record(z.any()),
+        data: z.record(z.string(), z.any()),
       }),
     )
     .mutation(async ({ input }) => {
