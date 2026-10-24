@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  adminProcedure,
   createTRPCRouter,
   protectedProcedure,
   publicProcedure,
@@ -26,21 +27,6 @@ export const firebaseRouter = createTRPCRouter({
       return { success: false, error: (error as Error).message };
     }
   }),
-
-  // Example: Get all documents from a collection
-  getDocuments: publicProcedure
-    .input(z.object({ collectionName: z.string() }))
-    .query(async ({ input }) => {
-      console.log("🧪 [debug] getDocuments");
-      try {
-        const documents = await FirestoreService.getDocuments(
-          input.collectionName,
-        );
-        return { success: true, data: documents };
-      } catch (error) {
-        return { success: false, error: (error as Error).message };
-      }
-    }),
 
   // Get documents from user-specific subcollection (protected)
   getUserDocuments: protectedProcedure
@@ -85,42 +71,25 @@ export const firebaseRouter = createTRPCRouter({
     }),
 
   // Get all collections (admin only)
-  getCollections: protectedProcedure
-    .input(
-      z.object({
-        adminEmail: z.string(),
-      }),
-    )
-    .query(async ({ input }) => {
-      try {
-        // Check if user is admin (you can enhance this with proper role checking)
-        if (input.adminEmail !== "coreyloftus@gmail.com") {
-          throw new Error("Admin access required");
-        }
-
-        const collections = await FirestoreService.getCollections();
-        return { success: true, data: collections };
-      } catch (error) {
-        console.error("❌ [getCollections] Error:", error);
-        return { success: false, error: (error as Error).message };
-      }
-    }),
+  getCollections: adminProcedure.query(async () => {
+    try {
+      const collections = await FirestoreService.getCollections();
+      return { success: true, data: collections };
+    } catch (error) {
+      console.error("❌ [getCollections] Error:", error);
+      return { success: false, error: (error as Error).message };
+    }
+  }),
 
   // Get subcollections for a specific collection (admin only)
-  getSubcollections: protectedProcedure
+  getSubcollections: adminProcedure
     .input(
       z.object({
         collectionName: z.string(),
-        adminEmail: z.string(),
       }),
     )
     .query(async ({ input }) => {
       try {
-        // Check if user is admin (you can enhance this with proper role checking)
-        if (input.adminEmail !== "coreyloftus@gmail.com") {
-          throw new Error("Admin access required");
-        }
-
         const subcollections = await FirestoreService.getSubcollections(
           input.collectionName,
         );
@@ -132,66 +101,20 @@ export const firebaseRouter = createTRPCRouter({
     }),
 
   // Get document IDs from a collection (admin only)
-  getDocumentIds: protectedProcedure
+  getDocumentIds: adminProcedure
     .input(
       z.object({
         collectionName: z.string(),
-        adminEmail: z.string(),
       }),
     )
     .query(async ({ input }) => {
       try {
-        // Check if user is admin (you can enhance this with proper role checking)
-        if (input.adminEmail !== "coreyloftus@gmail.com") {
-          throw new Error("Admin access required");
-        }
-
         const documentIds = await FirestoreService.getDocumentIds(
           input.collectionName,
         );
         return { success: true, data: documentIds };
       } catch (error) {
         console.error("❌ [getDocumentIds] Error:", error);
-        return { success: false, error: (error as Error).message };
-      }
-    }),
-
-  // Example: Get a single document
-  getDocument: publicProcedure
-    .input(
-      z.object({
-        collectionName: z.string(),
-        documentId: z.string(),
-      }),
-    )
-    .query(async ({ input }) => {
-      try {
-        const document = await FirestoreService.getDocument(
-          input.collectionName,
-          input.documentId,
-        );
-        return { success: true, data: document };
-      } catch (error) {
-        return { success: false, error: (error as Error).message };
-      }
-    }),
-
-  // Example: Add a new document (protected - requires authentication)
-  addDocument: protectedProcedure
-    .input(
-      z.object({
-        collectionName: z.string(),
-        data: z.record(z.string(), z.any()),
-      }),
-    )
-    .mutation(async ({ input }) => {
-      try {
-        const documentId = await FirestoreService.addDocument(
-          input.collectionName,
-          input.data,
-        );
-        return { success: true, documentId };
-      } catch (error) {
         return { success: false, error: (error as Error).message };
       }
     }),
@@ -266,48 +189,6 @@ export const firebaseRouter = createTRPCRouter({
         return { success: true, documentId };
       } catch (error) {
         console.error("❌ [addUserDocument] Error:", error);
-        return { success: false, error: (error as Error).message };
-      }
-    }),
-
-  // Example: Update a document (protected - requires authentication)
-  updateDocument: protectedProcedure
-    .input(
-      z.object({
-        collectionName: z.string(),
-        documentId: z.string(),
-        data: z.record(z.string(), z.any()),
-      }),
-    )
-    .mutation(async ({ input }) => {
-      try {
-        await FirestoreService.updateDocument(
-          input.collectionName,
-          input.documentId,
-          input.data,
-        );
-        return { success: true };
-      } catch (error) {
-        return { success: false, error: (error as Error).message };
-      }
-    }),
-
-  // Example: Delete a document (protected - requires authentication)
-  deleteDocument: protectedProcedure
-    .input(
-      z.object({
-        collectionName: z.string(),
-        documentId: z.string(),
-      }),
-    )
-    .mutation(async ({ input }) => {
-      try {
-        await FirestoreService.deleteDocument(
-          input.collectionName,
-          input.documentId,
-        );
-        return { success: true };
-      } catch (error) {
         return { success: false, error: (error as Error).message };
       }
     }),

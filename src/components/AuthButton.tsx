@@ -5,6 +5,7 @@ import { Button } from "./ui/button";
 import { DropdownMenu, DropdownMenuItem } from "./ui/dropdown-menu";
 import { ScriptContext } from "~/app/context";
 import { useContext, useEffect } from "react";
+import { isAdminEmail } from "~/lib/admin";
 
 export const AuthButton = () => {
   const { data: session, status } = useSession();
@@ -12,7 +13,7 @@ export const AuthButton = () => {
 
   // Set admin status in useEffect to avoid setState during render
   useEffect(() => {
-    if (session?.user?.email === "coreyloftus@gmail.com") {
+    if (isAdminEmail(session?.user?.email)) {
       setIsAdmin(true);
     } else {
       setIsAdmin(false);
