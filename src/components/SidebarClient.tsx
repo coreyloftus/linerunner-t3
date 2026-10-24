@@ -22,6 +22,7 @@ import { DisplaySettings } from "./DisplaySettings";
 import { PlaybackSettings } from "./PlaybackSettings";
 import { AdminSharingPanel } from "./AdminSharingPanel";
 import Link from "next/link";
+import { useDrawerSwipe } from "~/hooks/useDrawerSwipe";
 
 type SidebarClientProps = {
   projects: string[];
@@ -35,7 +36,7 @@ type SidebarClientProps = {
 };
 
 const SECTION_LABEL =
-  "text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground";
+  "text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground md:text-xs";
 
 const isDesktop = () => window.matchMedia("(min-width: 768px)").matches;
 
@@ -48,7 +49,7 @@ function SettingsGroup({
 }) {
   return (
     <details className="group border-b border-border last:border-b-0">
-      <summary className="flex min-h-[44px] cursor-pointer list-none items-center justify-between gap-2 rounded-md md:min-h-[40px] [&::-webkit-details-marker]:hidden">
+      <summary className="flex min-h-[48px] cursor-pointer list-none items-center justify-between gap-2 rounded-md md:min-h-[40px] [&::-webkit-details-marker]:hidden">
         <span className={SECTION_LABEL}>{title}</span>
         <FaChevronRight className="h-3 w-3 text-muted-foreground transition-transform duration-200 group-open:rotate-90" />
       </summary>
@@ -70,6 +71,13 @@ export function SidebarClient({
   const { userConfig, isAdmin, speechMatchEnabled, setSpeechMatchEnabled } =
     useContext(ScriptContext);
   const sidebarRef = useRef<HTMLElement>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
+  useDrawerSwipe({
+    open: mobileOpen,
+    onOpenChange: onMobileOpenChange,
+    drawerRef: sidebarRef,
+    backdropRef,
+  });
 
   // Get refresh functionality from the optimized hook
   const { refreshData, isLoading: isDataLoading } = useScriptData({
@@ -136,10 +144,18 @@ export function SidebarClient({
   return (
     <>
       {/* Backdrop overlay for mobile */}
-      {mobileOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 iphone:bg-black/40 md:hidden"
-          onClick={() => onMobileOpenChange(false)}
+      <div
+        ref={backdropRef}
+        aria-hidden="true"
+        className={`fixed inset-0 z-40 bg-black/40 transition-opacity duration-300 md:hidden ${mobileOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
+        onClick={() => onMobileOpenChange(false)}
+      />
+
+      {/* Edge handle: hints that the drawer can be dragged out */}
+      {!mobileOpen && (
+        <span
+          aria-hidden="true"
+          className="pointer-events-none fixed left-1 top-1/2 z-30 h-10 w-1 -translate-y-1/2 rounded-full bg-border md:hidden"
         />
       )}
 
@@ -185,15 +201,11 @@ export function SidebarClient({
             <IoClose className="h-5 w-5" />
           </Button>
         </div>
-        <div className={`px-3 pb-2 ${expandedOnly}`}>
-          <AuthButton />
-        </div>
-
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain]">
-          {/* Mode */}
+          {/* Mode: on a phone the bottom tab bar does this job */}
           <nav
             aria-label="Mode"
-            className={`px-2 pt-2 ${collapsed ? "md:px-1.5" : ""}`}
+            className={`hidden px-2 pt-2 md:block ${collapsed ? "md:px-1.5" : ""}`}
           >
             <p
               className={`mb-2 px-1 ${SECTION_LABEL} ${collapsed ? "md:sr-only" : ""}`}
@@ -256,10 +268,14 @@ export function SidebarClient({
 
           {/* Script */}
           <div
-            className={`mx-3 mt-4 border-t border-border pt-4 ${expandedOnly}`}
+            className={`mx-3 mt-2 pt-2 md:mt-4 md:border-t md:border-border md:pt-4 ${expandedOnly}`}
           >
             <p className={`mb-2 ${SECTION_LABEL}`}>Script</p>
-            <NewScriptSelect projects={projects} allData={allData} />
+            <NewScriptSelect
+              projects={projects}
+              allData={allData}
+              onScenePicked={() => onMobileOpenChange(false)}
+            />
           </div>
 
           {/* Settings */}
@@ -272,11 +288,11 @@ export function SidebarClient({
                 <PlaybackSettings />
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <Label className="text-mobile-sm iphone:text-sm">
-                      Speech Match
+                    <Label className="text-base md:text-sm">
+                      Speech match
                     </Label>
-                    <p className="text-xs text-muted-foreground">
-                      Say your line to advance (Chrome/Safari)
+                    <p className="text-sm text-muted-foreground md:text-xs">
+                      Say your line to advance
                     </p>
                   </div>
                   <Switch
@@ -287,24 +303,24 @@ export function SidebarClient({
                 </div>
                 <div className="flex items-center justify-between gap-3 opacity-60">
                   <div>
-                    <Label className="text-mobile-sm iphone:text-sm">
-                      Scene Partner Voice
+                    <Label className="text-base md:text-sm">
+                      Partner voice
                     </Label>
-                    <p className="text-xs text-muted-foreground">
-                      Coming soon — hear the other characters
+                    <p className="text-sm text-muted-foreground md:text-xs">
+                      Coming soon
                     </p>
                   </div>
                   <Switch
                     checked={false}
                     disabled
-                    aria-label="Scene partner voice (coming soon)"
+                    aria-label="Partner voice (coming soon)"
                   />
                 </div>
               </SettingsGroup>
 
               <SettingsGroup title="Display">
                 <div className="flex items-center justify-between">
-                  <Label className="text-mobile-sm iphone:text-sm">Theme</Label>
+                  <Label className="text-base md:text-sm">Theme</Label>
                   <ThemeToggle />
                 </div>
                 <DisplaySettings />
@@ -313,14 +329,14 @@ export function SidebarClient({
               {isAdmin && (
                 <SettingsGroup title="Admin">
                   <div className="flex items-center justify-between">
-                    <Label className="text-mobile-sm iphone:text-sm">
+                    <Label className="text-base md:text-sm">
                       Refresh Data
                     </Label>
                     <RefreshButton
                       onClick={refreshData}
                       isLoading={isDataLoading}
                       size="sm"
-                      className="min-h-[44px] min-w-[44px] touch-manipulation iphone:min-h-[36px] iphone:min-w-[36px]"
+                      className="min-h-[44px] min-w-[44px] touch-manipulation"
                     />
                   </div>
                   <div>
@@ -332,11 +348,12 @@ export function SidebarClient({
             </div>
           </div>
 
-          {/* Footer credit */}
-          <div className={`mt-auto px-3 pb-3 pt-6 ${expandedOnly}`}>
+          {/* Account and credit */}
+          <div className={`mt-auto space-y-4 px-3 pb-3 pt-6 ${expandedOnly}`}>
+            <AuthButton />
             <Link href="https://www.coreyloftus.com" target="_blank">
-              <div className="font-script text-mobile-xs text-muted-foreground transition-colors hover:text-foreground iphone:text-sm">
-                LineRunner by Corey — ©2025 coreyloftus.com
+              <div className="font-script text-sm text-muted-foreground transition-colors hover:text-foreground">
+                LineRunner by Corey
               </div>
             </Link>
           </div>

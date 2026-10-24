@@ -14,12 +14,17 @@ import { Label } from "./ui/label";
 import { api } from "~/trpc/react";
 import { useSession } from "next-auth/react";
 
+const LABEL = "text-base md:text-sm";
+const TRIGGER = "h-12 text-base md:h-9 md:text-sm";
+
 export default function NewScriptSelect({
   projects: _projects,
   allData: _allData,
+  onScenePicked,
 }: {
   projects: string[];
   allData: ProjectJSON[];
+  onScenePicked?: () => void;
 }) {
   const router = useRouter();
   const { data: session } = useSession();
@@ -203,6 +208,7 @@ export default function NewScriptSelect({
     setSelectedScene(newScene);
     const newQPs = `?project=${encodeURIComponent(selectedProject?.name ?? '')}&source=${selectedProject?.source}&character=${encodeURIComponent(selectedCharacter)}&scene=${encodeURIComponent(newScene)}`;
     router.push(newQPs);
+    onScenePicked?.();
   };
 
   useEffect(() => {
@@ -262,74 +268,80 @@ export default function NewScriptSelect({
     : "";
 
   return (
-    <div className="flex flex-col gap-4 px-4">
+    <div className="flex flex-col gap-5">
       {/* Project Selection */}
-      <Select onValueChange={handleProjectChange} value={selectedCompositeValue}>
-        <Label>Project</Label>
-        <SelectTrigger>
-          <SelectValue placeholder="Select Project">
-            {selectedProject?.name}
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          {hierarchicalProjects.map((project, index) => (
-            <SelectItem value={`${project.type}:${project.name}`} key={index}>
-              {project.type === "local"
-                ? `💻 ${project.name}`
-                : project.type === "public"
-                  ? `📁 ${project.name}`
-                  : project.type === "shared"
-                    ? `🔗 ${project.name}`
-                    : `👤 ${project.name}`}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
-      {/* Character Selection - only show if project is selected */}
-      {selectedProject && (
-        <Select
-          onValueChange={handleCharacterChange}
-          value={selectedCharacter}
-          disabled={!selectedProject}
-        >
-          <Label>Character</Label>
-          <SelectTrigger>
-            <SelectValue placeholder="Select Character">
-              {selectedCharacter}
+      <div className="flex flex-col gap-2">
+        <Select onValueChange={handleProjectChange} value={selectedCompositeValue}>
+          <Label className={LABEL}>Show</Label>
+          <SelectTrigger className={TRIGGER}>
+            <SelectValue placeholder="Select Project">
+              {selectedProject?.name}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            {characterList?.map((char, index) => (
-              <SelectItem value={char} key={index}>
-                {char}
+            {hierarchicalProjects.map((project, index) => (
+              <SelectItem value={`${project.type}:${project.name}`} key={index}>
+                {project.type === "local"
+                  ? `💻 ${project.name}`
+                  : project.type === "public"
+                    ? `📁 ${project.name}`
+                    : project.type === "shared"
+                      ? `🔗 ${project.name}`
+                      : `👤 ${project.name}`}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
+      </div>
+
+      {/* Character Selection - only show if project is selected */}
+      {selectedProject && (
+        <div className="flex flex-col gap-2">
+          <Select
+            onValueChange={handleCharacterChange}
+            value={selectedCharacter}
+            disabled={!selectedProject}
+          >
+            <Label className={LABEL}>Character</Label>
+            <SelectTrigger className={TRIGGER}>
+              <SelectValue placeholder="Select Character">
+                {selectedCharacter}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {characterList?.map((char, index) => (
+                <SelectItem value={char} key={index}>
+                  {char}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       )}
 
       {/* Scene Selection - only show if character is selected */}
       {selectedProject && selectedCharacter && (
-        <Select
-          onValueChange={handleSceneChange}
-          value={selectedScene}
-          disabled={!selectedCharacter}
-        >
-          <Label>Scene</Label>
-          <SelectTrigger>
-            <SelectValue placeholder="Select Scene">
-              {selectedScene}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {sceneList?.map((scene, index) => (
-              <SelectItem value={scene.title} key={index}>
-                {scene.title}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex flex-col gap-2">
+          <Select
+            onValueChange={handleSceneChange}
+            value={selectedScene}
+            disabled={!selectedCharacter}
+          >
+            <Label className={LABEL}>Scene</Label>
+            <SelectTrigger className={TRIGGER}>
+              <SelectValue placeholder="Select Scene">
+                {selectedScene}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {sceneList?.map((scene, index) => (
+                <SelectItem value={scene.title} key={index}>
+                  {scene.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       )}
     </div>
   );
