@@ -23,6 +23,12 @@ export interface MelodySpokenCue {
   line: string;
 }
 
+/** Another singer's line over the same measures, e.g. the other half of a duet */
+export interface MelodyPart {
+  name: string;
+  notes: MelodyNote[];
+}
+
 export interface Melody {
   id: string;
   title: string;
@@ -31,6 +37,9 @@ export interface Melody {
   keySignature?: string;
   pickupBeats?: number;
   notes: MelodyNote[];
+  /** Who sings `notes`; set when the melody has other parts */
+  partName?: string;
+  otherParts?: MelodyPart[];
   link?: MelodyLink;
   spoken?: MelodySpokenCue[];
   sourceFileName: string;
@@ -68,6 +77,11 @@ export const melodyLinkSchema = z.object({
   sectionTitle: z.string().min(1),
 });
 
+export const melodyPartSchema = z.object({
+  name: z.string().min(1).max(100),
+  notes: z.array(melodyNoteSchema).max(2000),
+});
+
 export const melodySpokenCueSchema = z.object({
   measure: z.number().int().min(1),
   character: z.string().max(100),
@@ -87,6 +101,8 @@ export const melodySchema = z.object({
   keySignature: z.string().max(40).optional(),
   pickupBeats: z.number().min(0).max(16).optional(),
   notes: z.array(melodyNoteSchema).max(2000),
+  partName: z.string().min(1).max(100).optional(),
+  otherParts: z.array(melodyPartSchema).max(8).optional(),
   link: melodyLinkSchema.optional(),
   spoken: z.array(melodySpokenCueSchema).max(500).optional(),
   sourceFileName: z.string().max(300),
@@ -114,6 +130,35 @@ export const noteStartBeats = (notes: MelodyNote[]): number[] => {
     t += note.beats;
   }
   return starts;
+};
+
+/** Start beat of each of another part's notes on the main part's timeline; null when its measure is not in the main part */
+export const alignedStartBeats = (main: MelodyNote[], part: MelodyNote[]): (number | null)[] => {
+  const measureStart = new Map<number, number>();
+  noteStartBeats(main).forEach((t, i) => {
+    if (!measureStart.has(main[i]!.measure)) measureStart.set(main[i]!.measure, t);
+  });
+  const offsets = new Map<number, number>();
+  return part.map((n) => {
+    const start = measureStart.get(n.measure);
+    const offset = offsets.get(n.measure) ?? 0;
+    offsets.set(n.measure, offset + n.beats);
+    return start === undefined ? null : start + offset;
+  });
+};
+
+/** Every part of a melody, main part first */
+export const melodyParts = (m: Pick<Melody, "notes" | "partName" | "otherParts">): MelodyPart[] => [
+  { name: m.partName ?? "Melody", notes: m.notes },
+  ...(m.otherParts ?? []),
+];
+
+/** The melody with part `index` as its main part */
+export const withMainPart = <M extends Pick<Melody, "notes" | "partName" | "otherParts">>(m: M, index: number): M => {
+  const parts = melodyParts(m);
+  const main = parts[index];
+  if (!main || index === 0) return m;
+  return { ...m, notes: main.notes, partName: main.name, otherParts: parts.filter((_, i) => i !== index) };
 };
 
 export const totalBeats = (notes: MelodyNote[]): number =>
@@ -244,6 +289,9 @@ const importFileSchema = melodyDraftSchema
   })
   .passthrough();
 
+const normalizeNotes = (notes: MelodyNote[]): MelodyNote[] =>
+  notes.map((n) => ({ ...n, pitch: n.pitch === null ? null : (normalizePitch(n.pitch) ?? n.pitch) }));
+
 /** Parse a hand-written melody JSON file into a draft plus its warnings */
 export const parseMelodyJson = (
   text: string,
@@ -269,10 +317,11 @@ export const parseMelodyJson = (
     timeSignature: d.timeSignature,
     ...(d.keySignature ? { keySignature: d.keySignature } : {}),
     pickupBeats: d.pickupBeats ?? 0,
-    notes: d.notes.map((n) => ({
-      ...n,
-      pitch: n.pitch === null ? null : (normalizePitch(n.pitch) ?? n.pitch),
-    })),
+    notes: normalizeNotes(d.notes),
+    ...(d.partName ? { partName: d.partName } : {}),
+    ...(d.otherParts?.length
+      ? { otherParts: d.otherParts.map((p) => ({ name: p.name, notes: normalizeNotes(p.notes) })) }
+      : {}),
     ...(d.link ? { link: d.link } : {}),
     ...(d.spoken?.length ? { spoken: sortCues(d.spoken) } : {}),
     sourceFileName: d.sourceFileName ?? fileName,

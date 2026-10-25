@@ -7,7 +7,7 @@ import { FaPlay, FaPause, FaStop, FaPen, FaDownload, FaTrash, FaRepeat, FaSlider
 import { Button } from "../ui/button";
 import { renderWav, useMelodyPlayer } from "~/hooks/useMelodyPlayer";
 import { MelodyPanel } from "./MelodyPanel";
-import { groupByMeasure, type Melody } from "~/lib/melody";
+import { groupByMeasure, melodyParts, withMainPart, type Melody } from "~/lib/melody";
 import { ScriptContext } from "~/app/context";
 import {
   clampStaffScale,
@@ -41,14 +41,32 @@ const VIEWS: { v: MelodyView; label: string }[] = [
   { v: "lyrics", label: "Lyrics" },
   { v: "both", label: "Both" },
 ];
+type OthersMix = "off" | "soft" | "full";
+const OTHERS_MIXES: { v: OthersMix; label: string }[] = [
+  { v: "off", label: "Off" },
+  { v: "soft", label: "Soft" },
+  { v: "full", label: "Full" },
+];
+const SOFT_VELOCITY = 0.35;
+
 const OCTAVES = [
   { v: -1, label: "Down" },
   { v: 0, label: "Normal" },
   { v: 1, label: "Up" },
 ];
 
-export function MelodyPlayer({ melody, onEdit, onDelete }: MelodyPlayerProps) {
-  const player = useMelodyPlayer(melody);
+export function MelodyPlayer({ melody: saved, onEdit, onDelete }: MelodyPlayerProps) {
+  const parts = useMemo(() => melodyParts(saved), [saved]);
+  // Whose line shows and leads, and how loud the other parts play under it
+  const [focusPart, setFocusPart] = useState(0);
+  const [othersMix, setOthersMix] = useState<OthersMix>("off");
+  const melody = useMemo(() => {
+    const m = withMainPart(saved, focusPart);
+    return othersMix === "off" ? { ...m, otherParts: undefined } : m;
+  }, [saved, focusPart, othersMix]);
+  const others = useMemo(() => (melody.otherParts ?? []).map((p) => p.notes), [melody.otherParts]);
+  const othersVelocity = othersMix === "soft" ? SOFT_VELOCITY : 1;
+  const player = useMelodyPlayer(melody, others, othersVelocity);
   const { melodyPreferences, setMelodyPreferences, displayPreferences } = useContext(ScriptContext);
   const { view, staffScale } = melodyPreferences;
   const measures = useMemo(() => groupByMeasure(melody.notes), [melody.notes]);
@@ -96,7 +114,7 @@ export function MelodyPlayer({ melody, onEdit, onDelete }: MelodyPlayerProps) {
     setRenderError(null);
     setIsRendering(true);
     try {
-      const blob = await renderWav(melody, player.tempoScale, player.octaveShift);
+      const blob = await renderWav(melody, player.tempoScale, player.octaveShift, others, othersVelocity);
       const safeTitle = melody.title.replace(/[^\w\s-]/g, "").trim() || "melody";
       saveAs(blob, `${safeTitle} (${tempoPercent}%).wav`);
     } catch (err) {
@@ -163,6 +181,40 @@ export function MelodyPlayer({ melody, onEdit, onDelete }: MelodyPlayerProps) {
             <FiPlus className="h-4 w-4" />
           </button>
         </div>
+
+        {parts.length > 1 && (
+          <>
+            <div role="group" aria-label="Part" className="flex rounded-lg border border-border bg-surface p-0.5">
+              {parts.map((p, i) => (
+                <button
+                  key={p.name}
+                  type="button"
+                  aria-pressed={focusPart === i}
+                  onClick={() => setFocusPart(i)}
+                  className={segmentButton(focusPart === i)}
+                >
+                  {p.name}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className={labelClass}>{parts.length > 2 ? "Others" : parts.find((_, i) => i !== focusPart)?.name}</span>
+              <div role="group" aria-label="Other parts" className="flex rounded-lg border border-border bg-surface p-0.5">
+                {OTHERS_MIXES.map(({ v, label }) => (
+                  <button
+                    key={v}
+                    type="button"
+                    aria-pressed={othersMix === v}
+                    onClick={() => setOthersMix(v)}
+                    className={segmentButton(othersMix === v)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
 
         <div role="group" aria-label="View" className="flex rounded-lg border border-border bg-surface p-0.5">
           {VIEWS.map(({ v, label }) => (

@@ -34,6 +34,11 @@ export function MelodyPanel({
 }: MelodyPanelProps) {
   const measures = useMemo(() => groupByMeasure(melody.notes), [melody.notes]);
   const cues = useMemo(() => cuesByMeasure(melody.spoken), [melody.spoken]);
+  // Other singers' notes in each measure, for a duet heard together
+  const otherRows = useMemo(
+    () => (melody.otherParts ?? []).map((p) => ({ name: p.name, notes: p.notes, byMeasure: new Map(groupByMeasure(p.notes)) })),
+    [melody.otherParts],
+  );
   const currentMeasure = melody.notes[currentNoteIndex]?.measure;
   const currentRef = useRef<HTMLButtonElement | null>(null);
   const showScore = view !== "lyrics";
@@ -60,7 +65,8 @@ export function MelodyPanel({
             {measures.map(([measure, indexes]) => {
               const inLoop = loop && indexes.some((i) => i >= loop.start && i <= loop.end);
               const spoken = cues.get(measure) ?? [];
-              const isRest = indexes.every((i) => melody.notes[i]!.pitch === null);
+              const singing = otherRows.filter((p) => p.byMeasure.get(measure)?.some((i) => p.notes[i]!.pitch !== null));
+              const isRest = indexes.every((i) => melody.notes[i]!.pitch === null) && !singing.length;
               // A bar that is only rests under dialogue shows just the dialogue
               if (spoken.length && isRest) return <SpokenCues key={measure} measure={measure} cues={spoken} current={currentMeasure === measure} />;
               return (
@@ -68,6 +74,7 @@ export function MelodyPanel({
                   {spoken.length > 0 && <SpokenCues measure={measure} cues={spoken} current={currentMeasure === measure} />}
                 <div className={`flex flex-wrap items-baseline gap-x-1 rounded-md px-1 ${inLoop ? "bg-accent-soft/50" : ""}`}>
                   <span className="mr-2 w-6 flex-shrink-0 text-right font-sans text-[11px] text-muted-foreground">{measure}</span>
+                  {singing.length > 0 && <PartName name={melody.partName ?? "Melody"} />}
                   {indexes.map((i) => {
                     const n = melody.notes[i]!;
                     const isCurrent = currentNoteIndex === i;
@@ -92,6 +99,26 @@ export function MelodyPanel({
                     );
                   })}
                 </div>
+                {singing.map((p) => (
+                  <div key={p.name} className="flex flex-wrap items-baseline gap-x-1 px-1 text-muted-foreground">
+                    <span className="mr-2 w-6 flex-shrink-0" />
+                    <PartName name={p.name} />
+                    {p.byMeasure.get(measure)!.map((i) => {
+                      const n = p.notes[i]!;
+                      return (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => onNoteClick(indexes[0]!)}
+                          title={`${n.pitch ?? "rest"} · click to play this measure`}
+                          className="rounded px-0.5 transition-colors hover:bg-muted"
+                        >
+                          {n.pitch === null ? "·" : (n.lyric ?? "~")}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ))}
                 </div>
               );
             })}
@@ -126,4 +153,8 @@ function SpokenCues({ measure, cues, current }: { measure: number; cues: { chara
       </div>
     </div>
   );
+}
+
+function PartName({ name }: { name: string }) {
+  return <span className="mr-1 font-sans text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">{name}</span>;
 }
