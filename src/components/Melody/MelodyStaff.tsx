@@ -17,7 +17,7 @@ type Vex = typeof VexNS;
 type StaveNote = InstanceType<Vex["StaveNote"]>;
 
 interface MelodyStaffProps {
-  melody: Pick<Melody, "notes" | "timeSignature" | "keySignature" | "pickupBeats" | "spoken">;
+  melody: Pick<Melody, "notes" | "timeSignature" | "keySignature" | "pickupBeats" | "spoken" | "partName" | "otherParts">;
   currentNoteIndex?: number;
   selectedNoteIndex?: number | null;
   onNoteClick?: (index: number) => void;
@@ -129,6 +129,8 @@ interface BuiltMeasure {
   indexes: number[];
   voice: InstanceType<Vex["Voice"]>;
   minWidth: number;
+  /** The same measure in each other part, drawn on staves below */
+  parts: BuiltMeasure[];
 }
 
 function buildMeasure(
@@ -161,6 +163,8 @@ function buildMeasure(
     }
     return note;
   });
+  // A part that is silent here still needs a voice to line up with the others
+  if (!staveNotes.length) staveNotes.push(new StaveNote({ keys: ["b/4"], duration: "wr" }));
   // SOFT mode: a measure that does not add up still draws
   const voice = new Voice({ numBeats: timeSignature[0], beatValue: timeSignature[1] })
     .setMode(Voice.Mode.SOFT)
@@ -170,7 +174,7 @@ function buildMeasure(
   // Lyrics need their own room or neighbouring syllables run together
   const lyricWidth = indexes.reduce((sum, i) => sum + Math.max(18, measureText(notes[i]!.lyric ?? "", lyricFont) + 10), 0);
   const minWidth = Math.max(MIN_MEASURE, formatter.preCalculateMinTotalWidth([voice]), lyricWidth) + MEASURE_PADDING;
-  return { measure, notes: staveNotes, indexes, voice, minWidth };
+  return { measure, notes: staveNotes, indexes, voice, minWidth, parts: [] };
 }
 
 export function MelodyStaff({
@@ -305,9 +309,17 @@ function renderStaff(
     getComputedStyle(document.body).getPropertyValue("--font-courier-prime").trim() || "Courier New";
   const bad = badMeasures(melody);
 
-  const built = groupByMeasure(melody.notes).map(([measure, indexes]) =>
-    buildMeasure(Vex, measure, indexes, melody.notes, keySpec, melody.timeSignature, lyricFont),
-  );
+  const others = melody.otherParts ?? [];
+  const built = groupByMeasure(melody.notes).map(([measure, indexes]) => {
+    const main = buildMeasure(Vex, measure, indexes, melody.notes, keySpec, melody.timeSignature, lyricFont);
+    main.parts = others.map((p) => {
+      const partIndexes = p.notes.flatMap((n, i) => (n.measure === measure ? [i] : []));
+      return buildMeasure(Vex, measure, partIndexes, p.notes, keySpec, melody.timeSignature, lyricFont);
+    });
+    main.minWidth = Math.max(main.minWidth, ...main.parts.map((p) => p.minWidth));
+    return main;
+  });
+  const rowNames = others.length ? [melody.partName ?? "Melody", ...others.map((p) => p.name)] : [""];
   if (built.length === 0) return [];
 
   // Width taken by clef + key (+ time) at the start of a system
@@ -370,7 +382,7 @@ function renderStaff(
   let cursor = 0;
   const tops = layouts.map((l) => {
     const top = cursor;
-    cursor += l.band + SYSTEM_GAP;
+    cursor += l.band + SYSTEM_GAP * rowNames.length;
     return top;
   });
   const height = cursor + 20;
@@ -383,6 +395,7 @@ function renderStaff(
 
   const svg = el.querySelector("svg")!;
   const placed = new Map<number, { note: StaveNote; system: number }>();
+  const partPlaced = others.map(() => new Map<number, { note: StaveNote; system: number }>());
 
   systems.forEach((system, s) => {
     const { boxes, rows, band } = layouts[s]!;
@@ -410,14 +423,29 @@ function renderStaff(
       svg.appendChild(g);
     }
 
+    // Row 0 is the main part; each other part gets its own stave below
+    const rowLyrics: SVGTextElement[][] = rowNames.map(() => []);
     system.forEach((m, j) => {
       const { x, w } = boxes[j]!;
-      const stave = new Stave(x, y, w);
-      if (j === 0) {
-        stave.addClef("treble").addKeySignature(keySpec);
-        if (s === 0) stave.addTimeSignature(timeSpec);
-      }
-      stave.setContext(ctx).draw();
+      const rows = [m, ...m.parts];
+      const staves = rows.map((_, r) => {
+        const stave = new Stave(x, y + r * SYSTEM_GAP, w);
+        if (j === 0) {
+          stave.addClef("treble").addKeySignature(keySpec);
+          if (s === 0) stave.addTimeSignature(timeSpec);
+        }
+        stave.setContext(ctx).draw();
+        if (j === 0 && rowNames[r]) {
+          const label = document.createElementNS(SVG_NS, "text");
+          label.setAttribute("x", String(x + 2));
+          label.setAttribute("y", String(stave.getYForLine(0) - 24));
+          label.setAttribute("class", "vf-part-name");
+          label.textContent = rowNames[r].toUpperCase();
+          svg.appendChild(label);
+        }
+        return stave;
+      });
+      const stave = staves[0]!;
 
       if (bad.has(m.measure)) {
         const rect = document.createElementNS(SVG_NS, "rect");
@@ -430,17 +458,28 @@ function renderStaff(
         svg.insertBefore(rect, svg.firstChild);
       }
 
-      const beams = Beam.generateBeams(m.notes);
-      new Formatter(FORMAT_OPTIONS)
-        .joinVoices([m.voice])
-        .format([m.voice], Math.max(10, stave.getNoteEndX() - stave.getNoteStartX() - 10));
-      m.voice.draw(ctx, stave);
-      beams.forEach((b) => b.setContext(ctx).draw());
-      // Beamed stems are drawn inside the beam group, one per note in order
+      // Format every part's voice together so notes on the same beat line up
+      const formatter = new Formatter(FORMAT_OPTIONS);
+      rows.forEach((row) => formatter.joinVoices([row.voice]));
+      formatter.format(
+        rows.map((row) => row.voice),
+        Math.max(10, stave.getNoteEndX() - stave.getNoteStartX() - 10),
+      );
       const stemOf = new Map<StaveNote, SVGElement>();
-      beams.forEach((b) => {
-        const stems = b.getSVGElement()?.querySelectorAll<SVGElement>(".vf-stem") ?? [];
-        b.getNotes().forEach((n, k) => stems[k] && stemOf.set(n as StaveNote, stems[k]));
+      rows.forEach((row, r) => {
+        const beams = Beam.generateBeams(row.notes);
+        row.voice.draw(ctx, staves[r]);
+        beams.forEach((b) => b.setContext(ctx).draw());
+        // Beamed stems are drawn inside the beam group, one per note in order
+        beams.forEach((b) => {
+          const stems = b.getSVGElement()?.querySelectorAll<SVGElement>(".vf-stem") ?? [];
+          b.getNotes().forEach((n, k) => stems[k] && stemOf.set(n as StaveNote, stems[k]));
+        });
+        if (r === 0) return;
+        row.notes.forEach((note, k) => {
+          if (row.indexes[k] !== undefined) partPlaced[r - 1]!.set(row.indexes[k], { note, system: s });
+          rowLyrics[r]!.push(...(note.getSVGElement()?.querySelectorAll<SVGTextElement>(".vf-annotation text") ?? []));
+        });
       });
 
       const number = document.createElementNS(SVG_NS, "text");
@@ -464,48 +503,54 @@ function renderStaff(
         g.classList.add("vf-note");
         g.addEventListener("click", () => onClick(index));
         noteEls.set(index, g);
+        rowLyrics[0]!.push(...g.querySelectorAll<SVGTextElement>(".vf-annotation text"));
       });
     });
 
-    // One lyric baseline per system, under its lowest note
-    const lyrics = system.flatMap((m) =>
-      m.indexes.flatMap((i) => [...(noteEls.get(i)?.querySelectorAll<SVGTextElement>(".vf-annotation text") ?? [])]),
-    );
-    const baseline = Math.max(...lyrics.map((t) => Number(t.getAttribute("y")) || 0));
-    lyrics.forEach((t) => t.setAttribute("y", String(baseline)));
-    // Stretch each note's highlight box down to cover its lyric
-    system.forEach((m) =>
-      m.indexes.forEach((i) => {
-        const span = spans.get(i);
-        if (span && melody.notes[i]!.lyric && lyrics.length) span.bottom = Math.max(span.bottom, baseline + 6);
-      }),
-    );
-    // Nudge any syllable that still overlaps the one before it
-    let prevRight = -Infinity;
-    for (const t of lyrics) {
-      const tx = Number(t.getAttribute("x")) || 0;
-      const x0 = Math.max(tx, prevRight + LYRIC_GAP);
-      if (x0 !== tx) t.setAttribute("x", String(x0));
-      prevRight = x0 + t.getComputedTextLength();
-    }
+    rowLyrics.forEach((lyrics, r) => {
+      if (!lyrics.length) return;
+      // One lyric baseline per stave, under its lowest note
+      const baseline = Math.max(...lyrics.map((t) => Number(t.getAttribute("y")) || 0));
+      lyrics.forEach((t) => t.setAttribute("y", String(baseline)));
+      // Stretch each main note's highlight box down to cover its lyric
+      if (r === 0) {
+        system.forEach((m) =>
+          m.indexes.forEach((i) => {
+            const span = spans.get(i);
+            if (span && melody.notes[i]!.lyric) span.bottom = Math.max(span.bottom, baseline + 6);
+          }),
+        );
+      }
+      // Nudge any syllable that still overlaps the one before it
+      let prevRight = -Infinity;
+      for (const t of lyrics) {
+        const tx = Number(t.getAttribute("x")) || 0;
+        const x0 = Math.max(tx, prevRight + LYRIC_GAP);
+        if (x0 !== tx) t.setAttribute("x", String(x0));
+        prevRight = x0 + t.getComputedTextLength();
+      }
+    });
   });
 
   // Ties; a tie across a system break draws as two open halves
-  melody.notes.forEach((n, i) => {
-    if (!n.tieToNext || n.pitch === null) return;
-    const next = melody.notes[i + 1];
-    const a = placed.get(i);
-    const b = placed.get(i + 1);
-    if (!a || !b || next?.pitch !== n.pitch) return;
-    const ties =
-      a.system === b.system
-        ? [new StaveTie({ firstNote: a.note, lastNote: b.note, firstIndexes: [0], lastIndexes: [0] })]
-        : [
-            new StaveTie({ firstNote: a.note, firstIndexes: [0] }),
-            new StaveTie({ lastNote: b.note, lastIndexes: [0] }),
-          ];
-    ties.forEach((t) => t.setContext(ctx).draw());
-  });
+  const drawTies = (notes: MelodyNote[], at: Map<number, { note: StaveNote; system: number }>) =>
+    notes.forEach((n, i) => {
+      if (!n.tieToNext || n.pitch === null) return;
+      const next = notes[i + 1];
+      const a = at.get(i);
+      const b = at.get(i + 1);
+      if (!a || !b || next?.pitch !== n.pitch) return;
+      const ties =
+        a.system === b.system
+          ? [new StaveTie({ firstNote: a.note, lastNote: b.note, firstIndexes: [0], lastIndexes: [0] })]
+          : [
+              new StaveTie({ firstNote: a.note, firstIndexes: [0] }),
+              new StaveTie({ lastNote: b.note, lastIndexes: [0] }),
+            ];
+      ties.forEach((t) => t.setContext(ctx).draw());
+    });
+  drawTies(melody.notes, placed);
+  others.forEach((p, k) => drawTies(p.notes, partPlaced[k]!));
 
   return systems.map((system) => system.map((m) => m.measure));
 }

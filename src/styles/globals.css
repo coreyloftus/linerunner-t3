@@ -205,6 +205,14 @@ body > * {
   font-size: 13px;
   font-weight: 800;
 }
+.melody-staff svg text.vf-part-name {
+  fill: hsl(var(--muted-foreground));
+  stroke: none;
+  font-family: var(--font-geist-sans), sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+}
 /* Spoken lines above the staff */
 .melody-staff svg .vf-cue text {
   fill: currentColor;

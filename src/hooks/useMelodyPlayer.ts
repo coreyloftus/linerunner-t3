@@ -3,6 +3,7 @@
 import type * as ToneNS from "tone";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  alignedStartBeats,
   noteStartBeats,
   totalBeats,
   transpose,
@@ -28,6 +29,7 @@ const SAMPLE_BASE_URL = "/audio/piano/";
 const RELEASE_FRACTION = 0.9;
 const TAIL_SECONDS = 1.5;
 const RESUME_TIMEOUT_MS = 1000;
+const NO_PARTS: MelodyNote[][] = [];
 
 interface ScheduledNote {
   index: number;
@@ -37,11 +39,14 @@ interface ScheduledNote {
 }
 
 /** One attack per untied note or tie chain; every note still gets a highlight slot */
-export const buildSchedule = (notes: MelodyNote[]): ScheduledNote[] => {
-  const starts = noteStartBeats(notes);
-  return notes.map((note, i) => {
+export const buildSchedule = (
+  notes: MelodyNote[],
+  starts: (number | null)[] = noteStartBeats(notes),
+): ScheduledNote[] => {
+  return notes.flatMap((note, i) => {
     const prev = notes[i - 1];
     const continuesTie = !!prev?.tieToNext && prev.pitch === note.pitch;
+    if (starts[i] === null) return [];
     if (note.pitch === null || continuesTie) {
       return { index: i, startBeat: starts[i]!, pitch: null, soundingBeats: 0 };
     }
@@ -52,6 +57,10 @@ export const buildSchedule = (notes: MelodyNote[]): ScheduledNote[] => {
     return { index: i, startBeat: starts[i]!, pitch: note.pitch, soundingBeats: beats };
   });
 };
+
+/** Attacks for the other parts, placed on the main part's timeline */
+const buildOtherSchedule = (notes: MelodyNote[], others: MelodyNote[][]): ScheduledNote[] =>
+  others.flatMap((part) => buildSchedule(part, alignedStartBeats(notes, part)).filter((ev) => ev.pitch));
 
 const createSampler = (Tone: ToneModule): Promise<Sampler> =>
   new Promise((resolve, reject) => {
@@ -68,7 +77,12 @@ const createSampler = (Tone: ToneModule): Promise<Sampler> =>
 const resumeContext = (Tone: ToneModule) =>
   Promise.race([Tone.start(), new Promise((resolve) => setTimeout(resolve, RESUME_TIMEOUT_MS))]);
 
-export function useMelodyPlayer(melody: Pick<Melody, "notes" | "tempoBpm"> | null) {
+/** Plays `melody.notes`; `others` are other singers' lines that sound along with it at `othersVelocity` (0–1) */
+export function useMelodyPlayer(
+  melody: Pick<Melody, "notes" | "tempoBpm"> | null,
+  others: MelodyNote[][] = NO_PARTS,
+  othersVelocity = 1,
+) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [currentNoteIndex, setCurrentNoteIndex] = useState(-1);
@@ -80,10 +94,14 @@ export function useMelodyPlayer(melody: Pick<Melody, "notes" | "tempoBpm"> | nul
   const samplerRef = useRef<Sampler | null>(null);
   const octaveRef = useRef(octaveShift);
   const melodyRef = useRef(melody);
+  const othersRef = useRef(others);
+  const othersVelocityRef = useRef(othersVelocity);
   const loopRef = useRef(loop);
   const pausedRef = useRef(false);
   octaveRef.current = octaveShift;
   melodyRef.current = melody;
+  othersRef.current = others;
+  othersVelocityRef.current = othersVelocity;
   loopRef.current = loop;
 
   const ensureReady = useCallback(async () => {
@@ -143,6 +161,14 @@ export function useMelodyPlayer(melody: Pick<Melody, "notes" | "tempoBpm"> | nul
           sampler.triggerAttackRelease(pitch, dur, time);
         }
         draw.schedule(() => setCurrentNoteIndex(ev.index), time);
+      }, `${Math.round(ev.startBeat * ppq)}i`);
+    }
+    for (const ev of buildOtherSchedule(m.notes, othersRef.current)) {
+      transport.schedule((time) => {
+        const sampler = samplerRef.current;
+        if (!sampler) return;
+        const dur = `${Math.max(1, Math.round(ev.soundingBeats * RELEASE_FRACTION * ppq))}i`;
+        sampler.triggerAttackRelease(transpose(ev.pitch!, octaveRef.current * 12), dur, time, othersVelocityRef.current);
       }, `${Math.round(ev.startBeat * ppq)}i`);
     }
     // Stop at the end of the melody (a loop never reaches it)
@@ -226,7 +252,7 @@ export function useMelodyPlayer(melody: Pick<Melody, "notes" | "tempoBpm"> | nul
       schedule(Tone);
       applyLoop(Tone, loopRef.current);
     }
-  }, [melody, schedule, applyLoop]);
+  }, [melody, others, schedule, applyLoop]);
 
   // The context freezes when the page hides; pause so the UI and Transport match on return
   useEffect(() => {
@@ -272,6 +298,8 @@ export async function renderWav(
   melody: Pick<Melody, "notes" | "tempoBpm">,
   tempoScale: number,
   octaveShift: number,
+  others: MelodyNote[][] = NO_PARTS,
+  othersVelocity = 1,
 ): Promise<Blob> {
   const Tone = await import("tone");
   const bpm = melody.tempoBpm * tempoScale;
@@ -281,12 +309,16 @@ export async function renderWav(
     const sampler = await createSampler(Tone);
     transport.bpm.value = bpm;
     const ppq = transport.PPQ;
-    for (const ev of buildSchedule(melody.notes)) {
+    const events = [
+      ...buildSchedule(melody.notes).map((ev) => ({ ev, velocity: 1 })),
+      ...buildOtherSchedule(melody.notes, others).map((ev) => ({ ev, velocity: othersVelocity })),
+    ];
+    for (const { ev, velocity } of events) {
       if (!ev.pitch) continue;
       const pitch = transpose(ev.pitch, octaveShift * 12);
       const dur = `${Math.max(1, Math.round(ev.soundingBeats * RELEASE_FRACTION * ppq))}i`;
       transport.schedule((time) => {
-        sampler.triggerAttackRelease(pitch, dur, time);
+        sampler.triggerAttackRelease(pitch, dur, time, velocity);
       }, `${Math.round(ev.startBeat * ppq)}i`);
     }
     transport.start(0);

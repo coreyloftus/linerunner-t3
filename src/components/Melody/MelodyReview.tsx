@@ -55,6 +55,8 @@ export function MelodyReview({ id, draft: initial, warnings: sourceWarnings, onS
   const liveWarnings = useMemo(() => validateMelody(draft), [draft]);
   const bad = useMemo(() => badMeasures(draft), [draft]);
   const measures = useMemo(() => groupByMeasure(draft.notes), [draft.notes]);
+  // The editor works on the main part only
+  const mainPart = useMemo(() => ({ ...draft, otherParts: undefined }), [draft]);
   const expectedBeats = measureLength(draft.timeSignature);
 
   // The drawn line (system) that holds the selected note, measure by measure
@@ -265,7 +267,7 @@ export function MelodyReview({ id, draft: initial, warnings: sourceWarnings, onS
       {/* Staff: redraws live as notes are edited; click a note or rest to edit it */}
       <div className="max-h-[45vh] overflow-y-auto rounded-xl border border-border bg-surface px-2 py-1 [overscroll-behavior:contain]">
         <MelodyStaff
-          melody={draft}
+          melody={mainPart}
           currentNoteIndex={player.currentNoteIndex}
           selectedNoteIndex={selected}
           onNoteClick={(i) => setSelected(selected === i ? null : i)}
