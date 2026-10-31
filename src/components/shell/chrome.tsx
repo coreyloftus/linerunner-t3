@@ -20,6 +20,9 @@ type Chrome = {
   // True right after a tap that brought the controls back, so the tap does not also advance
   justWoke: () => boolean;
   openSidebar: () => void;
+  // Phone runner: the tab bar folds into one button in the controls until opened
+  tabsOpen: boolean;
+  setTabsOpen: (open: boolean) => void;
 };
 
 const ChromeContext = createContext<Chrome>({
@@ -27,6 +30,8 @@ const ChromeContext = createContext<Chrome>({
   setPlaying: () => undefined,
   justWoke: () => false,
   openSidebar: () => undefined,
+  tabsOpen: false,
+  setTabsOpen: () => undefined,
 });
 
 export const useChrome = () => useContext(ChromeContext);
@@ -50,6 +55,7 @@ export function ChromeProvider({
 }) {
   const [playing, setPlaying] = useState(false);
   const [hidden, setHidden] = useState(false);
+  const [tabsOpen, setTabsOpenState] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const hiddenRef = useRef(false);
   const wokeAt = useRef(0);
@@ -88,9 +94,22 @@ export function ChromeProvider({
 
   const justWoke = useCallback(() => Date.now() - wokeAt.current < 500, []);
 
+  // A tap that closes the tabs should not also advance the script
+  const setTabsOpen = useCallback((open: boolean) => {
+    if (!open) wokeAt.current = Date.now();
+    setTabsOpenState(open);
+  }, []);
+
   return (
     <ChromeContext.Provider
-      value={{ hidden, setPlaying, justWoke, openSidebar }}
+      value={{
+        hidden,
+        setPlaying,
+        justWoke,
+        openSidebar,
+        tabsOpen,
+        setTabsOpen,
+      }}
     >
       {children}
     </ChromeContext.Provider>

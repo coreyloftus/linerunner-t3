@@ -11,6 +11,8 @@ import {
 } from "react-icons/io5";
 import { type ControlsSide } from "~/lib/preferences";
 import { TextSettings } from "./shell/TextSettings";
+import { useChrome } from "./shell/chrome";
+import { IoPlayCircle } from "react-icons/io5";
 
 interface ControlBarProps {
   playScene: boolean;
@@ -79,10 +81,22 @@ export default function ControlBar({
       ? "mx-1 h-8 w-px bg-foreground/10 md:mx-0 md:my-1 md:h-px md:w-8"
       : "mx-1 h-8 w-px bg-foreground/10";
 
+  const { setTabsOpen } = useChrome();
   return (
     <div
       className={`glass flex items-center gap-0.5 rounded-full p-1.5 tablet:gap-1 tablet:p-2 ${vertical}`}
     >
+      <span className="contents md:hidden">
+        <button
+          type="button"
+          aria-label="Show tabs"
+          title="Show tabs"
+          onClick={() => setTabsOpen(true)}
+          className="press flex h-11 w-11 touch-manipulation items-center justify-center rounded-full text-[26px] text-accent"
+        >
+          <IoPlayCircle />
+        </button>
+      </span>
       <button
         type="button"
         aria-label={playing ? "Pause" : "Play"}
@@ -143,9 +157,11 @@ export default function ControlBar({
           <IoDocumentTextOutline />
         </Round>
       )}
-      <TextSettings
-        panelClassName={`bottom-full right-0 mb-3 ${side === "right" ? "md:bottom-0 md:right-full md:mb-0 md:mr-3" : ""}`}
-      />
+      <span className="hidden md:contents">
+        <TextSettings
+          panelClassName={`bottom-full right-0 mb-3 ${side === "right" ? "md:bottom-0 md:right-full md:mb-0 md:mr-3" : ""}`}
+        />
+      </span>
     </div>
   );
 }

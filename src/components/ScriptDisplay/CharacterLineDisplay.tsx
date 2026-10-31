@@ -90,14 +90,18 @@ export const CharacterLineDisplay = ({
     return COLOR_CLASS_MAP[displayPreferences.otherCharacterColor];
   };
 
+  // Full script centers on your line once when it opens, then leaves the scroll to you
   useEffect(() => {
     if (showAll) {
       currentRef.current?.scrollIntoView({
         behavior: "smooth",
         block: "center",
       });
-      return;
     }
+  }, [showAll]);
+
+  useEffect(() => {
+    if (showAll) return;
     if (scrollRef.current) {
       scrollRef.current.scrollIntoView({
         behavior: "smooth",
@@ -136,14 +140,14 @@ export const CharacterLineDisplay = ({
     return (
       <li
         key={index}
-        className="flex flex-col justify-center gap-2 px-3 py-3 opacity-50 transition-opacity hover:opacity-100"
+        className={`flex flex-col justify-center gap-2 px-3 py-3 transition-opacity hover:opacity-100 ${showAll ? "" : "opacity-50"}`}
       >
         <div
           className={`flex flex-col gap-0.5 ${getAlignmentClass(line.characters)} ${isMulti ? multiCharacterContainerStyling : ""} ${own ? "border-l-[3px] border-accent/60 pl-4" : ""}`}
         >
           {!sameAsPrev && !own && (
             <p
-              className={`font-sans text-[0.62em] font-medium uppercase tracking-[0.12em] ${getNameColorClass(line.characters) || "text-muted-foreground/80"}`}
+              className={`font-sans text-[0.8em] font-semibold uppercase tracking-[0.1em] ${getNameColorClass(line.characters) || "text-muted-foreground"}`}
             >
               {formatCharacters(line.characters)}
             </p>
@@ -200,7 +204,7 @@ export const CharacterLineDisplay = ({
                   currentChars.length > 0 &&
                   !own && (
                     <p
-                      className={`font-sans text-[0.62em] font-semibold uppercase tracking-[0.12em] ${getNameColorClass(currentChars) || "text-muted-foreground"}`}
+                      className={`font-sans text-[0.85em] font-semibold uppercase tracking-[0.1em] ${getNameColorClass(currentChars) || "text-muted-foreground"}`}
                     >
                       {formatCharacters(currentChars)}
                     </p>

@@ -124,7 +124,7 @@ export default function ScriptBox({ data, onAddScript }: ScriptBoxProps) {
   const [currentLine, setCurrentLine] = useState<string[]>([]);
   const [helperIndex, setHelperIndex] = useState(0);
   const [paused, setPaused] = useState(false);
-  const { hidden: chromeHidden, setPlaying, justWoke } = useChrome();
+  const { hidden: chromeHidden, setPlaying, justWoke, tabsOpen } = useChrome();
 
   // Bars and controls fade only while the scene is actually running
   useEffect(() => {
@@ -259,8 +259,8 @@ export default function ScriptBox({ data, onAddScript }: ScriptBoxProps) {
           setAwaitingInput(false);
         }
       } else if (direction === "down") {
-        // Two-step flow: first show full line, then advance to next line
-        if (wordIndex < currentLineSplit.length) {
+        // Two-step flow: first show full line, then advance; the full script already shows it, so advance at once
+        if (!showFullScript && wordIndex < currentLineSplit.length) {
           // Step 1: Show full line of current line
           setWordIndex(currentLineSplit.length);
         } else {
@@ -292,6 +292,7 @@ export default function ScriptBox({ data, onAddScript }: ScriptBoxProps) {
       currentLineIndex,
       currentLineSplit,
       wordIndex,
+      showFullScript,
       playScene,
       script?.lines,
       selectedCharacter,
@@ -456,13 +457,14 @@ export default function ScriptBox({ data, onAddScript }: ScriptBoxProps) {
           <ul
             // Tap the page to advance; tap the left edge to go back
             onClick={(event) => {
-              if (!playScene || justWoke()) return;
+              // In the full script a tap is for scrolling, never for advancing
+              if (!playScene || showFullScript || justWoke()) return;
               if ((event.target as HTMLElement).closest("button, a")) return;
               const box = event.currentTarget.getBoundingClientRect();
               const x = (event.clientX - box.left) / box.width;
               handleLineNavigation(x < 0.25 ? "up" : "down");
             }}
-            className={`overscroll-bounce h-full overflow-y-auto px-4 pb-44 pt-20 [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain] [touch-action:pan-y] desk:pb-32 desk:pt-6 tablet:px-10 tablet:pb-36 tablet:pt-24 tablet:portrait:pb-52 ${controlsRight ? "md:pr-28 tablet:pr-32" : ""}`}
+            className={`overscroll-bounce h-full overflow-y-auto px-4 pb-28 pt-20 [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain] [touch-action:pan-y] desk:pb-32 desk:pt-6 tablet:px-10 tablet:pb-36 tablet:pt-24 tablet:portrait:pb-52 ${controlsRight ? "md:pr-28 tablet:pr-32" : ""}`}
           >
             {playScene || (showFullScript && script) ? (
               <CharacterLineDisplay
@@ -612,7 +614,7 @@ export default function ScriptBox({ data, onAddScript }: ScriptBoxProps) {
       </div>
       <div
         data-chrome
-        className={`pointer-events-none absolute inset-x-0 bottom-[84px] z-20 flex justify-center desk:bottom-3 tablet:bottom-6 tablet:justify-end tablet:pr-6 tablet:portrait:bottom-[104px] tablet:portrait:justify-center tablet:portrait:pr-0 ${chromeFade(chromeHidden)} ${controlsRight ? "md:!bottom-auto md:!left-auto md:!right-4 md:top-1/2 md:-translate-y-1/2 md:!pr-0" : ""}`}
+        className={`pointer-events-none absolute inset-x-0 bottom-3 z-20 flex justify-center ${tabsOpen ? "hidden md:flex" : ""} desk:bottom-3 tablet:bottom-6 tablet:justify-end tablet:pr-6 tablet:portrait:bottom-[104px] tablet:portrait:justify-center tablet:portrait:pr-0 ${chromeFade(chromeHidden)} ${controlsRight ? "md:!bottom-auto md:!left-auto md:!right-4 md:top-1/2 md:-translate-y-1/2 md:!pr-0" : ""}`}
       >
         <div className="pointer-events-auto">
           <ControlBar
