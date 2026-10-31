@@ -1,21 +1,31 @@
 "use client";
 
+import { IoBookOutline, IoLayersOutline, IoMusicalNotesOutline, IoPlayCircle } from "react-icons/io5";
+import { type IconType } from "react-icons";
 import { APP_MODES, type AppMode } from "~/lib/app-mode";
+
+const ICONS: Record<AppMode, IconType> = {
+  runner: IoPlayCircle,
+  viewer: IoBookOutline,
+  scripts: IoLayersOutline,
+  melody: IoMusicalNotesOutline,
+};
 
 interface MobileTabBarProps {
   mode: AppMode;
   onModeChange: (mode: AppMode) => void;
 }
 
-// Phones and tablets: the four modes one tap away
+// Phones: iOS tab bar; tablets use the floating tabs in the top bar
 export function MobileTabBar({ mode, onModeChange }: MobileTabBarProps) {
   return (
     <nav
       aria-label="Mode"
-      className="flex h-14 flex-shrink-0 tablet:h-16 border-t border-border bg-surface-raised desk:hidden"
+      className="glass-bar hairline-t flex h-14 flex-shrink-0 tablet:hidden desk:hidden"
     >
-      {APP_MODES.map(({ id, short, label, icon: Icon }) => {
+      {APP_MODES.map(({ id, short, label }) => {
         const active = id === mode;
+        const Icon = ICONS[id];
         return (
           <button
             key={id}
@@ -23,13 +33,11 @@ export function MobileTabBar({ mode, onModeChange }: MobileTabBarProps) {
             onClick={() => onModeChange(id)}
             aria-current={active ? "page" : undefined}
             aria-label={label}
-            className={`relative flex flex-1 touch-manipulation flex-col items-center justify-center gap-1 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${
-              active
-                ? "font-semibold text-accent before:absolute before:inset-x-6 before:top-0 before:h-0.5 before:rounded-full before:bg-accent"
-                : "text-muted-foreground"
+            className={`flex flex-1 touch-manipulation flex-col items-center justify-center gap-0.5 text-[10px] font-medium transition-colors ${
+              active ? "text-accent" : "text-muted-foreground"
             }`}
           >
-            <Icon className="h-5 w-5" />
+            <Icon className="h-6 w-6" />
             {short}
           </button>
         );

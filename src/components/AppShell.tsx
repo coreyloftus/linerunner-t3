@@ -7,7 +7,7 @@ import { ScriptContext } from "~/app/context";
 import { type AppMode } from "~/lib/app-mode";
 import { DESKTOP_QUERY } from "~/lib/breakpoints";
 import { SidebarClient } from "./SidebarClient";
-import { MobileMenuButton } from "./MobileMenuButton";
+import { TopBar } from "./shell/TopBar";
 import { MobileTabBar } from "./MobileTabBar";
 import ScriptBox from "./ScriptDisplay/ScriptBox";
 import ScriptViewer from "./ScriptViewer";
@@ -99,11 +99,12 @@ export function AppShell({ projectData, sidebarData }: AppShellProps) {
       />
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <TopBar
+          mode={mode}
+          onModeChange={handleModeChange}
+          onMenu={() => setMobileOpen(true)}
+        />
         <main className="relative flex min-h-0 min-w-0 flex-1 desk:p-2 desk:pl-0">
-          <MobileMenuButton
-            mode={mode}
-            onClick={() => setMobileOpen(true)}
-          />
           <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden desk:rounded-2xl desk:border desk:border-border desk:shadow-xl desk:shadow-black/5 dark:desk:shadow-black/40">
             {mode === "runner" && (
               <ScriptBox

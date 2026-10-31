@@ -1,13 +1,14 @@
-import { ControlButton } from "./ui/control-button";
-import { FaPlay } from "react-icons/fa6";
-import { FaStop } from "react-icons/fa6";
-import { FaPause } from "react-icons/fa6";
+import { type ReactNode } from "react";
 import {
-  FaAngleLeft,
-  FaAngleRight,
-  FaArrowDown,
-  FaArrowUp,
-} from "react-icons/fa6";
+  IoChevronBack,
+  IoChevronForward,
+  IoDocumentTextOutline,
+  IoPause,
+  IoPlay,
+  IoPlayBack,
+  IoPlayForward,
+  IoStop,
+} from "react-icons/io5";
 import { type ControlsSide } from "~/lib/preferences";
 
 interface ControlBarProps {
@@ -23,8 +24,41 @@ interface ControlBarProps {
   handleLineNavigation: (direction: "up" | "down") => void;
   handleWordNavigation: (direction: "left" | "right") => void;
   side?: ControlsSide;
+  fullScript?: { on: boolean; toggle: () => void };
 }
 
+function Round({
+  label,
+  onClick,
+  children,
+  active = false,
+}: {
+  label: string;
+  onClick: () => void;
+  children: ReactNode;
+  active?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      onClick={(event) => {
+        onClick();
+        event.currentTarget.blur();
+      }}
+      className={`press flex h-12 w-12 touch-manipulation items-center justify-center rounded-full text-[22px] transition-colors tablet:h-14 tablet:w-14 tablet:text-[26px] ${
+        active
+          ? "bg-accent/15 text-accent"
+          : "text-foreground/80 hover:bg-foreground/[0.06]"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+// Floating transport capsule, like the Music mini player
 export default function ControlBar({
   playScene,
   setPlayScene,
@@ -35,106 +69,68 @@ export default function ControlBar({
   handleLineNavigation,
   handleWordNavigation,
   side = "bottom",
+  fullScript,
 }: ControlBarProps) {
-  const playPause = () => {
-    if (!playScene) {
-      setPaused(false);
-      setPlayScene(true);
-    } else {
-      setPaused((isPaused) => !isPaused);
-    }
-  };
-  const stop = () => {
-    setCurrentLineIndex(0);
-    setWordIndex(0);
-    setPaused(false);
-    if (playScene) setPlayScene(false);
-  };
-  const lineDown = () => {
-    setWordIndex(0);
-    handleLineNavigation("down");
-  };
-  const playIcon = !playScene || paused ? <FaPlay /> : <FaPause />;
+  const playing = playScene && !paused;
+  const vertical = side === "right" ? "md:flex-col" : "";
+  const divider =
+    side === "right"
+      ? "mx-1 h-8 w-px bg-foreground/10 md:mx-0 md:my-1 md:h-px md:w-8"
+      : "mx-1 h-8 w-px bg-foreground/10";
 
-  const bottomBar = (
-    <div
-      className={`flex h-full w-full items-center justify-between gap-2 border-t border-border bg-surface-raised/90 px-3 py-1 backdrop-blur-sm xs:gap-4 xs:px-1 xs:py-1 sm:px-6 tablet:py-2 ${side === "right" ? "md:hidden" : ""}`}
-    >
-      {/* Playback Controls */}
-      <div className="flex h-full items-center gap-1">
-        <ControlButton variant="playback" onClick={playPause}>
-          {playIcon}
-        </ControlButton>
-        <ControlButton variant="playback" onClick={stop}>
-          <FaStop />
-        </ControlButton>
-      </div>
-
-      {/* Navigation Controls */}
-      <div className="flex h-full gap-1 tablet:gap-2">
-        <div className="flex h-full gap-1 tablet:gap-2">
-          <ControlButton onClick={() => handleLineNavigation("up")}>
-            <FaArrowUp />
-          </ControlButton>
-          <ControlButton onClick={lineDown}>
-            <FaArrowDown />
-          </ControlButton>
-        </div>
-
-        <div className="flex gap-1 tablet:gap-2">
-          <ControlButton onClick={() => handleWordNavigation("left")}>
-            <FaAngleLeft />
-          </ControlButton>
-          <ControlButton onClick={() => handleWordNavigation("right")}>
-            <FaAngleRight />
-          </ControlButton>
-        </div>
-      </div>
-    </div>
-  );
-
-  if (side === "bottom") return bottomBar;
-
-  // Right column on tablet and desktop: next line sits lowest, under the thumb
   return (
-    <>
-      {bottomBar}
-      <div className="hidden h-full w-full flex-col justify-end border-l border-border bg-surface-raised/90 p-3 backdrop-blur-sm md:flex">
-        <div className="grid grid-cols-2 gap-2">
-          <ControlButton size="column" variant="playback" onClick={playPause}>
-            {playIcon}
-          </ControlButton>
-          <ControlButton size="column" variant="playback" onClick={stop}>
-            <FaStop />
-          </ControlButton>
-          <ControlButton
-            size="column"
-            onClick={() => handleWordNavigation("left")}
-          >
-            <FaAngleLeft />
-          </ControlButton>
-          <ControlButton
-            size="column"
-            onClick={() => handleWordNavigation("right")}
-          >
-            <FaAngleRight />
-          </ControlButton>
-          <ControlButton
-            size="column"
-            className="col-span-2"
-            onClick={() => handleLineNavigation("up")}
-          >
-            <FaArrowUp />
-          </ControlButton>
-          <ControlButton
-            size="column"
-            className="col-span-2 h-28 tablet:h-36"
-            onClick={lineDown}
-          >
-            <FaArrowDown />
-          </ControlButton>
-        </div>
-      </div>
-    </>
+    <div
+      className={`glass flex items-center gap-0.5 rounded-full p-1.5 tablet:gap-1 tablet:p-2 ${vertical}`}
+    >
+      <Round label="Previous word" onClick={() => handleWordNavigation("left")}>
+        <IoChevronBack />
+      </Round>
+      <Round label="Previous line" onClick={() => handleLineNavigation("up")}>
+        <IoPlayBack />
+      </Round>
+      <button
+        type="button"
+        aria-label={playing ? "Pause" : "Play"}
+        onClick={(event) => {
+          if (!playScene) {
+            setPaused(false);
+            setPlayScene(true);
+          } else {
+            setPaused((isPaused) => !isPaused);
+          }
+          event.currentTarget.blur();
+        }}
+        className="press mx-1 flex h-14 w-14 touch-manipulation items-center justify-center rounded-full bg-accent text-[26px] text-accent-foreground shadow-md shadow-accent/30 tablet:h-16 tablet:w-16 tablet:text-[30px]"
+      >
+        {playing ? <IoPause /> : <IoPlay className="translate-x-0.5" />}
+      </button>
+      <Round label="Next line" onClick={() => handleLineNavigation("down")}>
+        <IoPlayForward />
+      </Round>
+      <Round label="Next word" onClick={() => handleWordNavigation("right")}>
+        <IoChevronForward />
+      </Round>
+      <span aria-hidden className={divider} />
+      <Round
+        label="Stop"
+        onClick={() => {
+          setCurrentLineIndex(0);
+          setWordIndex(0);
+          setPaused(false);
+          if (playScene) setPlayScene(false);
+        }}
+      >
+        <IoStop className="text-[0.85em]" />
+      </Round>
+      {fullScript && (
+        <Round
+          label="Full script"
+          onClick={fullScript.toggle}
+          active={fullScript.on}
+        >
+          <IoDocumentTextOutline />
+        </Round>
+      )}
+    </div>
   );
 }

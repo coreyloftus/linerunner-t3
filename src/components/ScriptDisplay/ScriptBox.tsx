@@ -2,7 +2,7 @@
 import { useCallback, useContext, useEffect, useState, useRef } from "react";
 // import { Button } from "../ui/button";
 // import { Input } from "../ui/input";
-import { FaAlignLeft, FaMicrophone } from "react-icons/fa6";
+import { FaMicrophone } from "react-icons/fa6";
 import { ScriptContext } from "~/app/context";
 import { type ProjectJSON } from "../../server/api/routers/scriptData";
 import ControlBar from "../ControlBar";
@@ -442,29 +442,20 @@ export default function ScriptBox({ data, onAddScript }: ScriptBoxProps) {
   });
 
   return (
-    <div
-      className={`flex h-full w-full flex-col overflow-hidden bg-surface ${controlsRight ? "md:flex-row" : ""}`}
-    >
+    <div className="relative flex h-full w-full flex-col overflow-hidden bg-surface">
       <div className="flex min-h-0 flex-1 flex-col">
         <div className="relative min-h-0 flex-grow overflow-hidden">
-          {script && (
-            <button
-              type="button"
-              onClick={(event) => {
-                setShowFullScript((show) => !show);
-                // Drop focus so Space keeps playing the scene
-                event.currentTarget.blur();
-              }}
-              aria-pressed={showFullScript}
-              aria-label="Show full script"
-              title="Show full script"
-              className={`absolute right-2 top-2 z-20 flex h-10 touch-manipulation items-center gap-2 rounded-full border px-3 text-sm shadow-sm backdrop-blur-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${showFullScript ? "border-accent/50 bg-accent-soft text-foreground" : "border-border bg-surface-raised/80 text-muted-foreground hover:bg-muted"}`}
-            >
-              <FaAlignLeft className="h-4 w-4" />
-              <span className="hidden sm:inline">Full script</span>
-            </button>
-          )}
-          <ul className="overscroll-bounce h-full overflow-y-auto px-2 pt-12 [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain] [touch-action:pan-y]">
+          <ul
+            // Tap the page to advance; tap the left edge to go back
+            onClick={(event) => {
+              if (!playScene) return;
+              if ((event.target as HTMLElement).closest("button, a")) return;
+              const box = event.currentTarget.getBoundingClientRect();
+              const x = (event.clientX - box.left) / box.width;
+              handleLineNavigation(x < 0.25 ? "up" : "down");
+            }}
+            className={`overscroll-bounce h-full overflow-y-auto px-4 pb-36 pt-6 [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain] [touch-action:pan-y] tablet:px-10 ${controlsRight ? "md:pb-8 md:pr-28 tablet:pr-32" : ""}`}
+          >
             {playScene || (showFullScript && script) ? (
               <CharacterLineDisplay
                 showAll={showFullScript}
@@ -612,22 +603,32 @@ export default function ScriptBox({ data, onAddScript }: ScriptBoxProps) {
         )}
       </div>
       <div
-        className={`h-14 flex-shrink-0 tablet:h-20 ${controlsRight ? "md:h-full md:w-40 tablet:h-full tablet:w-48" : ""}`}
+        className={`pointer-events-none absolute inset-x-0 bottom-3 z-20 flex justify-center tablet:bottom-6 ${controlsRight ? "md:inset-x-auto md:bottom-auto md:right-4 md:top-1/2 md:-translate-y-1/2" : ""}`}
       >
-        <ControlBar
-          side={layoutPreferences.controlsSide}
-          playScene={playScene}
-          setPlayScene={setPlayScene}
-          paused={paused}
-          setPaused={setPaused}
-          setCurrentLineIndex={setCurrentLineIndex}
-          currentLineIndex={currentLineIndex}
-          currentLineSplit={currentLineSplit}
-          setWordIndex={setWordIndex}
-          wordIndex={wordIndex}
-          handleLineNavigation={handleLineNavigation}
-          handleWordNavigation={handleWordNavigation}
-        />
+        <div className="pointer-events-auto">
+          <ControlBar
+            side={layoutPreferences.controlsSide}
+            fullScript={
+              script
+                ? {
+                    on: showFullScript,
+                    toggle: () => setShowFullScript((show) => !show),
+                  }
+                : undefined
+            }
+            playScene={playScene}
+            setPlayScene={setPlayScene}
+            paused={paused}
+            setPaused={setPaused}
+            setCurrentLineIndex={setCurrentLineIndex}
+            currentLineIndex={currentLineIndex}
+            currentLineSplit={currentLineSplit}
+            setWordIndex={setWordIndex}
+            wordIndex={wordIndex}
+            handleLineNavigation={handleLineNavigation}
+            handleWordNavigation={handleWordNavigation}
+          />
+        </div>
       </div>
     </div>
   );
