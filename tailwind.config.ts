@@ -57,7 +57,8 @@ const config = {
       },
 
       fontFamily: {
-        sans: ["var(--font-geist-sans)", "sans-serif"],
+        sans: ["-apple-system", "BlinkMacSystemFont", "system-ui", "var(--font-geist-sans)", "sans-serif"],
+        reading: ["ui-serif", "New York", "Iowan Old Style", "Georgia", "serif"],
         display: ["var(--font-fraunces)", "Georgia", "serif"],
         script: ["var(--font-courier-prime)", "Courier New", "monospace"],
       },
