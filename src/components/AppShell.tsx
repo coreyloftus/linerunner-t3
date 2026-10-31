@@ -101,11 +101,13 @@ export function AppShell({ projectData, sidebarData }: AppShellProps) {
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <TopBar
           mode={mode}
-          onModeChange={handleModeChange}
           onMenu={() => setMobileOpen(true)}
         />
         <main className="relative flex min-h-0 min-w-0 flex-1 desk:p-2 desk:pl-0">
-          <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden desk:rounded-2xl desk:border desk:border-border desk:shadow-xl desk:shadow-black/5 dark:desk:shadow-black/40">
+          {/* Other modes leave room for the floating tab bar; the runner pads its own page */}
+          <div
+            className={`flex min-h-0 min-w-0 flex-1 overflow-hidden desk:rounded-2xl desk:border desk:border-border desk:shadow-xl desk:shadow-black/5 dark:desk:shadow-black/40 ${mode === "runner" ? "" : "pb-[76px] desk:pb-0 tablet:pb-24"}`}
+          >
             {mode === "runner" && (
               <ScriptBox
                 data={projectData}
@@ -122,8 +124,8 @@ export function AppShell({ projectData, sidebarData }: AppShellProps) {
             )}
             {mode === "melody" && <MelodyWorkspace />}
           </div>
+          <MobileTabBar mode={mode} onModeChange={handleModeChange} />
         </main>
-        <MobileTabBar mode={mode} onModeChange={handleModeChange} />
       </div>
     </div>
   );

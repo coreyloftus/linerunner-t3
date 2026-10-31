@@ -127,15 +127,11 @@ export default function ControlBar({
           handleLineNavigation("down");
           event.currentTarget.blur();
         }}
-        className={`press mx-1 flex h-12 touch-manipulation items-center justify-center gap-1.5 rounded-full bg-accent px-5 text-[17px] font-semibold text-white shadow-md shadow-accent/30 tablet:h-14 tablet:px-7 tablet:text-[19px] ${side === "right" ? "md:mx-0 md:my-1 md:!h-36 md:w-14 md:flex-col md:!px-0 tablet:w-16" : ""}`}
+        aria-label="Next line"
+        title="Next line"
+        className={`press mx-1 flex h-12 w-20 touch-manipulation items-center justify-center rounded-full bg-accent text-white shadow-md shadow-accent/30 tablet:h-14 tablet:w-24 ${side === "right" ? "md:mx-0 md:my-1 md:!h-32 md:!w-12 tablet:!w-14" : ""}`}
       >
-        <IoArrowDown className="h-5 w-5 flex-shrink-0 tablet:h-6 tablet:w-6" />
-        <span>Next</span>
-        <span
-          className={`hidden tablet:inline ${side === "right" ? "md:!hidden" : ""}`}
-        >
-          Line
-        </span>
+        <IoArrowDown className="h-6 w-6 flex-shrink-0 tablet:h-7 tablet:w-7" />
       </button>
       {fullScript && (
         <Round

@@ -454,7 +454,7 @@ export default function ScriptBox({ data, onAddScript }: ScriptBoxProps) {
               const x = (event.clientX - box.left) / box.width;
               handleLineNavigation(x < 0.25 ? "up" : "down");
             }}
-            className={`overscroll-bounce h-full overflow-y-auto px-4 pb-36 pt-6 [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain] [touch-action:pan-y] tablet:px-10 ${controlsRight ? "md:pb-8 md:pr-28 tablet:pr-32" : ""}`}
+            className={`overscroll-bounce h-full overflow-y-auto px-4 pb-44 pt-6 [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain] [touch-action:pan-y] desk:pb-32 tablet:px-10 tablet:pb-36 ${controlsRight ? "md:pr-28 tablet:pr-32" : ""}`}
           >
             {playScene || (showFullScript && script) ? (
               <CharacterLineDisplay
@@ -603,7 +603,7 @@ export default function ScriptBox({ data, onAddScript }: ScriptBoxProps) {
         )}
       </div>
       <div
-        className={`pointer-events-none absolute inset-x-0 bottom-3 z-20 flex justify-center tablet:bottom-6 ${controlsRight ? "md:inset-x-auto md:bottom-auto md:right-4 md:top-1/2 md:-translate-y-1/2" : ""}`}
+        className={`pointer-events-none absolute inset-x-0 bottom-[84px] z-20 flex justify-center desk:bottom-3 tablet:bottom-6 tablet:justify-end tablet:pr-6 ${controlsRight ? "md:!left-auto md:!bottom-auto md:!right-4 md:top-1/2 md:-translate-y-1/2 md:!pr-0" : ""}`}
       >
         <div className="pointer-events-auto">
           <ControlBar

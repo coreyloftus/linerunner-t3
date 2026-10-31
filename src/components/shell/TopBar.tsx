@@ -5,16 +5,13 @@ import { IoChevronDown, IoPersonCircle } from "react-icons/io5";
 import { LuPanelLeft } from "react-icons/lu";
 import { ScriptContext } from "~/app/context";
 import { type AppMode } from "~/lib/app-mode";
-import { TopTabs } from "./TopTabs";
 
-// Phones and tablets: sidebar button and title on the left, tabs in the middle on tablets, character on the right
+// Phones and tablets: sidebar button and scene title on the left, character on the right
 export function TopBar({
   mode,
-  onModeChange,
   onMenu,
 }: {
   mode: AppMode;
-  onModeChange: (mode: AppMode) => void;
   onMenu: () => void;
 }) {
   const { selectedProject, selectedScene, selectedCharacter } =
@@ -31,7 +28,7 @@ export function TopBar({
       >
         <LuPanelLeft className="h-6 w-6" />
       </button>
-      <div className="min-w-0 flex-1 tablet:max-w-[30%] tablet:portrait:max-w-[22%]">
+      <div className="min-w-0 flex-1">
         {runner && (
           <>
             <p className="truncate text-[17px] font-semibold leading-tight">
@@ -45,15 +42,12 @@ export function TopBar({
           </>
         )}
       </div>
-      <div className="absolute left-1/2 hidden -translate-x-1/2 tablet:block">
-        <TopTabs mode={mode} onModeChange={onModeChange} />
-      </div>
       {runner && selectedCharacter && (
         <button
           type="button"
           onClick={onMenu}
           aria-label={`Change character: ${selectedCharacter}`}
-          className="press ml-auto flex h-9 max-w-[38%] flex-shrink-0 touch-manipulation items-center gap-1.5 rounded-full bg-foreground/[0.06] pl-1.5 pr-3 text-[15px] font-medium tablet:max-w-[18%]"
+          className="press ml-auto flex h-9 max-w-[38%] flex-shrink-0 touch-manipulation items-center gap-1.5 rounded-full bg-foreground/[0.06] pl-1.5 pr-3 text-[15px] font-medium tablet:max-w-[30%]"
         >
           <IoPersonCircle className="h-6 w-6 flex-shrink-0 text-accent" />
           <span className="truncate">{selectedCharacter}</span>

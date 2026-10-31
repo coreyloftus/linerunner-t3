@@ -234,7 +234,7 @@ export const CharacterLineDisplay = ({
             renderOtherLine(line, currentLineIndex + 1 + offset),
           )}
       {/* for scrolling to bottom; margin keeps the line clear of the floating controls */}
-      <div ref={scrollRef} className="scroll-mb-40"></div>
+      <div ref={scrollRef} className="scroll-mb-48"></div>
     </div>
   );
 };
