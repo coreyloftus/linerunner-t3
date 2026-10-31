@@ -12,6 +12,7 @@ import {
 } from "react-icons/fa6";
 import { ScriptContext } from "~/app/context";
 import { APP_MODES, type AppMode } from "~/lib/app-mode";
+import { DESKTOP_QUERY } from "~/lib/breakpoints";
 import { AuthButton } from "./AuthButton";
 import { Label } from "./ui/label";
 import { Switch } from "./ui/switch";
@@ -36,9 +37,9 @@ type SidebarClientProps = {
 };
 
 const SECTION_LABEL =
-  "text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground md:text-xs";
+  "text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground desk:text-xs";
 
-const isDesktop = () => window.matchMedia("(min-width: 768px)").matches;
+const isDesktop = () => window.matchMedia(DESKTOP_QUERY).matches;
 
 function SettingsGroup({
   title,
@@ -49,7 +50,7 @@ function SettingsGroup({
 }) {
   return (
     <details className="group border-b border-border last:border-b-0">
-      <summary className="flex min-h-[48px] cursor-pointer list-none items-center justify-between gap-2 rounded-md md:min-h-[40px] [&::-webkit-details-marker]:hidden">
+      <summary className="flex min-h-[48px] cursor-pointer list-none items-center justify-between gap-2 rounded-md desk:min-h-[40px] [&::-webkit-details-marker]:hidden">
         <span className={SECTION_LABEL}>{title}</span>
         <FaChevronRight className="h-3 w-3 text-muted-foreground transition-transform duration-200 group-open:rotate-90" />
       </summary>
@@ -68,8 +69,14 @@ export function SidebarClient({
   mobileOpen,
   onMobileOpenChange,
 }: SidebarClientProps) {
-  const { userConfig, isAdmin, speechMatchEnabled, setSpeechMatchEnabled } =
-    useContext(ScriptContext);
+  const {
+    userConfig,
+    isAdmin,
+    speechMatchEnabled,
+    setSpeechMatchEnabled,
+    layoutPreferences,
+    setLayoutPreferences,
+  } = useContext(ScriptContext);
   const sidebarRef = useRef<HTMLElement>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
   useDrawerSwipe({
@@ -137,9 +144,9 @@ export function SidebarClient({
     onMobileOpenChange(false);
   };
 
-  // Rail-only and expanded-only pieces; the rail exists only at md and up
-  const expandedOnly = collapsed ? "md:hidden" : "";
-  const railOnly = collapsed ? "hidden md:flex" : "hidden";
+  // Rail-only and expanded-only pieces; the rail exists only on desktop
+  const expandedOnly = collapsed ? "desk:hidden" : "";
+  const railOnly = collapsed ? "hidden desk:flex" : "hidden";
 
   return (
     <>
@@ -147,7 +154,7 @@ export function SidebarClient({
       <div
         ref={backdropRef}
         aria-hidden="true"
-        className={`fixed inset-0 z-40 bg-black/40 transition-opacity duration-300 md:hidden ${mobileOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
+        className={`fixed inset-0 z-40 bg-black/40 transition-opacity duration-300 desk:hidden ${mobileOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
         onClick={() => onMobileOpenChange(false)}
       />
 
@@ -155,20 +162,20 @@ export function SidebarClient({
       {!mobileOpen && (
         <span
           aria-hidden="true"
-          className="pointer-events-none fixed left-1 top-1/2 z-30 h-10 w-1 -translate-y-1/2 rounded-full bg-border md:hidden"
+          className="pointer-events-none fixed left-1 top-1/2 z-30 h-10 w-1 -translate-y-1/2 rounded-full bg-border desk:hidden"
         />
       )}
 
       <aside
         ref={sidebarRef}
         aria-label="Sidebar"
-        className={`fixed inset-y-0 left-0 z-50 flex w-[85vw] max-w-sm flex-col overflow-hidden border-r border-border bg-surface/95 pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] backdrop-blur-md transition-[transform,visibility,width] duration-300 ease-in-out md:visible md:relative md:inset-auto md:z-auto md:max-w-none md:flex-shrink-0 md:translate-x-0 md:border-r-0 md:bg-transparent md:pb-0 md:pt-0 md:backdrop-blur-none md:duration-200 ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-[85vw] max-w-sm flex-col overflow-hidden border-r border-border bg-surface/95 pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] backdrop-blur-md transition-[transform,visibility,width] duration-300 ease-in-out desk:visible desk:relative desk:inset-auto desk:z-auto desk:max-w-none desk:flex-shrink-0 desk:translate-x-0 desk:border-r-0 desk:bg-transparent desk:pb-0 desk:pt-0 desk:backdrop-blur-none desk:duration-200 ${
           mobileOpen ? "visible translate-x-0" : "invisible -translate-x-full"
-        } ${collapsed ? "md:w-14" : "md:w-72"}`}
+        } ${collapsed ? "desk:w-14" : "desk:w-72"}`}
       >
         {/* Header */}
         <div
-          className={`flex items-center justify-between gap-2 px-3 pb-2 pt-3 ${collapsed ? "md:justify-center md:px-0" : ""}`}
+          className={`flex items-center justify-between gap-2 px-3 pb-2 pt-3 ${collapsed ? "desk:justify-center desk:px-0" : ""}`}
         >
           <span
             className={`whitespace-nowrap pl-1 font-display text-xl font-semibold tracking-tight ${expandedOnly}`}
@@ -185,7 +192,7 @@ export function SidebarClient({
             onClick={() => onCollapsedChange(true)}
             variant="ghost"
             size="sm"
-            className={`hidden p-2 text-muted-foreground hover:bg-muted ${collapsed ? "" : "md:flex"}`}
+            className={`hidden p-2 text-muted-foreground hover:bg-muted ${collapsed ? "" : "desk:flex"}`}
             aria-label="Collapse sidebar"
             title="Collapse sidebar (\)"
           >
@@ -195,7 +202,7 @@ export function SidebarClient({
             onClick={() => onMobileOpenChange(false)}
             variant="ghost"
             size="sm"
-            className="p-2 text-muted-foreground hover:bg-muted md:hidden"
+            className="p-2 text-muted-foreground hover:bg-muted desk:hidden"
             aria-label="Close menu"
           >
             <IoClose className="h-5 w-5" />
@@ -205,10 +212,10 @@ export function SidebarClient({
           {/* Mode: on a phone the bottom tab bar does this job */}
           <nav
             aria-label="Mode"
-            className={`hidden px-2 pt-2 md:block ${collapsed ? "md:px-1.5" : ""}`}
+            className={`hidden px-2 pt-2 desk:block ${collapsed ? "desk:px-1.5" : ""}`}
           >
             <p
-              className={`mb-2 px-1 ${SECTION_LABEL} ${collapsed ? "md:sr-only" : ""}`}
+              className={`mb-2 px-1 ${SECTION_LABEL} ${collapsed ? "desk:sr-only" : ""}`}
             >
               Mode
             </p>
@@ -223,15 +230,15 @@ export function SidebarClient({
                       aria-current={active ? "page" : undefined}
                       aria-label={label}
                       title={collapsed ? label : undefined}
-                      className={`relative flex min-h-[44px] w-full items-center gap-3 whitespace-nowrap rounded-lg px-3 text-sm transition-colors md:min-h-[40px] ${
+                      className={`relative flex min-h-[44px] w-full items-center gap-3 whitespace-nowrap rounded-lg px-3 text-sm transition-colors desk:min-h-[40px] ${
                         active
                           ? "bg-accent-soft font-semibold text-accent before:absolute before:inset-y-2 before:left-0 before:w-0.5 before:rounded-full before:bg-accent"
                           : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                      } ${collapsed ? "md:justify-center md:px-0" : ""}`}
+                      } ${collapsed ? "desk:justify-center desk:px-0" : ""}`}
                     >
                       <Icon className="h-4 w-4 flex-shrink-0" />
                       <span
-                        className={`truncate ${collapsed ? "md:sr-only" : ""}`}
+                        className={`truncate ${collapsed ? "desk:sr-only" : ""}`}
                       >
                         {label}
                       </span>
@@ -268,7 +275,7 @@ export function SidebarClient({
 
           {/* Script */}
           <div
-            className={`mx-3 mt-2 pt-2 md:mt-4 md:border-t md:border-border md:pt-4 ${expandedOnly}`}
+            className={`mx-3 mt-2 pt-2 desk:mt-4 desk:border-t desk:border-border desk:pt-4 ${expandedOnly}`}
           >
             <p className={`mb-2 ${SECTION_LABEL}`}>Script</p>
             <NewScriptSelect
@@ -288,10 +295,10 @@ export function SidebarClient({
                 <PlaybackSettings />
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <Label className="text-base md:text-sm">
+                    <Label className="text-base desk:text-sm">
                       Speech match
                     </Label>
-                    <p className="text-sm text-muted-foreground md:text-xs">
+                    <p className="text-sm text-muted-foreground desk:text-xs">
                       Say your line to advance
                     </p>
                   </div>
@@ -303,10 +310,10 @@ export function SidebarClient({
                 </div>
                 <div className="flex items-center justify-between gap-3 opacity-60">
                   <div>
-                    <Label className="text-base md:text-sm">
+                    <Label className="text-base desk:text-sm">
                       Partner voice
                     </Label>
-                    <p className="text-sm text-muted-foreground md:text-xs">
+                    <p className="text-sm text-muted-foreground desk:text-xs">
                       Coming soon
                     </p>
                   </div>
@@ -320,8 +327,29 @@ export function SidebarClient({
 
               <SettingsGroup title="Display">
                 <div className="flex items-center justify-between">
-                  <Label className="text-base md:text-sm">Theme</Label>
+                  <Label className="text-base desk:text-sm">Theme</Label>
                   <ThemeToggle />
+                </div>
+                {/* Phones keep the bottom bar; the right column needs tablet width */}
+                <div className="hidden items-center justify-between gap-3 md:flex">
+                  <div>
+                    <Label className="text-base desk:text-sm">
+                      Controls on the right
+                    </Label>
+                    <p className="text-sm text-muted-foreground desk:text-xs">
+                      Easier to reach with your thumb
+                    </p>
+                  </div>
+                  <Switch
+                    checked={layoutPreferences.controlsSide === "right"}
+                    onCheckedChange={(checked) =>
+                      setLayoutPreferences((prev) => ({
+                        ...prev,
+                        controlsSide: checked ? "right" : "bottom",
+                      }))
+                    }
+                    aria-label="Put controls on the right"
+                  />
                 </div>
                 <DisplaySettings />
               </SettingsGroup>
@@ -329,7 +357,7 @@ export function SidebarClient({
               {isAdmin && (
                 <SettingsGroup title="Admin">
                   <div className="flex items-center justify-between">
-                    <Label className="text-base md:text-sm">
+                    <Label className="text-base desk:text-sm">
                       Refresh Data
                     </Label>
                     <RefreshButton

@@ -7,12 +7,12 @@ interface MobileTabBarProps {
   onModeChange: (mode: AppMode) => void;
 }
 
-// Phone-only: the four modes one tap away
+// Phones and tablets: the four modes one tap away
 export function MobileTabBar({ mode, onModeChange }: MobileTabBarProps) {
   return (
     <nav
       aria-label="Mode"
-      className="flex h-14 flex-shrink-0 border-t border-border bg-surface-raised md:hidden"
+      className="flex h-14 flex-shrink-0 tablet:h-16 border-t border-border bg-surface-raised desk:hidden"
     >
       {APP_MODES.map(({ id, short, label, icon: Icon }) => {
         const active = id === mode;

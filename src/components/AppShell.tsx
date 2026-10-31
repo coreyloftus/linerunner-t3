@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { type ProjectJSON } from "~/server/api/routers/scriptData";
 import { ScriptContext } from "~/app/context";
 import { type AppMode } from "~/lib/app-mode";
+import { DESKTOP_QUERY } from "~/lib/breakpoints";
 import { SidebarClient } from "./SidebarClient";
 import { MobileMenuButton } from "./MobileMenuButton";
 import { MobileTabBar } from "./MobileTabBar";
@@ -25,8 +26,6 @@ interface AppShellProps {
   projectData: GetAllResponse;
   sidebarData: GetAllResponse;
 }
-
-const DESKTOP_QUERY = "(min-width: 768px)";
 
 function isEditableTarget(target: EventTarget | null) {
   if (!(target instanceof HTMLElement)) return false;
@@ -100,12 +99,12 @@ export function AppShell({ projectData, sidebarData }: AppShellProps) {
       />
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <main className="relative flex min-h-0 min-w-0 flex-1 md:p-2 md:pl-0">
+        <main className="relative flex min-h-0 min-w-0 flex-1 desk:p-2 desk:pl-0">
           <MobileMenuButton
             mode={mode}
             onClick={() => setMobileOpen(true)}
           />
-          <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden md:rounded-2xl md:border md:border-border md:shadow-xl md:shadow-black/5 dark:md:shadow-black/40">
+          <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden desk:rounded-2xl desk:border desk:border-border desk:shadow-xl desk:shadow-black/5 dark:desk:shadow-black/40">
             {mode === "runner" && (
               <ScriptBox
                 data={projectData}

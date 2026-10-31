@@ -57,7 +57,9 @@ export default function ScriptBox({ data, onAddScript }: ScriptBoxProps) {
     setCurrentLineSplit,
     speechMatchEnabled,
     playbackPreferences,
+    layoutPreferences,
   } = useContext(ScriptContext);
+  const controlsRight = layoutPreferences.controlsSide === "right";
 
   const { data: localData } = api.scriptData.getAll.useQuery(
     { dataSource: "local" },
@@ -440,7 +442,9 @@ export default function ScriptBox({ data, onAddScript }: ScriptBoxProps) {
   });
 
   return (
-    <div className="flex h-full w-full flex-col overflow-hidden bg-surface">
+    <div
+      className={`flex h-full w-full flex-col overflow-hidden bg-surface ${controlsRight ? "md:flex-row" : ""}`}
+    >
       <div className="flex min-h-0 flex-1 flex-col">
         <div className="relative min-h-0 flex-grow overflow-hidden">
           {script && (
@@ -607,8 +611,11 @@ export default function ScriptBox({ data, onAddScript }: ScriptBoxProps) {
           </div>
         )}
       </div>
-      <div className="h-14 flex-shrink-0">
+      <div
+        className={`h-14 flex-shrink-0 tablet:h-20 ${controlsRight ? "md:h-full md:w-40 tablet:h-full tablet:w-48" : ""}`}
+      >
         <ControlBar
+          side={layoutPreferences.controlsSide}
           playScene={playScene}
           setPlayScene={setPlayScene}
           paused={paused}

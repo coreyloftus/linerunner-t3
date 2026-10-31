@@ -19,8 +19,11 @@ export interface PlaybackPreferences {
   lineGapMs: number;
 }
 
+export type ControlsSide = "bottom" | "right";
+
 export interface LayoutPreferences {
   sidebarCollapsed: boolean;
+  controlsSide: ControlsSide;
 }
 
 export type MelodyView = "score" | "lyrics" | "both";
@@ -54,6 +57,7 @@ const DEFAULT_PLAYBACK: PlaybackPreferences = {
 
 const DEFAULT_LAYOUT: LayoutPreferences = {
   sidebarCollapsed: false,
+  controlsSide: "bottom",
 };
 
 const DEFAULT_MELODY: MelodyPreferences = {
@@ -122,6 +126,7 @@ function normalizeLayout(value: unknown): LayoutPreferences {
   const raw = value && typeof value === "object" ? (value as Partial<LayoutPreferences>) : {};
   return {
     sidebarCollapsed: raw.sidebarCollapsed === true,
+    controlsSide: raw.controlsSide === "right" ? "right" : "bottom",
   };
 }
 

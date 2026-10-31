@@ -23,6 +23,9 @@ const config = {
         'xs': '375px',      // iPhone SE
         'iphone': '393px',  // iPhone 16
         'ipad': '834px',    // iPad 11"
+        // Mouse screens get the sidebar; touch tablets get the phone tab bar. Keep in sync with src/lib/breakpoints.ts.
+        'desk': { raw: '(min-width: 768px) and (pointer: fine)' },
+        'tablet': { raw: '(min-width: 768px) and (pointer: coarse)' },
       },
       
       colors: {
