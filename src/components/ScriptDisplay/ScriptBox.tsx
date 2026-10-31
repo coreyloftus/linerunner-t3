@@ -259,8 +259,8 @@ export default function ScriptBox({ data, onAddScript }: ScriptBoxProps) {
           setAwaitingInput(false);
         }
       } else if (direction === "down") {
-        // Two-step flow: first show full line, then advance to next line
-        if (wordIndex < currentLineSplit.length) {
+        // Two-step flow: first show full line, then advance; the full script already shows it, so advance at once
+        if (!showFullScript && wordIndex < currentLineSplit.length) {
           // Step 1: Show full line of current line
           setWordIndex(currentLineSplit.length);
         } else {
@@ -292,6 +292,7 @@ export default function ScriptBox({ data, onAddScript }: ScriptBoxProps) {
       currentLineIndex,
       currentLineSplit,
       wordIndex,
+      showFullScript,
       playScene,
       script?.lines,
       selectedCharacter,
@@ -456,7 +457,8 @@ export default function ScriptBox({ data, onAddScript }: ScriptBoxProps) {
           <ul
             // Tap the page to advance; tap the left edge to go back
             onClick={(event) => {
-              if (!playScene || justWoke()) return;
+              // In the full script a tap is for scrolling, never for advancing
+              if (!playScene || showFullScript || justWoke()) return;
               if ((event.target as HTMLElement).closest("button, a")) return;
               const box = event.currentTarget.getBoundingClientRect();
               const x = (event.clientX - box.left) / box.width;
