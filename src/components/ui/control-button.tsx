@@ -4,7 +4,7 @@ import { type ReactNode } from "react";
 interface ControlButtonProps {
   onClick: () => void;
   children: ReactNode;
-  size?: "small" | "large";
+  size?: "small" | "large" | "column";
   variant?: "playback" | "navigation";
   className?: string;
   disabled?: boolean;
@@ -24,7 +24,8 @@ export function ControlButton({
   const sizeClasses = {
     small: "h-full min-h-full w-11 min-w-[52px] rounded-full xs:w-12",
     large:
-      "h-full min-h-full flex-shrink-0 w-12 min-w-[52px] rounded-xl xs:w-12 sm:w-14 md:w-20",
+      "h-full min-h-full flex-shrink-0 w-12 min-w-[52px] rounded-xl xs:w-12 sm:w-14 md:w-20 tablet:w-28",
+    column: "h-16 w-full rounded-xl tablet:h-20",
   };
 
   const variantClasses = {
@@ -35,7 +36,9 @@ export function ControlButton({
   const iconSizeClasses = {
     small: "text-lg text-foreground/80 transition-colors duration-200",
     large:
-      "text-xl text-foreground/80 xs:text-xl sm:text-2xl transition-colors duration-200",
+      "text-xl text-foreground/80 xs:text-xl sm:text-2xl tablet:text-3xl transition-colors duration-200",
+    column:
+      "text-2xl text-foreground/80 tablet:text-3xl transition-colors duration-200",
   };
 
   return (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useContext, useState } from "react";
+import { SidebarButton } from "./shell/chrome";
 import {
   FaPlay,
   FaPen,
@@ -53,7 +54,7 @@ const VIEW_LABELS: { value: WorkspaceView; label: string }[] = [
 ];
 
 const SECTION_LABEL =
-  "text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground";
+  "text-[13px] font-semibold uppercase tracking-wide text-muted-foreground";
 
 // "corey@example.com" reads as "corey"
 const ownerName = (email: string) => email.split("@")[0] ?? email;
@@ -138,19 +139,20 @@ export function ScriptsWorkspace({
   return (
     <div className="flex h-full w-full flex-col overflow-hidden bg-surface">
       {/* Workspace header */}
-      <div className="flex min-h-14 items-center justify-between gap-2 border-b border-border bg-surface-raised/90 py-2 pl-14 pr-3 iphone:pr-4 md:pl-4">
-        <h2 className="font-display text-mobile-base font-semibold iphone:text-lg">
-          Scripts
-        </h2>
-        <div className="flex rounded-lg border border-border bg-surface p-0.5">
+      <div className="glass-bar hairline-b flex min-h-14 items-center justify-between gap-2 py-2 pl-2 pr-3 iphone:pr-4 desk:pl-4">
+        <div className="flex min-w-0 items-center gap-1">
+          <SidebarButton />
+          <h2 className="text-[22px] font-bold tracking-tight">Scripts</h2>
+        </div>
+        <div className="flex rounded-full bg-foreground/[0.06] p-1">
           {VIEW_LABELS.map(({ value, label }) => (
             <button
               key={value}
               type="button"
               onClick={() => setView(value)}
-              className={`flex min-h-[40px] items-center gap-1.5 rounded-md px-3 text-mobile-xs font-medium transition-colors iphone:text-sm ${
+              className={`press flex min-h-[36px] items-center gap-1.5 rounded-full px-3.5 text-mobile-xs font-medium transition-colors iphone:text-sm ${
                 view === value
-                  ? "bg-accent font-semibold text-accent-foreground shadow-sm"
+                  ? "bg-surface font-semibold text-foreground shadow-[0_1px_4px_rgb(0_0_0/0.12)] dark:bg-foreground/15"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -209,64 +211,68 @@ export function ScriptsWorkspace({
                         return (
                           <div
                             key={showKey}
-                            className="overflow-hidden rounded-xl border border-border bg-surface-raised/60"
+                            className="overflow-hidden rounded-2xl bg-surface-raised/70 ring-1 ring-foreground/[0.05]"
                           >
                             <div className="flex items-center">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setExpandedShow(isExpanded ? null : showKey)
-                              }
-                              aria-expanded={isExpanded}
-                              className="flex min-h-[56px] min-w-0 flex-1 items-center justify-between gap-3 px-3 py-3 text-left transition-colors hover:bg-muted/50 iphone:px-4"
-                            >
-                              <div className="min-w-0">
-                                <p className="truncate font-display text-base font-semibold">
-                                  {project.project}
-                                </p>
-                                <p className="truncate text-xs text-muted-foreground">
-                                  {project.sharedBy && (
-                                    <span
-                                      title={project.sharedBy}
-                                      className="mr-1.5 inline-block rounded-full bg-accent-soft px-2 py-0.5 font-medium text-foreground"
-                                    >
-                                      Shared by {ownerName(project.sharedBy)}
-                                    </span>
-                                  )}
-                                  {project.scenes.length}{" "}
-                                  {project.scenes.length === 1
-                                    ? "scene"
-                                    : "scenes"}
-                                  {characters.length > 0 && (
-                                    <> · {characters.slice(0, 4).join(", ")}
-                                    {characters.length > 4 &&
-                                      ` +${characters.length - 4}`}</>
-                                  )}
-                                </p>
-                              </div>
-                              <FaChevronDown
-                                className={`h-3.5 w-3.5 flex-shrink-0 text-muted-foreground transition-transform ${isExpanded ? "rotate-180" : ""}`}
-                              />
-                            </button>
-                            {(source === "user" || source === "shared") && (
                               <button
                                 type="button"
                                 onClick={() =>
-                                  setSharing({
-                                    name: project.project,
-                                    mode: source === "user" ? "owner" : "shared",
-                                  })
+                                  setExpandedShow(isExpanded ? null : showKey)
                                 }
-                                className="flex h-11 w-11 flex-shrink-0 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
-                                aria-label={`${source === "user" ? "Share" : "Copy"} ${project.project}`}
+                                aria-expanded={isExpanded}
+                                className="flex min-h-[56px] min-w-0 flex-1 items-center justify-between gap-3 px-3 py-3 text-left transition-colors hover:bg-muted/50 iphone:px-4"
                               >
-                                {source === "user" ? (
-                                  <FaShareNodes className="h-4 w-4" />
-                                ) : (
-                                  <FaCopy className="h-4 w-4" />
-                                )}
+                                <div className="min-w-0">
+                                  <p className="truncate text-[17px] font-semibold">
+                                    {project.project}
+                                  </p>
+                                  <p className="truncate text-xs text-muted-foreground">
+                                    {project.sharedBy && (
+                                      <span
+                                        title={project.sharedBy}
+                                        className="mr-1.5 inline-block rounded-full bg-accent-soft px-2 py-0.5 font-medium text-foreground"
+                                      >
+                                        Shared by {ownerName(project.sharedBy)}
+                                      </span>
+                                    )}
+                                    {project.scenes.length}{" "}
+                                    {project.scenes.length === 1
+                                      ? "scene"
+                                      : "scenes"}
+                                    {characters.length > 0 && (
+                                      <>
+                                        {" "}
+                                        · {characters.slice(0, 4).join(", ")}
+                                        {characters.length > 4 &&
+                                          ` +${characters.length - 4}`}
+                                      </>
+                                    )}
+                                  </p>
+                                </div>
+                                <FaChevronDown
+                                  className={`h-3.5 w-3.5 flex-shrink-0 text-muted-foreground transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                                />
                               </button>
-                            )}
+                              {(source === "user" || source === "shared") && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setSharing({
+                                      name: project.project,
+                                      mode:
+                                        source === "user" ? "owner" : "shared",
+                                    })
+                                  }
+                                  className="flex h-11 w-11 flex-shrink-0 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
+                                  aria-label={`${source === "user" ? "Share" : "Copy"} ${project.project}`}
+                                >
+                                  {source === "user" ? (
+                                    <FaShareNodes className="h-4 w-4" />
+                                  ) : (
+                                    <FaCopy className="h-4 w-4" />
+                                  )}
+                                </button>
+                              )}
                             </div>
 
                             {isExpanded && (

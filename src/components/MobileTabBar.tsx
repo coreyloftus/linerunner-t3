@@ -1,39 +1,67 @@
 "use client";
 
+import {
+  IoBook,
+  IoBookOutline,
+  IoLayers,
+  IoLayersOutline,
+  IoMusicalNotes,
+  IoMusicalNotesOutline,
+  IoPlayCircle,
+  IoPlayCircleOutline,
+} from "react-icons/io5";
+import { type IconType } from "react-icons";
 import { APP_MODES, type AppMode } from "~/lib/app-mode";
+import { chromeFade, useChrome } from "./shell/chrome";
+
+// Outline when idle, filled when active, like SF Symbols tab icons
+const ICONS: Record<AppMode, [IconType, IconType]> = {
+  runner: [IoPlayCircleOutline, IoPlayCircle],
+  viewer: [IoBookOutline, IoBook],
+  scripts: [IoLayersOutline, IoLayers],
+  melody: [IoMusicalNotesOutline, IoMusicalNotes],
+};
 
 interface MobileTabBarProps {
   mode: AppMode;
   onModeChange: (mode: AppMode) => void;
 }
 
-// Phone-only: the four modes one tap away
+// Phones and tablets: a floating glass tab bar, icons only
 export function MobileTabBar({ mode, onModeChange }: MobileTabBarProps) {
+  const { hidden } = useChrome();
   return (
-    <nav
-      aria-label="Mode"
-      className="flex h-14 flex-shrink-0 border-t border-border bg-surface-raised md:hidden"
+    <div
+      data-chrome
+      className={`pointer-events-none absolute inset-x-0 bottom-3 z-30 flex justify-center desk:hidden tablet:bottom-6 tablet:justify-start tablet:pl-6 ${chromeFade(hidden)}`}
     >
-      {APP_MODES.map(({ id, short, label, icon: Icon }) => {
-        const active = id === mode;
-        return (
-          <button
-            key={id}
-            type="button"
-            onClick={() => onModeChange(id)}
-            aria-current={active ? "page" : undefined}
-            aria-label={label}
-            className={`relative flex flex-1 touch-manipulation flex-col items-center justify-center gap-1 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${
-              active
-                ? "font-semibold text-accent before:absolute before:inset-x-6 before:top-0 before:h-0.5 before:rounded-full before:bg-accent"
-                : "text-muted-foreground"
-            }`}
-          >
-            <Icon className="h-5 w-5" />
-            {short}
-          </button>
-        );
-      })}
-    </nav>
+      <nav
+        aria-label="Mode"
+        className="glass pointer-events-auto flex gap-1 rounded-full p-1.5"
+      >
+        {APP_MODES.map(({ id, label }) => {
+          const active = id === mode;
+          const [Idle, Active] = ICONS[id];
+          const Icon = active ? Active : Idle;
+          return (
+            <button
+              key={id}
+              type="button"
+              onClick={() => onModeChange(id)}
+              aria-current={active ? "page" : undefined}
+              aria-label={label}
+              title={label}
+              className={`press flex h-12 w-14 touch-manipulation items-center justify-center rounded-full transition-colors tablet:h-14 tablet:w-16 ${
+                active
+                  ? "bg-foreground/[0.08] text-accent"
+                  : "text-foreground/60"
+              }`}
+            >
+              <Icon className="h-[26px] w-[26px] tablet:h-7 tablet:w-7" />
+            </button>
+          );
+        })}
+      </nav>
+    </div>
   );
 }

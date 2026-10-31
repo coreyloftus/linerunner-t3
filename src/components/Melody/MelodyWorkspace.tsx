@@ -1,6 +1,13 @@
 "use client";
 
-import { useContext, useEffect, useRef, useState, type ChangeEvent } from "react";
+import {
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+} from "react";
+import { SidebarButton } from "../shell/chrome";
 import { useRouter } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import { FaFilePdf, FaFileImport, FaMusic } from "react-icons/fa6";
@@ -48,14 +55,25 @@ export function MelodyWorkspace() {
   };
 
   const signedIn = !!session?.user;
-  const { data: melodies, isLoading: listLoading } = api.melody.list.useQuery(undefined, {
-    enabled: signedIn,
-    refetchOnWindowFocus: false,
-  });
-  const selectedId = view.kind === "player" ? view.id : view.kind === "review" ? view.input.id : undefined;
+  const { data: melodies, isLoading: listLoading } = api.melody.list.useQuery(
+    undefined,
+    {
+      enabled: signedIn,
+      refetchOnWindowFocus: false,
+    },
+  );
+  const selectedId =
+    view.kind === "player"
+      ? view.id
+      : view.kind === "review"
+        ? view.input.id
+        : undefined;
   const { data: melody, error: melodyError } = api.melody.get.useQuery(
     { id: view.kind === "player" ? view.id : "" },
-    { enabled: signedIn && view.kind === "player", refetchOnWindowFocus: false },
+    {
+      enabled: signedIn && view.kind === "player",
+      refetchOnWindowFocus: false,
+    },
   );
   const deleteMelody = api.melody.delete.useMutation();
 
@@ -69,7 +87,9 @@ export function MelodyWorkspace() {
       setImportCount((n) => n + 1);
       setView({ kind: "review", input: { draft, warnings } });
     } catch (err) {
-      setJsonError(err instanceof Error ? err.message : "Could not read that file.");
+      setJsonError(
+        err instanceof Error ? err.message : "Could not read that file.",
+      );
     }
   };
 
@@ -85,8 +105,11 @@ export function MelodyWorkspace() {
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden bg-surface">
-      <div className="flex min-h-14 items-center gap-2 border-b border-border bg-surface-raised/90 py-2 pl-14 pr-3 iphone:pr-4 md:pl-4">
-        <h2 className="flex-shrink-0 font-display text-mobile-base font-semibold iphone:text-lg">Melody</h2>
+      <div className="glass-bar hairline-b flex min-h-14 items-center gap-2 py-2 pl-2 pr-3 iphone:pr-4 desk:pl-4">
+        <div className="flex flex-shrink-0 items-center gap-1">
+          <SidebarButton />
+          <h2 className="text-[22px] font-bold tracking-tight">Melody</h2>
+        </div>
         {signedIn && (
           <div className="flex min-w-0 flex-1 items-center justify-end gap-1.5">
             {!!melodies?.length && (
@@ -113,7 +136,8 @@ export function MelodyWorkspace() {
               aria-label="New from PDF"
               className={actionClass}
             >
-              <FaFilePdf className="h-3 w-3" /> <span className="hidden md:inline">New from PDF</span>
+              <FaFilePdf className="h-3 w-3" />{" "}
+              <span className="hidden md:inline">New from PDF</span>
             </Button>
             <Button
               variant="outline"
@@ -122,7 +146,8 @@ export function MelodyWorkspace() {
               aria-label="Import JSON"
               className={actionClass}
             >
-              <FaFileImport className="h-3 w-3" /> <span className="hidden md:inline">Import JSON</span>
+              <FaFileImport className="h-3 w-3" />{" "}
+              <span className="hidden md:inline">Import JSON</span>
             </Button>
             <input
               ref={jsonInputRef}
@@ -138,7 +163,7 @@ export function MelodyWorkspace() {
       {!signedIn ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-center">
           <FaMusic className="h-8 w-8 text-muted-foreground" />
-          <p className="font-display text-lg">Learn your melodies</p>
+          <p className="text-[17px] font-semibold">Learn your melodies</p>
           <p className="max-w-sm text-sm text-muted-foreground">
             Sign in to turn sheet music into a piano practice track.
           </p>
@@ -151,23 +176,35 @@ export function MelodyWorkspace() {
       ) : (
         <>
           {jsonError && (
-            <p role="alert" className="mx-3 mt-3 rounded-md border border-curtain/40 bg-curtain/10 px-3 py-2 text-sm text-curtain">
+            <p
+              role="alert"
+              className="mx-3 mt-3 rounded-md border border-curtain/40 bg-curtain/10 px-3 py-2 text-sm text-curtain"
+            >
               {jsonError}
             </p>
           )}
-          <main className={`min-h-0 flex-1 ${showPlayer ? "flex flex-col overflow-hidden" : "overflow-y-auto p-3 iphone:p-4"}`}>
+          <main
+            className={`min-h-0 flex-1 ${showPlayer ? "flex flex-col overflow-hidden" : "overflow-y-auto p-3 iphone:p-4"}`}
+          >
             {view.kind === "empty" && (
               <div className="flex min-h-full flex-col items-center justify-center gap-4 text-center">
                 <div className="space-y-2">
-                  <p className="font-display text-lg">Pick a melody or add a new one</p>
+                  <p className="text-[17px] font-semibold">
+                    Pick a melody or add a new one
+                  </p>
                   <p className="mx-auto max-w-sm text-sm text-muted-foreground">
-                    Upload a PDF of the vocal line, or import a melody JSON file.
+                    Upload a PDF of the vocal line, or import a melody JSON
+                    file.
                   </p>
                 </div>
                 {listLoading ? (
-                  <p className="font-script text-sm text-muted-foreground">Loading…</p>
+                  <p className="font-script text-sm text-muted-foreground">
+                    Loading…
+                  </p>
                 ) : !melodies?.length ? (
-                  <p className="font-script text-sm text-muted-foreground">No melodies yet.</p>
+                  <p className="font-script text-sm text-muted-foreground">
+                    No melodies yet.
+                  </p>
                 ) : (
                   <ul className="w-full max-w-md space-y-2">
                     {melodies.map((m) => (
@@ -175,11 +212,14 @@ export function MelodyWorkspace() {
                         <button
                           type="button"
                           onClick={() => openMelody(m.id)}
-                          className="w-full rounded-xl border border-border bg-surface-raised px-4 py-3 text-left transition-colors hover:bg-accent-soft"
+                          className="w-full rounded-2xl bg-surface-raised/70 px-4 py-3 text-left ring-1 ring-foreground/[0.05] transition-colors hover:bg-accent-soft"
                         >
-                          <span className="block truncate font-medium">{m.title}</span>
+                          <span className="block truncate font-medium">
+                            {m.title}
+                          </span>
                           <span className="block truncate text-xs text-muted-foreground">
-                            {m.noteCount} notes{m.link ? ` · ${m.link.sectionTitle}` : ""}
+                            {m.noteCount} notes
+                            {m.link ? ` · ${m.link.sectionTitle}` : ""}
                           </span>
                         </button>
                       </li>
@@ -189,28 +229,43 @@ export function MelodyWorkspace() {
               </div>
             )}
             {view.kind === "import" && (
-              <MelodyImport onExtracted={(draft, warnings) => setView({ kind: "review", input: { draft, warnings } })} />
+              <MelodyImport
+                onExtracted={(draft, warnings) =>
+                  setView({ kind: "review", input: { draft, warnings } })
+                }
+              />
             )}
             {view.kind === "review" && (
               <MelodyReview
                 key={view.input.id ?? `new-${importCount}`}
                 {...view.input}
                 onSaved={openMelody}
-                onCancel={() => setView(view.input.id ? { kind: "player", id: view.input.id } : { kind: "empty" })}
+                onCancel={() =>
+                  setView(
+                    view.input.id
+                      ? { kind: "player", id: view.input.id }
+                      : { kind: "empty" },
+                  )
+                }
               />
             )}
             {view.kind === "player" &&
               (melodyError ? (
                 <p className="text-sm text-curtain">{melodyError.message}</p>
               ) : !melody ? (
-                <p className="font-script text-sm text-muted-foreground">Loading…</p>
+                <p className="font-script text-sm text-muted-foreground">
+                  Loading…
+                </p>
               ) : (
                 <MelodyPlayer
                   key={melody.id + melody.updatedAt}
                   melody={melody}
                   onEdit={() => {
                     const draft = melodyDraftSchema.parse(melody);
-                    setView({ kind: "review", input: { id: melody.id, draft, warnings: [] } });
+                    setView({
+                      kind: "review",
+                      input: { id: melody.id, draft, warnings: [] },
+                    });
                   }}
                   onDelete={() => handleDelete(melody.id)}
                 />

@@ -44,6 +44,10 @@ const multiCharacterContainerStyling = "";
 const isUserLine = (characters: string[], selectedCharacter: string) =>
   characters.includes(selectedCharacter);
 
+// Your solo lines carry an amber edge bar instead of your name
+const isOwnSolo = (characters: string[], selectedCharacter: string) =>
+  characters.length === 1 && characters[0] === selectedCharacter;
+
 // Helper to check if line has multiple characters
 const isMultiCharacter = (characters: string[]) => characters.length > 1;
 
@@ -128,24 +132,25 @@ export const CharacterLineDisplay = ({
   ) => {
     const sameAsPrev = isSameCharactersAsPrev(index);
     const isMulti = isMultiCharacter(line.characters);
+    const own = isOwnSolo(line.characters, selectedCharacter);
     return (
       <li
         key={index}
-        className="flex flex-col justify-center gap-2 px-3 py-2 opacity-75 transition-opacity hover:opacity-100"
+        className="flex flex-col justify-center gap-2 px-3 py-3 opacity-50 transition-opacity hover:opacity-100"
       >
         <div
-          className={`flex flex-col gap-0.5 ${getAlignmentClass(line.characters)} ${isMulti ? multiCharacterContainerStyling : ""}`}
+          className={`flex flex-col gap-0.5 ${getAlignmentClass(line.characters)} ${isMulti ? multiCharacterContainerStyling : ""} ${own ? "border-l-[3px] border-accent/60 pl-4" : ""}`}
         >
-          {!sameAsPrev && (
+          {!sameAsPrev && !own && (
             <p
-              className={`font-sans text-[0.8em] font-bold uppercase tracking-[0.2em] ${getNameColorClass(line.characters) || "text-muted-foreground"}`}
+              className={`font-sans text-[0.62em] font-medium uppercase tracking-[0.12em] ${getNameColorClass(line.characters) || "text-muted-foreground/80"}`}
             >
               {formatCharacters(line.characters)}
             </p>
           )}
           {/* sung & spoken lines have different styling */}
           <p
-            className={`font-script text-[1.2em] leading-relaxed ${line.sung ? "italic" : ""} ${getLineColorClass(line.characters)}`}
+            className={`font-reading text-[1.3em] leading-snug ${line.sung ? "italic" : ""} ${getLineColorClass(line.characters)}`}
           >
             {line.sung ? line.line.toUpperCase() : line.line}
           </p>
@@ -163,7 +168,7 @@ export const CharacterLineDisplay = ({
 
   return (
     <div
-      className="mx-auto max-w-3xl py-3"
+      className="mx-auto max-w-2xl py-3"
       style={{ fontSize: `${displayPreferences.fontSize}%` }}
     >
       {/* revealed lines */}
@@ -181,19 +186,21 @@ export const CharacterLineDisplay = ({
             ? fullLine
             : fullLine.split(" ").slice(0, wordDisplayIndex).join(" ");
           const isConcealed = lineText === "" && currentChars.length > 0;
+          const own = isOwnSolo(currentChars, selectedCharacter);
           return (
             <li
               ref={currentRef}
               className="flex flex-col justify-center gap-2 px-1 py-1"
             >
               <div
-                className={`flex flex-col gap-0.5 rounded-xl bg-accent/[0.07] px-2 py-2 ring-1 ring-accent/20 ${currentChars.length > 0 ? getAlignmentClass(currentChars) : ""} ${isMulti ? multiCharacterContainerStyling : ""}`}
+                className={`flex flex-col gap-1 px-2 py-3 ${currentChars.length > 0 ? getAlignmentClass(currentChars) : ""} ${isMulti ? multiCharacterContainerStyling : ""} ${own ? "border-l-[3px] border-accent pl-4" : ""}`}
               >
                 {/* only show char name if diff characters in current line */}
                 {!isSameCharactersAsPrev(currentLineIndex) &&
-                  currentChars.length > 0 && (
+                  currentChars.length > 0 &&
+                  !own && (
                     <p
-                      className={`font-sans text-[0.8em] font-bold uppercase tracking-[0.2em] ${getNameColorClass(currentChars) || "text-muted-foreground"}`}
+                      className={`font-sans text-[0.62em] font-semibold uppercase tracking-[0.12em] ${getNameColorClass(currentChars) || "text-muted-foreground"}`}
                     >
                       {formatCharacters(currentChars)}
                     </p>
@@ -201,7 +208,7 @@ export const CharacterLineDisplay = ({
                 {/* concealed line shows a pulsing cue marker until revealed */}
                 {isConcealed ? (
                   <p
-                    className="cue-dot font-script text-[1.2em] leading-relaxed text-accent"
+                    className="cue-dot font-reading text-[1.5em] leading-snug text-accent"
                     aria-label="Line hidden — press down arrow to reveal"
                   >
                     ···
@@ -209,7 +216,7 @@ export const CharacterLineDisplay = ({
                 ) : (
                   <p
                     key={`${currentLineIndex}-${wordDisplayIndex > 0 ? "revealed" : "hidden"}`}
-                    className={`line-enter font-script text-[1.2em] leading-relaxed ${isSung ? "italic" : ""} ${getLineColorClass(currentChars)}`}
+                    className={`line-enter font-reading text-[1.5em] font-medium leading-snug ${isSung ? "italic" : ""} ${getLineColorClass(currentChars)}`}
                   >
                     {isSung ? lineText.toUpperCase() : lineText}
                   </p>
@@ -233,8 +240,8 @@ export const CharacterLineDisplay = ({
           .map((line, offset) =>
             renderOtherLine(line, currentLineIndex + 1 + offset),
           )}
-      {/* for scrolling to bottom */}
-      <div ref={scrollRef}></div>
+      {/* for scrolling to bottom; margin keeps the line clear of the floating controls */}
+      <div ref={scrollRef} className="scroll-mb-48"></div>
     </div>
   );
 };

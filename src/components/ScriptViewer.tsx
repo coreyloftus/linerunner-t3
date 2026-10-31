@@ -1,5 +1,6 @@
 "use client";
 import { useContext } from "react";
+import { SidebarButton } from "./shell/chrome";
 import { ScriptContext } from "~/app/context";
 import { type ProjectJSON } from "../server/api/routers/scriptData";
 import { Textarea } from "./ui/textarea";
@@ -156,11 +157,12 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
     <div className="flex h-full w-full flex-col overflow-hidden bg-surface">
       <div className="flex min-h-0 flex-1 flex-col">
         {/* Mobile-optimized header */}
-        <div className="iphone:flex-row iphone:items-center iphone:justify-between iphone:py-3 flex min-h-14 flex-col justify-center border-b border-border bg-surface-raised/90 py-2 pl-14 pr-3 iphone:pr-4 md:pl-4">
-          <h2 className="text-mobile-base iphone:text-lg iphone:mb-0 mb-1 font-display font-semibold">
-            Script Viewer
-          </h2>
-          <div className="text-mobile-xs iphone:text-sm text-muted-foreground">
+        <div className="glass-bar hairline-b flex min-h-14 flex-col justify-center py-2 pl-2 pr-3 iphone:flex-row iphone:items-center iphone:justify-between iphone:py-3 iphone:pr-4 desk:pl-4">
+          <div className="flex items-center gap-1">
+            <SidebarButton />
+            <h2 className="text-[22px] font-bold tracking-tight">Read</h2>
+          </div>
+          <div className="text-mobile-xs text-muted-foreground iphone:text-sm">
             {getStatusText()}
           </div>
         </div>
@@ -170,13 +172,13 @@ export default function ScriptViewer({ data }: ScriptViewerProps) {
           <Textarea
             value={formatScriptForDisplay()}
             readOnly
-            className="text-mobile-sm iphone:text-mobile-base iphone:leading-loose iphone:p-4 h-full min-h-[60px] 
-                      resize-none overflow-y-auto border-0 
-                      bg-transparent p-3
-                      font-script leading-relaxed text-foreground
+            className="h-full min-h-[60px] resize-none overflow-y-auto border-0 bg-transparent 
+                      p-3 font-script text-mobile-sm 
+                      leading-relaxed text-foreground
                       [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain] [touch-action:pan-y]
-                      focus-visible:ring-0
-                      md:text-sm"
+                      focus-visible:ring-0 md:text-sm iphone:p-4
+                      iphone:text-mobile-base
+                      iphone:leading-loose"
             placeholder="No script selected..."
           />
         </div>

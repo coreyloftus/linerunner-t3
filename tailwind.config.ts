@@ -23,6 +23,9 @@ const config = {
         'xs': '375px',      // iPhone SE
         'iphone': '393px',  // iPhone 16
         'ipad': '834px',    // iPad 11"
+        // Mouse screens get the sidebar; touch tablets get the phone tab bar. Keep in sync with src/lib/breakpoints.ts.
+        'desk': { raw: '(min-width: 768px) and (pointer: fine)' },
+        'tablet': { raw: '(min-width: 768px) and (pointer: coarse)' },
       },
       
       colors: {
@@ -54,7 +57,8 @@ const config = {
       },
 
       fontFamily: {
-        sans: ["var(--font-geist-sans)", "sans-serif"],
+        sans: ["-apple-system", "BlinkMacSystemFont", "system-ui", "var(--font-geist-sans)", "sans-serif"],
+        reading: ["ui-serif", "New York", "Iowan Old Style", "Georgia", "serif"],
         display: ["var(--font-fraunces)", "Georgia", "serif"],
         script: ["var(--font-courier-prime)", "Courier New", "monospace"],
       },

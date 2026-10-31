@@ -1,9 +1,9 @@
 import { useEffect, useRef, type RefObject } from "react";
+import { DESKTOP_QUERY } from "~/lib/breakpoints";
 
 const EDGE_MIN = 24; // stay clear of the browser's own back-swipe
 const EDGE_MAX = 64;
 const SLOP = 10;
-const DESKTOP_QUERY = "(min-width: 768px)";
 
 type Options = {
   open: boolean;
