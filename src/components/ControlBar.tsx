@@ -1,12 +1,12 @@
 import { type ReactNode } from "react";
 import {
+  IoArrowDown,
+  IoArrowUp,
   IoChevronBack,
   IoChevronForward,
   IoDocumentTextOutline,
   IoPause,
   IoPlay,
-  IoPlayBack,
-  IoPlayForward,
   IoStop,
 } from "react-icons/io5";
 import { type ControlsSide } from "~/lib/preferences";
@@ -58,7 +58,7 @@ function Round({
   );
 }
 
-// Floating transport capsule, like the Music mini player
+// Floating control capsule; Next Line is the one prominent button
 export default function ControlBar({
   playScene,
   setPlayScene,
@@ -82,12 +82,6 @@ export default function ControlBar({
     <div
       className={`glass flex items-center gap-0.5 rounded-full p-1.5 tablet:gap-1 tablet:p-2 ${vertical}`}
     >
-      <Round label="Previous word" onClick={() => handleWordNavigation("left")}>
-        <IoChevronBack />
-      </Round>
-      <Round label="Previous line" onClick={() => handleLineNavigation("up")}>
-        <IoPlayBack />
-      </Round>
       <button
         type="button"
         aria-label={playing ? "Pause" : "Play"}
@@ -100,28 +94,49 @@ export default function ControlBar({
           }
           event.currentTarget.blur();
         }}
-        className="press mx-1 flex h-14 w-14 touch-manipulation items-center justify-center rounded-full bg-accent text-[26px] text-accent-foreground shadow-md shadow-accent/30 tablet:h-16 tablet:w-16 tablet:text-[30px]"
+        className="press flex h-12 w-12 touch-manipulation items-center justify-center rounded-full bg-foreground/[0.08] text-[22px] text-foreground tablet:h-14 tablet:w-14 tablet:text-[26px]"
       >
         {playing ? <IoPause /> : <IoPlay className="translate-x-0.5" />}
       </button>
-      <Round label="Next line" onClick={() => handleLineNavigation("down")}>
-        <IoPlayForward />
+      <span className="hidden md:contents">
+        <Round
+          label="Stop"
+          onClick={() => {
+            setCurrentLineIndex(0);
+            setWordIndex(0);
+            setPaused(false);
+            if (playScene) setPlayScene(false);
+          }}
+        >
+          <IoStop className="text-[0.85em]" />
+        </Round>
+      </span>
+      <span aria-hidden className={divider} />
+      <Round label="Previous word" onClick={() => handleWordNavigation("left")}>
+        <IoChevronBack />
       </Round>
       <Round label="Next word" onClick={() => handleWordNavigation("right")}>
         <IoChevronForward />
       </Round>
-      <span aria-hidden className={divider} />
-      <Round
-        label="Stop"
-        onClick={() => {
-          setCurrentLineIndex(0);
-          setWordIndex(0);
-          setPaused(false);
-          if (playScene) setPlayScene(false);
-        }}
-      >
-        <IoStop className="text-[0.85em]" />
+      <Round label="Previous line" onClick={() => handleLineNavigation("up")}>
+        <IoArrowUp />
       </Round>
+      <button
+        type="button"
+        onClick={(event) => {
+          handleLineNavigation("down");
+          event.currentTarget.blur();
+        }}
+        className={`press mx-1 flex h-12 touch-manipulation items-center justify-center gap-1.5 rounded-full bg-accent px-5 text-[17px] font-semibold text-white shadow-md shadow-accent/30 tablet:h-14 tablet:px-7 tablet:text-[19px] ${side === "right" ? "md:mx-0 md:my-1 md:!h-36 md:w-14 md:flex-col md:!px-0 tablet:w-16" : ""}`}
+      >
+        <IoArrowDown className="h-5 w-5 flex-shrink-0 tablet:h-6 tablet:w-6" />
+        <span>Next</span>
+        <span
+          className={`hidden tablet:inline ${side === "right" ? "md:!hidden" : ""}`}
+        >
+          Line
+        </span>
+      </button>
       {fullScript && (
         <Round
           label="Full script"

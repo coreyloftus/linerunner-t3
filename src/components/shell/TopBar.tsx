@@ -1,12 +1,13 @@
 "use client";
 
 import { useContext } from "react";
+import { IoChevronDown, IoPersonCircle } from "react-icons/io5";
 import { LuPanelLeft } from "react-icons/lu";
 import { ScriptContext } from "~/app/context";
 import { type AppMode } from "~/lib/app-mode";
 import { TopTabs } from "./TopTabs";
 
-// Phones and tablets: sidebar button on the left, floating tabs in the middle on tablets
+// Phones and tablets: sidebar button and title on the left, tabs in the middle on tablets, character on the right
 export function TopBar({
   mode,
   onModeChange,
@@ -16,27 +17,49 @@ export function TopBar({
   onModeChange: (mode: AppMode) => void;
   onMenu: () => void;
 }) {
-  const { selectedCharacter, selectedScene } = useContext(ScriptContext);
-  const label = [selectedCharacter, selectedScene].filter(Boolean).join(" · ");
+  const { selectedProject, selectedScene, selectedCharacter } =
+    useContext(ScriptContext);
+  const runner = mode === "runner";
 
   return (
-    <header className="glass-bar hairline-b relative z-30 flex h-12 flex-shrink-0 items-center px-2 tablet:h-16 tablet:px-4 desk:hidden">
+    <header className="glass-bar hairline-b relative z-30 flex h-14 flex-shrink-0 items-center gap-1 px-2 desk:hidden tablet:h-16 tablet:px-4">
       <button
         type="button"
         onClick={onMenu}
-        aria-label={label ? `Change scene: ${label}` : "Open menu"}
-        className="press flex h-10 min-w-0 max-w-[45%] touch-manipulation items-center gap-2 rounded-full px-2 text-accent tablet:max-w-[28%]"
+        aria-label="Show sidebar"
+        className="press flex h-10 w-10 flex-shrink-0 touch-manipulation items-center justify-center rounded-full text-accent"
       >
-        <LuPanelLeft className="h-6 w-6 flex-shrink-0" />
-        {mode === "runner" && (
-          <span className="truncate text-[15px] font-medium text-foreground">
-            {label || "Pick a scene"}
-          </span>
-        )}
+        <LuPanelLeft className="h-6 w-6" />
       </button>
+      <div className="min-w-0 flex-1 tablet:max-w-[30%] tablet:portrait:max-w-[22%]">
+        {runner && (
+          <>
+            <p className="truncate text-[17px] font-semibold leading-tight">
+              {selectedScene || "Pick a scene"}
+            </p>
+            {selectedProject?.name && (
+              <p className="truncate text-[13px] text-muted-foreground">
+                {selectedProject.name}
+              </p>
+            )}
+          </>
+        )}
+      </div>
       <div className="absolute left-1/2 hidden -translate-x-1/2 tablet:block">
         <TopTabs mode={mode} onModeChange={onModeChange} />
       </div>
+      {runner && selectedCharacter && (
+        <button
+          type="button"
+          onClick={onMenu}
+          aria-label={`Change character: ${selectedCharacter}`}
+          className="press ml-auto flex h-9 max-w-[38%] flex-shrink-0 touch-manipulation items-center gap-1.5 rounded-full bg-foreground/[0.06] pl-1.5 pr-3 text-[15px] font-medium tablet:max-w-[18%]"
+        >
+          <IoPersonCircle className="h-6 w-6 flex-shrink-0 text-accent" />
+          <span className="truncate">{selectedCharacter}</span>
+          <IoChevronDown className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
+        </button>
+      )}
     </header>
   );
 }
