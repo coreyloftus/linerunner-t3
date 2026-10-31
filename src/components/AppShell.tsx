@@ -8,6 +8,7 @@ import { type AppMode } from "~/lib/app-mode";
 import { DESKTOP_QUERY } from "~/lib/breakpoints";
 import { SidebarClient } from "./SidebarClient";
 import { TopBar } from "./shell/TopBar";
+import { ChromeProvider } from "./shell/chrome";
 import { MobileTabBar } from "./MobileTabBar";
 import ScriptBox from "./ScriptDisplay/ScriptBox";
 import ScriptViewer from "./ScriptViewer";
@@ -86,47 +87,46 @@ export function AppShell({ projectData, sidebarData }: AppShellProps) {
   }, [setLayoutPreferences]);
 
   return (
-    <div className="flex h-[100dvh] w-full overflow-hidden pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] text-foreground [touch-action:manipulation] supports-[height:100svh]:h-[100svh]">
-      <SidebarClient
-        projects={sidebarData.projects}
-        allData={sidebarData.allData}
-        mode={mode}
-        onModeChange={handleModeChange}
-        collapsed={layoutPreferences.sidebarCollapsed}
-        onCollapsedChange={setCollapsed}
-        mobileOpen={mobileOpen}
-        onMobileOpenChange={setMobileOpen}
-      />
-
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <TopBar
+    <ChromeProvider openSidebar={() => setMobileOpen(true)}>
+      <div className="flex h-[100dvh] w-full overflow-hidden pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] text-foreground [touch-action:manipulation] supports-[height:100svh]:h-[100svh]">
+        <SidebarClient
+          projects={sidebarData.projects}
+          allData={sidebarData.allData}
           mode={mode}
-          onMenu={() => setMobileOpen(true)}
+          onModeChange={handleModeChange}
+          collapsed={layoutPreferences.sidebarCollapsed}
+          onCollapsedChange={setCollapsed}
+          mobileOpen={mobileOpen}
+          onMobileOpenChange={setMobileOpen}
         />
-        <main className="relative flex min-h-0 min-w-0 flex-1 desk:p-2 desk:pl-0">
-          {/* Other modes leave room for the floating tab bar; the runner pads its own page */}
-          <div
-            className={`flex min-h-0 min-w-0 flex-1 overflow-hidden desk:rounded-2xl desk:border desk:border-border desk:shadow-xl desk:shadow-black/5 dark:desk:shadow-black/40 ${mode === "runner" ? "" : "pb-[76px] desk:pb-0 tablet:pb-24"}`}
-          >
-            {mode === "runner" && (
-              <ScriptBox
-                data={projectData}
-                onAddScript={() => handleModeChange("scripts", "new")}
-              />
-            )}
-            {mode === "viewer" && <ScriptViewer data={projectData} />}
-            {mode === "scripts" && (
-              <ScriptsWorkspace
-                data={projectData}
-                initialView={scriptsView}
-                onPractice={() => handleModeChange("runner")}
-              />
-            )}
-            {mode === "melody" && <MelodyWorkspace />}
-          </div>
-          <MobileTabBar mode={mode} onModeChange={handleModeChange} />
-        </main>
+
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+          <main className="relative flex min-h-0 min-w-0 flex-1 desk:p-2 desk:pl-0">
+            {mode === "runner" && <TopBar />}
+            {/* Other modes leave room for the floating tab bar; the runner pads its own page */}
+            <div
+              className={`flex min-h-0 min-w-0 flex-1 overflow-hidden desk:rounded-2xl desk:border desk:border-border desk:shadow-xl desk:shadow-black/5 dark:desk:shadow-black/40 ${mode === "runner" ? "" : "pb-[76px] desk:pb-0 tablet:pb-24"}`}
+            >
+              {mode === "runner" && (
+                <ScriptBox
+                  data={projectData}
+                  onAddScript={() => handleModeChange("scripts", "new")}
+                />
+              )}
+              {mode === "viewer" && <ScriptViewer data={projectData} />}
+              {mode === "scripts" && (
+                <ScriptsWorkspace
+                  data={projectData}
+                  initialView={scriptsView}
+                  onPractice={() => handleModeChange("runner")}
+                />
+              )}
+              {mode === "melody" && <MelodyWorkspace />}
+            </div>
+            <MobileTabBar mode={mode} onModeChange={handleModeChange} />
+          </main>
+        </div>
       </div>
-    </div>
+    </ChromeProvider>
   );
 }

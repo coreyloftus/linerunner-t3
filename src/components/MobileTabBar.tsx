@@ -12,6 +12,7 @@ import {
 } from "react-icons/io5";
 import { type IconType } from "react-icons";
 import { APP_MODES, type AppMode } from "~/lib/app-mode";
+import { chromeFade, useChrome } from "./shell/chrome";
 
 // Outline when idle, filled when active, like SF Symbols tab icons
 const ICONS: Record<AppMode, [IconType, IconType]> = {
@@ -28,8 +29,12 @@ interface MobileTabBarProps {
 
 // Phones and tablets: a floating glass tab bar, icons only
 export function MobileTabBar({ mode, onModeChange }: MobileTabBarProps) {
+  const { hidden } = useChrome();
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-3 z-30 flex justify-center desk:hidden tablet:bottom-6 tablet:justify-start tablet:pl-6">
+    <div
+      data-chrome
+      className={`pointer-events-none absolute inset-x-0 bottom-3 z-30 flex justify-center desk:hidden tablet:bottom-6 tablet:justify-start tablet:pl-6 ${chromeFade(hidden)}`}
+    >
       <nav
         aria-label="Mode"
         className="glass pointer-events-auto flex gap-1 rounded-full p-1.5"

@@ -36,8 +36,7 @@ type SidebarClientProps = {
   onMobileOpenChange: (open: boolean) => void;
 };
 
-const SECTION_LABEL =
-  "text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground desk:text-xs";
+const SECTION_LABEL = "text-[13px] font-semibold text-muted-foreground";
 
 const isDesktop = () => window.matchMedia(DESKTOP_QUERY).matches;
 
@@ -230,9 +229,9 @@ export function SidebarClient({
                       aria-current={active ? "page" : undefined}
                       aria-label={label}
                       title={collapsed ? label : undefined}
-                      className={`relative flex min-h-[44px] w-full items-center gap-3 whitespace-nowrap rounded-lg px-3 text-sm transition-colors desk:min-h-[40px] ${
+                      className={`relative flex min-h-[44px] w-full items-center gap-3 whitespace-nowrap rounded-[10px] px-3 text-[15px] transition-colors desk:min-h-[40px] ${
                         active
-                          ? "bg-accent-soft font-semibold text-accent before:absolute before:inset-y-2 before:left-0 before:w-0.5 before:rounded-full before:bg-accent"
+                          ? "bg-accent font-semibold text-white"
                           : "text-muted-foreground hover:bg-muted hover:text-foreground"
                       } ${collapsed ? "desk:justify-center desk:px-0" : ""}`}
                     >

@@ -10,6 +10,7 @@ import {
   IoStop,
 } from "react-icons/io5";
 import { type ControlsSide } from "~/lib/preferences";
+import { TextSettings } from "./shell/TextSettings";
 
 interface ControlBarProps {
   playScene: boolean;
@@ -47,7 +48,7 @@ function Round({
         onClick();
         event.currentTarget.blur();
       }}
-      className={`press flex h-12 w-12 touch-manipulation items-center justify-center rounded-full text-[22px] transition-colors tablet:h-14 tablet:w-14 tablet:text-[26px] ${
+      className={`press flex h-11 w-11 touch-manipulation items-center justify-center rounded-full text-[22px] transition-colors tablet:h-14 tablet:w-14 tablet:text-[26px] ${
         active
           ? "bg-accent/15 text-accent"
           : "text-foreground/80 hover:bg-foreground/[0.06]"
@@ -94,7 +95,7 @@ export default function ControlBar({
           }
           event.currentTarget.blur();
         }}
-        className="press flex h-12 w-12 touch-manipulation items-center justify-center rounded-full bg-foreground/[0.08] text-[22px] text-foreground tablet:h-14 tablet:w-14 tablet:text-[26px]"
+        className="press flex h-11 w-11 touch-manipulation items-center justify-center rounded-full bg-foreground/[0.08] text-[22px] text-foreground tablet:h-14 tablet:w-14 tablet:text-[26px]"
       >
         {playing ? <IoPause /> : <IoPlay className="translate-x-0.5" />}
       </button>
@@ -111,7 +112,7 @@ export default function ControlBar({
           <IoStop className="text-[0.85em]" />
         </Round>
       </span>
-      <span aria-hidden className={divider} />
+      <span aria-hidden className={`hidden md:block ${divider}`} />
       <Round label="Previous word" onClick={() => handleWordNavigation("left")}>
         <IoChevronBack />
       </Round>
@@ -129,7 +130,7 @@ export default function ControlBar({
         }}
         aria-label="Next line"
         title="Next line"
-        className={`press mx-1 flex h-12 w-20 touch-manipulation items-center justify-center rounded-full bg-accent text-white shadow-md shadow-accent/30 tablet:h-14 tablet:w-24 ${side === "right" ? "md:mx-0 md:my-1 md:!h-32 md:!w-12 tablet:!w-14" : ""}`}
+        className={`press mx-1 flex h-11 w-[72px] touch-manipulation items-center justify-center rounded-full bg-accent text-white shadow-md shadow-accent/30 tablet:h-14 tablet:w-24 ${side === "right" ? "md:mx-0 md:my-1 md:!h-32 md:!w-12 tablet:!w-14" : ""}`}
       >
         <IoArrowDown className="h-6 w-6 flex-shrink-0 tablet:h-7 tablet:w-7" />
       </button>
@@ -142,6 +143,9 @@ export default function ControlBar({
           <IoDocumentTextOutline />
         </Round>
       )}
+      <TextSettings
+        panelClassName={`bottom-full right-0 mb-3 ${side === "right" ? "md:bottom-0 md:right-full md:mb-0 md:mr-3" : ""}`}
+      />
     </div>
   );
 }

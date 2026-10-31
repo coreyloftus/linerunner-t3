@@ -44,6 +44,10 @@ const multiCharacterContainerStyling = "";
 const isUserLine = (characters: string[], selectedCharacter: string) =>
   characters.includes(selectedCharacter);
 
+// Your solo lines carry an amber edge bar instead of your name
+const isOwnSolo = (characters: string[], selectedCharacter: string) =>
+  characters.length === 1 && characters[0] === selectedCharacter;
+
 // Helper to check if line has multiple characters
 const isMultiCharacter = (characters: string[]) => characters.length > 1;
 
@@ -128,17 +132,18 @@ export const CharacterLineDisplay = ({
   ) => {
     const sameAsPrev = isSameCharactersAsPrev(index);
     const isMulti = isMultiCharacter(line.characters);
+    const own = isOwnSolo(line.characters, selectedCharacter);
     return (
       <li
         key={index}
         className="flex flex-col justify-center gap-2 px-3 py-3 opacity-50 transition-opacity hover:opacity-100"
       >
         <div
-          className={`flex flex-col gap-0.5 ${getAlignmentClass(line.characters)} ${isMulti ? multiCharacterContainerStyling : ""}`}
+          className={`flex flex-col gap-0.5 ${getAlignmentClass(line.characters)} ${isMulti ? multiCharacterContainerStyling : ""} ${own ? "border-l-[3px] border-accent/60 pl-4" : ""}`}
         >
-          {!sameAsPrev && (
+          {!sameAsPrev && !own && (
             <p
-              className={`font-sans text-[0.72em] font-semibold uppercase tracking-[0.14em] ${getNameColorClass(line.characters) || "text-muted-foreground"}`}
+              className={`font-sans text-[0.62em] font-medium uppercase tracking-[0.12em] ${getNameColorClass(line.characters) || "text-muted-foreground/80"}`}
             >
               {formatCharacters(line.characters)}
             </p>
@@ -181,19 +186,21 @@ export const CharacterLineDisplay = ({
             ? fullLine
             : fullLine.split(" ").slice(0, wordDisplayIndex).join(" ");
           const isConcealed = lineText === "" && currentChars.length > 0;
+          const own = isOwnSolo(currentChars, selectedCharacter);
           return (
             <li
               ref={currentRef}
               className="flex flex-col justify-center gap-2 px-1 py-1"
             >
               <div
-                className={`flex flex-col gap-1 px-2 py-3 ${currentChars.length > 0 ? getAlignmentClass(currentChars) : ""} ${isMulti ? multiCharacterContainerStyling : ""}`}
+                className={`flex flex-col gap-1 px-2 py-3 ${currentChars.length > 0 ? getAlignmentClass(currentChars) : ""} ${isMulti ? multiCharacterContainerStyling : ""} ${own ? "border-l-[3px] border-accent pl-4" : ""}`}
               >
                 {/* only show char name if diff characters in current line */}
                 {!isSameCharactersAsPrev(currentLineIndex) &&
-                  currentChars.length > 0 && (
+                  currentChars.length > 0 &&
+                  !own && (
                     <p
-                      className={`font-sans text-[0.72em] font-semibold uppercase tracking-[0.14em] ${getNameColorClass(currentChars) || "text-accent"}`}
+                      className={`font-sans text-[0.62em] font-semibold uppercase tracking-[0.12em] ${getNameColorClass(currentChars) || "text-muted-foreground"}`}
                     >
                       {formatCharacters(currentChars)}
                     </p>

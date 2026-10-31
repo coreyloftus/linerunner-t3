@@ -17,6 +17,7 @@ import { usePickCharacter } from "~/hooks/useMyCharacter";
 import { useOpenShow } from "~/hooks/useOpenShow";
 import { DEMO_PROJECT, LOCAL_SOURCE_ENABLED } from "~/lib/sources";
 import { NewUserWelcome, SignedOutWelcome } from "../Welcome";
+import { chromeFade, useChrome } from "../shell/chrome";
 
 // Helper to check if user is in the line's characters (outside component for memoization)
 const checkIsUserLine = (
@@ -123,6 +124,13 @@ export default function ScriptBox({ data, onAddScript }: ScriptBoxProps) {
   const [currentLine, setCurrentLine] = useState<string[]>([]);
   const [helperIndex, setHelperIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  const { hidden: chromeHidden, setPlaying, justWoke } = useChrome();
+
+  // Bars and controls fade only while the scene is actually running
+  useEffect(() => {
+    setPlaying(playScene && !paused);
+    return () => setPlaying(false);
+  }, [playScene, paused, setPlaying]);
   const [showFullScript, setShowFullScript] = useState(false);
 
   // Reset script state when data source changes
@@ -448,13 +456,13 @@ export default function ScriptBox({ data, onAddScript }: ScriptBoxProps) {
           <ul
             // Tap the page to advance; tap the left edge to go back
             onClick={(event) => {
-              if (!playScene) return;
+              if (!playScene || justWoke()) return;
               if ((event.target as HTMLElement).closest("button, a")) return;
               const box = event.currentTarget.getBoundingClientRect();
               const x = (event.clientX - box.left) / box.width;
               handleLineNavigation(x < 0.25 ? "up" : "down");
             }}
-            className={`overscroll-bounce h-full overflow-y-auto px-4 pb-44 pt-6 [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain] [touch-action:pan-y] desk:pb-32 tablet:px-10 tablet:pb-36 ${controlsRight ? "md:pr-28 tablet:pr-32" : ""}`}
+            className={`overscroll-bounce h-full overflow-y-auto px-4 pb-44 pt-20 [-webkit-overflow-scrolling:touch] [overscroll-behavior:contain] [touch-action:pan-y] desk:pb-32 desk:pt-6 tablet:px-10 tablet:pb-36 tablet:pt-24 tablet:portrait:pb-52 ${controlsRight ? "md:pr-28 tablet:pr-32" : ""}`}
           >
             {playScene || (showFullScript && script) ? (
               <CharacterLineDisplay
@@ -481,7 +489,7 @@ export default function ScriptBox({ data, onAddScript }: ScriptBoxProps) {
                   <p className="truncate text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                     {selectedProject?.name} · {selectedScene}
                   </p>
-                  <h2 className="mt-3 font-display text-3xl font-semibold">
+                  <h2 className="mt-3 text-3xl font-bold tracking-tight">
                     Who are you playing?
                   </h2>
                   <div className="mt-6 flex flex-wrap justify-center gap-2">
@@ -514,10 +522,10 @@ export default function ScriptBox({ data, onAddScript }: ScriptBoxProps) {
                     </p>
                     <span className="h-px w-10 bg-border" />
                   </div>
-                  <h1 className="font-display text-4xl font-semibold leading-tight md:text-5xl">
+                  <h1 className="text-4xl font-bold leading-tight tracking-tight md:text-5xl">
                     Know <span className="italic text-accent">every</span> line.
                   </h1>
-                  <p className="mt-4 font-script text-base text-muted-foreground">
+                  <p className="mt-4 text-[17px] leading-relaxed text-muted-foreground">
                     {script ? (
                       <>
                         You&apos;re {selectedCharacter} in {selectedScene}.
@@ -603,7 +611,8 @@ export default function ScriptBox({ data, onAddScript }: ScriptBoxProps) {
         )}
       </div>
       <div
-        className={`pointer-events-none absolute inset-x-0 bottom-[84px] z-20 flex justify-center desk:bottom-3 tablet:bottom-6 tablet:justify-end tablet:pr-6 ${controlsRight ? "md:!left-auto md:!bottom-auto md:!right-4 md:top-1/2 md:-translate-y-1/2 md:!pr-0" : ""}`}
+        data-chrome
+        className={`pointer-events-none absolute inset-x-0 bottom-[84px] z-20 flex justify-center desk:bottom-3 tablet:bottom-6 tablet:justify-end tablet:pr-6 tablet:portrait:bottom-[104px] tablet:portrait:justify-center tablet:portrait:pr-0 ${chromeFade(chromeHidden)} ${controlsRight ? "md:!bottom-auto md:!left-auto md:!right-4 md:top-1/2 md:-translate-y-1/2 md:!pr-0" : ""}`}
       >
         <div className="pointer-events-auto">
           <ControlBar
