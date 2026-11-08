@@ -314,6 +314,10 @@ export class ScriptService {
     try {
       const directory = LOCAL_DIRECTORY;
 
+      if (!projectName.trim() || /[/\\\0]/.test(projectName)) {
+        throw new Error("The show name cannot contain path separators.");
+      }
+
       // Create directory if it doesn't exist
       if (!fs.existsSync(directory)) {
         fs.mkdirSync(directory, { recursive: true });
@@ -338,7 +342,10 @@ export class ScriptService {
 
       // Generate filename from project name
       const filename = `${projectName.toLowerCase().replace(/\s+/g, "-")}.json`;
-      const filepath = path.join(directory, filename);
+      const filepath = path.resolve(directory, filename);
+      if (path.dirname(filepath) !== path.resolve(directory)) {
+        throw new Error("The show must be saved in the script directory.");
+      }
 
       // Write to file
       fs.writeFileSync(filepath, JSON.stringify(scriptData, null, 2));
@@ -358,57 +365,14 @@ export class ScriptService {
     userId: string,
   ): Promise<{ success: boolean; message: string }> {
     try {
-      console.log("🔍 [ScriptService.saveFirestoreScript] Starting with:");
-      console.log("  - Project Name:", projectName);
-      console.log("  - Scene Title:", sceneTitle);
-      console.log("  - User ID:", userId);
-
       // First, check if a document with this project already exists
       const existingDocuments = await FirestoreService.getUserDocuments<
         ProjectJSON & { id: string }
       >(userId, "users", "uploaded_data");
 
-      console.log(
-        "🔍 [ScriptService.saveFirestoreScript] Found",
-        existingDocuments.length,
-        "existing documents",
-      );
-      console.log(
-        "  - Existing documents:",
-        existingDocuments.map((doc) => ({ id: doc.id, project: doc.project })),
-      );
-
       const existingProjectDoc = existingDocuments.find(
         (doc) => doc.project.trim() === projectName.trim(),
       );
-
-      console.log(
-        "🔍 [ScriptService.saveFirestoreScript] Looking for project:",
-        projectName,
-      );
-      console.log("  - Project name (trimmed):", `"${projectName.trim()}"`);
-      console.log(
-        "  - Found existing project:",
-        existingProjectDoc ? "YES" : "NO",
-      );
-
-      // Show detailed comparison for debugging
-      existingDocuments.forEach((doc, index) => {
-        const docProjectTrimmed = doc.project.trim();
-        const projectNameTrimmed = projectName.trim();
-        const matches = docProjectTrimmed === projectNameTrimmed;
-        console.log(
-          `  - Document ${index}: "${docProjectTrimmed}" === "${projectNameTrimmed}" = ${matches}`,
-        );
-      });
-
-      if (existingProjectDoc) {
-        console.log("  - Existing project document ID:", existingProjectDoc.id);
-        console.log(
-          "  - Existing project scenes count:",
-          existingProjectDoc.scenes.length,
-        );
-      }
 
       if (existingProjectDoc) {
         // Project exists, add the new scene to the existing document
@@ -430,12 +394,6 @@ export class ScriptService {
         });
         if (sizeError) return { success: false, message: sizeError };
 
-        console.log(
-          "🔍 [ScriptService.saveFirestoreScript] Updating existing project",
-        );
-        console.log("  - New scenes count:", updatedScenes.length);
-        console.log("  - Updated characters:", updatedCharacters);
-
         await FirestoreService.updateUserDocument(
           userId,
           "uploaded_data",
@@ -446,19 +404,12 @@ export class ScriptService {
           },
         );
 
-        console.log(
-          "✅ [ScriptService.saveFirestoreScript] Successfully updated existing project",
-        );
-
         return {
           success: true,
           message: `Scene "${sceneTitle}" added to existing project "${projectName}"`,
         };
       } else {
         // Project doesn't exist, create a new document
-        console.log(
-          "🔍 [ScriptService.saveFirestoreScript] Creating new project document",
-        );
 
         const scriptData: ProjectJSON = {
           project: projectName,
@@ -483,11 +434,6 @@ export class ScriptService {
           userId,
           "uploaded_data",
           scriptData,
-        );
-
-        console.log(
-          "✅ [ScriptService.saveFirestoreScript] Successfully created new project with ID:",
-          documentId,
         );
 
         return {
@@ -552,11 +498,6 @@ export class ScriptService {
     userId: string,
   ): Promise<{ success: boolean; message: string }> {
     try {
-      console.log("🔍 [ScriptService.updateScript] Starting with:");
-      console.log("  - Project Name:", projectName);
-      console.log("  - Scene Title:", sceneTitle);
-      console.log("  - User ID:", userId);
-
       // Get existing documents to find the one to update
       const existingDocuments = await FirestoreService.getUserDocuments<
         ProjectJSON & { id: string }
@@ -617,10 +558,6 @@ export class ScriptService {
           scenes: updatedScenes,
           characters: updatedCharacters
         },
-      );
-
-      console.log(
-        "✅ [ScriptService.updateScript] Successfully updated script",
       );
 
       return {

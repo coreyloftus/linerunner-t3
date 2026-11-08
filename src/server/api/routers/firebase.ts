@@ -3,37 +3,16 @@ import {
   adminProcedure,
   createTRPCRouter,
   protectedProcedure,
-  publicProcedure,
 } from "~/server/api/trpc";
 import { FirestoreService, db as adminDb } from "~/server/firebase";
-import { type WhereFilterOp } from "firebase/firestore";
-import { testFirebaseConnection } from "~/lib/firebase-admin-test";
 import { showInputSchema, showSizeError } from "~/lib/script-limits";
 
-export type FirestoreFilter = {
-  field: string;
-  operator: WhereFilterOp;
-  value: unknown;
-};
 export const firebaseRouter = createTRPCRouter({
-  // Test Firebase connection
-  testConnection: publicProcedure.query(async () => {
-    try {
-      console.log("🧪 [tRPC Test] Starting test connection...");
-      const result = await testFirebaseConnection();
-      console.log("🧪 [tRPC Test] Test completed with result:", result);
-      return { success: result };
-    } catch (error) {
-      console.error("🧪 [tRPC Test] Error in test connection:", error);
-      return { success: false, error: (error as Error).message };
-    }
-  }),
-
   // Get documents from user-specific subcollection (protected)
   getUserDocuments: protectedProcedure
     .input(
       z.object({
-        subcollectionName: z.string(),
+        subcollectionName: z.literal("uploaded_data"),
       }),
     )
     .query(async ({ input, ctx }) => {
@@ -41,28 +20,11 @@ export const firebaseRouter = createTRPCRouter({
         throw new Error("User email is required");
       }
       try {
-        console.log("🔍 [getUserDocuments] Starting query with:");
-        console.log("  - User Email:", ctx.session.user.email);
-        console.log("  - Subcollection:", input.subcollectionName);
-        console.log(
-          "  - Full path: users/" +
-            ctx.session.user.email +
-            "/" +
-            input.subcollectionName,
-        );
-
         const documents = await FirestoreService.getUserDocuments(
           ctx.session.user.email,
           "users",
           input.subcollectionName,
         );
-
-        console.log(
-          "✅ [getUserDocuments] Success - Found",
-          documents.length,
-          "documents",
-        );
-        console.log("  - Documents:", documents);
 
         return { success: true, data: documents };
       } catch (error) {
@@ -124,7 +86,7 @@ export const firebaseRouter = createTRPCRouter({
   getUserDocumentCount: protectedProcedure
     .input(
       z.object({
-        subcollectionName: z.string(),
+        subcollectionName: z.literal("uploaded_data"),
       }),
     )
     .query(async ({ input, ctx }) => {
@@ -157,17 +119,6 @@ export const firebaseRouter = createTRPCRouter({
         throw new Error("User email is required");
       }
       try {
-        console.log("📝 [addUserDocument] Starting mutation with:");
-        console.log("  - User Email:", ctx.session.user.email);
-        console.log("  - Subcollection:", input.subcollectionName);
-        console.log("  - Data:", input.data);
-        console.log(
-          "  - Full path: users/" +
-            ctx.session.user.email +
-            "/" +
-            input.subcollectionName,
-        );
-
         const sizeError = showSizeError(input.data);
         if (sizeError) return { success: false, error: sizeError };
 
@@ -175,19 +126,6 @@ export const firebaseRouter = createTRPCRouter({
           ctx.session.user.email,
           input.subcollectionName,
           input.data,
-        );
-
-        console.log(
-          "✅ [addUserDocument] Success - Document created with ID:",
-          documentId,
-        );
-        console.log(
-          "  - Full document path: users/" +
-            ctx.session.user.email +
-            "/" +
-            input.subcollectionName +
-            "/" +
-            documentId,
         );
 
         return { success: true, documentId };
@@ -201,8 +139,8 @@ export const firebaseRouter = createTRPCRouter({
   deleteUserDocument: protectedProcedure
     .input(
       z.object({
-        subcollectionName: z.string(),
-        documentId: z.string(),
+        subcollectionName: z.literal("uploaded_data"),
+        documentId: z.string().min(1).max(1500).regex(/^[^/]+$/),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -219,40 +157,6 @@ export const firebaseRouter = createTRPCRouter({
         return { success: true };
       } catch (error) {
         console.error("❌ [deleteUserDocument] Error:", error);
-        return { success: false, error: (error as Error).message };
-      }
-    }),
-
-  // Example: Query documents with filters
-  queryDocuments: publicProcedure
-    .input(
-      z.object({
-        collectionName: z.string(),
-        filters: z
-          .array(
-            z.object({
-              field: z.string(),
-              operator: z.custom<WhereFilterOp>(),
-              value: z.unknown(),
-            }),
-          )
-          .optional(),
-        orderByField: z.string().optional(),
-        orderDirection: z.enum(["asc", "desc"]).optional(),
-        limitCount: z.number().optional(),
-      }),
-    )
-    .query(async ({ input }) => {
-      try {
-        const documents = await FirestoreService.queryDocuments(
-          input.collectionName,
-          input.filters as FirestoreFilter[],
-          input.orderByField,
-          input.orderDirection,
-          input.limitCount,
-        );
-        return { success: true, data: documents };
-      } catch (error) {
         return { success: false, error: (error as Error).message };
       }
     }),

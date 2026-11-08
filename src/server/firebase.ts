@@ -1,5 +1,5 @@
 import { adminDb } from "~/lib/firebase-admin";
-import type { DocumentData, WhereFilterOp } from "firebase-admin/firestore";
+import type { DocumentData } from "firebase-admin/firestore";
 import type { ProjectJSON } from "./scriptService";
 import { FieldValue } from "firebase-admin/firestore";
 import { TRPCError } from "@trpc/server";
@@ -203,27 +203,27 @@ export class FirestoreService {
       const subcollectionRef = userDocRef.collection(subcollectionName);
 
       if (subcollectionName === "uploaded_data" && !isAdminEmail(userId)) {
-        const count = (await subcollectionRef.count().get()).data().count;
-        if (count >= SCRIPT_LIMITS.maxShowsPerUser) {
-          throw new TRPCError({ code: "FORBIDDEN", message: SHOW_LIMIT_MESSAGE });
-        }
+        const docRef = subcollectionRef.doc();
+        await adminDb.runTransaction(async (tx) => {
+          await tx.get(userDocRef);
+          const shows = await tx.get(
+            subcollectionRef.limit(SCRIPT_LIMITS.maxShowsPerUser),
+          );
+          if (shows.size >= SCRIPT_LIMITS.maxShowsPerUser) {
+            throw new TRPCError({ code: "FORBIDDEN", message: SHOW_LIMIT_MESSAGE });
+          }
+          // Writing the same user document serializes concurrent show creation.
+          tx.set(
+            userDocRef,
+            { scriptsUpdatedAt: FieldValue.serverTimestamp() },
+            { merge: true },
+          );
+          tx.create(docRef, data);
+        });
+        return docRef.id;
       }
 
-      console.log("🔥 [FirestoreService.addUserDocument] Adding document...");
       const docRef = await subcollectionRef.add(data);
-
-      console.log(
-        "🔥 [FirestoreService.addUserDocument] Document added successfully:",
-      );
-      console.log("  - Document ID:", docRef.id);
-      console.log(
-        "  - Full document path: users/" +
-          userId +
-          "/" +
-          subcollectionName +
-          "/" +
-          docRef.id,
-      );
 
       return docRef.id;
     } catch (error) {
@@ -243,25 +243,7 @@ export class FirestoreService {
       const docRef = adminDb.collection(collectionName).doc(documentId);
       const subcollectionRef = docRef.collection(subcollectionName);
 
-      console.log(
-        "🔥 [FirestoreService.addDocumentToSubcollection] Adding document...",
-      );
       const newDocRef = await subcollectionRef.add(data);
-
-      console.log(
-        "🔥 [FirestoreService.addDocumentToSubcollection] Document added successfully:",
-      );
-      console.log("  - Document ID:", newDocRef.id);
-      console.log(
-        "  - Full document path: " +
-          collectionName +
-          "/" +
-          documentId +
-          "/" +
-          subcollectionName +
-          "/" +
-          newDocRef.id,
-      );
 
       return newDocRef.id;
     } catch (error) {
@@ -296,26 +278,11 @@ export class FirestoreService {
     data: Partial<T>,
   ): Promise<void> {
     try {
-      console.log("🔥 [FirestoreService.updateUserDocument] Starting update:");
-      console.log("  - User ID:", userId);
-      console.log("  - Subcollection:", subcollectionName);
-      console.log("  - Document ID:", documentId);
-      console.log("  - Update data:", data);
-
       const userDocRef = adminDb.collection("users").doc(userId);
       const subcollectionRef = userDocRef.collection(subcollectionName);
       const docRef = subcollectionRef.doc(documentId);
 
-      console.log(
-        "🔥 [FirestoreService.updateUserDocument] Full path:",
-        `users/${userId}/${subcollectionName}/${documentId}`,
-      );
-
       await docRef.update(data);
-
-      console.log(
-        "✅ [FirestoreService.updateUserDocument] Successfully updated document",
-      );
     } catch (error) {
       console.error("❌ [FirestoreService.updateUserDocument] Error:", error);
       throw error;
@@ -400,28 +367,6 @@ export class FirestoreService {
         message:
           error instanceof Error ? error.message : "Unknown error occurred",
       };
-    }
-  }
-
-  // Query documents with filters (simplified for now)
-  static async queryDocuments<T = DocumentData>(
-    collectionName: string,
-    _filters?: Array<{ field: string; operator: WhereFilterOp; value: unknown }>,
-    _orderByField?: string,
-    _orderDirection?: "asc" | "desc",
-    _limitCount?: number,
-  ): Promise<T[]> {
-    try {
-      // For now, just get all documents from the collection
-      // TODO: Implement proper filtering and ordering
-      const querySnapshot = await adminDb.collection(collectionName).get();
-      return querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as T[];
-    } catch (error) {
-      console.error("Error querying documents:", error);
-      throw error;
     }
   }
 
@@ -531,9 +476,6 @@ export class FirestoreService {
         .collection("shared_projects")
         .add(sharedProject);
 
-      console.log(
-        `🔗 [FirestoreService.createSharedProject] Created shared project: ${docRef.id}`,
-      );
       return docRef.id;
     } catch (error) {
       console.error("Error creating shared project:", error);
@@ -557,10 +499,6 @@ export class FirestoreService {
         allowedUsers,
         updatedAt: FieldValue.serverTimestamp(),
       });
-
-      console.log(
-        `🔗 [FirestoreService.updateSharedProjectPermissions] Updated permissions for: ${projectId}`,
-      );
     } catch (error) {
       console.error("Error updating shared project permissions:", error);
       throw error;
@@ -583,10 +521,6 @@ export class FirestoreService {
         ...projectData,
         updatedAt: FieldValue.serverTimestamp(),
       });
-
-      console.log(
-        `🔗 [FirestoreService.updateSharedProject] Updated shared project: ${projectId}`,
-      );
     } catch (error) {
       console.error("Error updating shared project:", error);
       throw error;
@@ -605,10 +539,6 @@ export class FirestoreService {
 
       const docRef = adminDb.collection("shared_projects").doc(projectId);
       await docRef.delete();
-
-      console.log(
-        `🔗 [FirestoreService.deleteSharedProject] Deleted shared project: ${projectId}`,
-      );
     } catch (error) {
       console.error("Error deleting shared project:", error);
       throw error;
