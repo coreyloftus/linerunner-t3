@@ -13,18 +13,14 @@ import {
   showInputSchema,
 } from "~/lib/script-limits";
 import {
-  MAX_SCRIPT_PDF_BYTES,
   PDF_IMPORTS_PER_MONTH,
   type ScriptImportResult,
 } from "~/lib/script-import";
 import {
   extractScript,
-  importsUsed,
-  refundImport,
-  reserveImport,
   scriptImportEnabled,
 } from "~/server/scriptExtraction";
-import { TRPCError } from "@trpc/server";
+import { importsUsed, pdfImportInputSchema, reserveImport, validatePdf } from "~/server/pdfImport";
 
 export type {
   ProjectJSON,
@@ -429,35 +425,13 @@ export const scriptData = createTRPCRouter({
   }),
 
   extractFromPdf: protectedProcedure
-    .input(
-      z.object({
-        fileName: z.string().min(1).max(300),
-        pdfBase64: z.string().min(1),
-      }),
-    )
+    .input(pdfImportInputSchema)
     .mutation(async ({ ctx, input }): Promise<ScriptImportResult> => {
-      const bytes = Buffer.from(input.pdfBase64, "base64");
-      if (bytes.length > MAX_SCRIPT_PDF_BYTES) {
-        throw new TRPCError({
-          code: "PAYLOAD_TOO_LARGE",
-          message: "PDF is over 3 MB.",
-        });
-      }
-      if (bytes.subarray(0, 4).toString("latin1") !== "%PDF") {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "That file is not a PDF.",
-        });
-      }
+      validatePdf(input.pdfBase64);
       // Reserve first so two tabs can't both take the last import
       const userId = ctx.session.user.email!;
       const remaining = await reserveImport(userId);
-      try {
-        const result = await extractScript(input.pdfBase64, input.fileName);
-        return { ...result, remaining };
-      } catch (err) {
-        await refundImport(userId);
-        throw err;
-      }
+      const result = await extractScript(input.pdfBase64, input.fileName);
+      return { ...result, remaining };
     }),
 });
