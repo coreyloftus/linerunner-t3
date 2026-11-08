@@ -1,0 +1,34 @@
+name: Security checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+        env:
+          SKIP_ENV_VALIDATION: "1"
+          FIREBASE_PROJECT_ID: demo-linerunner-security
+          NEXTAUTH_SECRET: local-security-test-only
+          NEXTAUTH_URL: http://localhost:3000
+          GOOGLE_CLIENT_ID: local-test
+          GOOGLE_CLIENT_SECRET: local-test
+          DISCORD_CLIENT_ID: local-test
+          DISCORD_CLIENT_SECRET: local-test
+      - run: npm run lint
+      - run: npx tsc --noEmit
+      - run: node --test scripts/security-*.test.mjs
+      - run: npm audit --audit-level=moderate

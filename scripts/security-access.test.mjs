@@ -45,6 +45,7 @@ function fixtureDatabase() {
     path: pathname, kind, id: pathname.split("/").at(-1),
     collection: (name) => ref(`${pathname}/${name}`, "collection"),
     doc: (id = `created-${++nextId}`) => ref(`${pathname}/${id}`),
+    select: () => ref(pathname, "query"),
     limit: () => ref(pathname, "query"),
     get: async () => {
       calls.push(["get", pathname]);

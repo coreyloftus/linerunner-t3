@@ -28,8 +28,7 @@ const getServiceAccount = () => {
       privateKey: rawServiceAccount.private_key,
     } as ServiceAccount;
   } catch {
-    console.error("[Firebase Admin] Invalid service account configuration.");
-    return null;
+    throw new Error("Invalid Firebase service account configuration.");
   }
 };
 
@@ -40,7 +39,7 @@ const serviceAccount = getServiceAccount();
 const firebaseAdminConfig = {
   projectId: env.FIREBASE_PROJECT_ID,
   // Use base64 encoded service account key from environment variable
-  credential: serviceAccount ? cert(serviceAccount) : undefined,
+  ...(serviceAccount ? { credential: cert(serviceAccount) } : {}),
 };
 
 // Initialize Firebase Admin only if it hasn't been initialized already

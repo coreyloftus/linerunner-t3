@@ -207,7 +207,7 @@ export class FirestoreService {
         await adminDb.runTransaction(async (tx) => {
           await tx.get(userDocRef);
           const shows = await tx.get(
-            subcollectionRef.limit(SCRIPT_LIMITS.maxShowsPerUser),
+            subcollectionRef.select().limit(SCRIPT_LIMITS.maxShowsPerUser),
           );
           if (shows.size >= SCRIPT_LIMITS.maxShowsPerUser) {
             throw new TRPCError({ code: "FORBIDDEN", message: SHOW_LIMIT_MESSAGE });
