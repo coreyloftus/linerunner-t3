@@ -2,11 +2,31 @@ import {
   getServerSession,
   type DefaultSession,
   type NextAuthOptions,
+  type Profile,
 } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import DiscordProvider from "next-auth/providers/discord";
 
 import { env } from "~/env";
+
+const hasVerifiedEmail = (
+  provider: string | undefined,
+  profile?: Profile,
+  email?: string | null,
+) => {
+  if (
+    !profile?.email ||
+    profile.email.includes("/") ||
+    profile.email.toLowerCase() !== email?.toLowerCase()
+  ) return false;
+  const verification = profile as Profile & {
+    email_verified?: unknown;
+    verified?: unknown;
+  };
+  return provider === "google"
+    ? verification.email_verified === true
+    : provider === "discord" && verification.verified === true;
+};
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -35,16 +55,24 @@ declare module "next-auth" {
  * @see https://next-auth.js.org/configuration/options
  */
 export const authOptions: NextAuthOptions = {
-  debug: true, // Enable debug logging
+  debug: false,
   callbacks: {
+    signIn: ({ account, profile, user }) =>
+      hasVerifiedEmail(account?.provider, profile, user.email),
     jwt: ({ token, account, profile }) => {
-      // Persist the OAuth access_token and or the user id to the token right after signin
       if (account) {
-        token.accessToken = account.access_token;
+        token.emailVerified = hasVerifiedEmail(
+          account.provider,
+          profile,
+          token.email,
+        );
+        token.id = account.providerAccountId;
       }
-      if (profile) {
-        token.id = profile.sub;
+      // Older sessions must sign in again to establish verified email ownership.
+      if (token.emailVerified !== true || !token.email) {
+        throw new Error("Sign in again with a verified email address.");
       }
+      delete token.accessToken;
       return token;
     },
     session: ({ session, token }) => ({
