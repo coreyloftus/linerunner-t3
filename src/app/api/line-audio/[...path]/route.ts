@@ -24,11 +24,27 @@ export async function GET(
     "Cache-Control": "private, max-age=3600",
   };
 
-  const range = /^bytes=(\d*)-(\d*)$/.exec(req.headers.get("range") ?? "");
-  if (range) {
-    const start = range[1] ? Number(range[1]) : 0;
-    const end = range[2] ? Math.min(Number(range[2]), body.length - 1) : body.length - 1;
-    if (start > end) return new Response(null, { status: 416 });
+  const rangeHeader = req.headers.get("range") ?? "";
+  if (rangeHeader.startsWith("bytes=")) {
+    const range = /^bytes=(\d*)-(\d*)$/.exec(rangeHeader);
+    const first = range?.[1] ? Number(range[1]) : undefined;
+    const last = range?.[2] ? Number(range[2]) : undefined;
+    const invalidRange = () => new Response(null, {
+      status: 416,
+      headers: { ...headers, "Content-Range": `bytes */${body.length}` },
+    });
+    if (
+      !range ||
+      (first === undefined && last === undefined) ||
+      (first !== undefined && !Number.isSafeInteger(first)) ||
+      (last !== undefined && !Number.isSafeInteger(last)) ||
+      (first === undefined && last === 0)
+    ) return invalidRange();
+    const start = first ?? Math.max(0, body.length - last!);
+    const end = first === undefined || last === undefined
+      ? body.length - 1
+      : Math.min(last, body.length - 1);
+    if (start > end) return invalidRange();
     return new Response(body.slice(start, end + 1), {
       status: 206,
       headers: { ...headers, "Content-Range": `bytes ${start}-${end}/${body.length}` },

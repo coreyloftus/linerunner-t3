@@ -55,7 +55,7 @@ export interface MelodySummary {
   title: string;
   link?: MelodyLink;
   updatedAt: string;
-  noteCount: number;
+  noteCount?: number;
 }
 
 export const PITCH_PATTERN = /^([A-Ga-g])(##|bb|#|b)?(-?\d)$/;
@@ -72,9 +72,9 @@ export const melodyNoteSchema = z.object({
 });
 
 export const melodyLinkSchema = z.object({
-  projectName: z.string().min(1),
+  projectName: z.string().min(1).max(200),
   source: z.enum(["local", "public", "shared", "user"]),
-  sectionTitle: z.string().min(1),
+  sectionTitle: z.string().min(1).max(200),
 });
 
 export const melodyPartSchema = z.object({

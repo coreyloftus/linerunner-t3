@@ -1,11 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { TRPCError } from "@trpc/server";
 import { env } from "~/env";
-import { adminDb } from "~/lib/firebase-admin";
 import {
-  PDF_IMPORTS_PER_MONTH,
   SCRIPT_OUTPUT_SCHEMA,
-  importMonth,
   parseScriptResponse,
   type ImportedShow,
 } from "~/lib/script-import";
@@ -55,52 +52,6 @@ const toTRPCError = (err: unknown): TRPCError => {
 };
 
 export const scriptImportEnabled = () => !!env.ANTHROPIC_API_KEY;
-
-// Stored on users/{email} as pdfImports: { month: "2026-10", count: 3 }
-const usageRef = (userId: string) => adminDb.collection("users").doc(userId);
-
-const readUsed = (data: FirebaseFirestore.DocumentData | undefined) => {
-  const usage = data?.pdfImports as { month?: string; count?: number } | undefined;
-  return usage?.month === importMonth() ? (usage.count ?? 0) : 0;
-};
-
-export async function importsUsed(userId: string): Promise<number> {
-  return readUsed((await usageRef(userId).get()).data());
-}
-
-/** Count one import against this month's cap; returns imports left after it */
-export async function reserveImport(userId: string): Promise<number> {
-  return adminDb.runTransaction(async (tx) => {
-    const ref = usageRef(userId);
-    const used = readUsed((await tx.get(ref)).data());
-    if (used >= PDF_IMPORTS_PER_MONTH) {
-      throw new TRPCError({
-        code: "TOO_MANY_REQUESTS",
-        message: `You've used all ${PDF_IMPORTS_PER_MONTH} PDF imports this month. They reset on the 1st.`,
-      });
-    }
-    tx.set(
-      ref,
-      { pdfImports: { month: importMonth(), count: used + 1 } },
-      { mergeFields: ["pdfImports"] },
-    );
-    return PDF_IMPORTS_PER_MONTH - used - 1;
-  });
-}
-
-/** Give back an import that failed before producing a script */
-export async function refundImport(userId: string): Promise<void> {
-  await adminDb.runTransaction(async (tx) => {
-    const ref = usageRef(userId);
-    const used = readUsed((await tx.get(ref)).data());
-    if (used === 0) return;
-    tx.set(
-      ref,
-      { pdfImports: { month: importMonth(), count: used - 1 } },
-      { mergeFields: ["pdfImports"] },
-    );
-  });
-}
 
 /** Send a script PDF to Claude and parse the scenes and lines it reads */
 export async function extractScript(

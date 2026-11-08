@@ -218,7 +218,7 @@ export function MelodyWorkspace() {
                             {m.title}
                           </span>
                           <span className="block truncate text-xs text-muted-foreground">
-                            {m.noteCount} notes
+                            {m.noteCount !== undefined ? `${m.noteCount} notes` : "Saved melody"}
                             {m.link ? ` · ${m.link.sectionTitle}` : ""}
                           </span>
                         </button>
