@@ -49,3 +49,8 @@ yarn-error.log*
 # generated line audio
 /public/sceneData/audio/
 .env.blob
+
+# Local credentials and exports
+.env.*
+!.env.example
+*-firebase-adminsdk-*.json

@@ -35,19 +35,19 @@ export default function PrivacyPage() {
             Privacy
           </h1>
           <p className="font-script text-sm text-muted-foreground">
-            Updated 2026-10-24
+            Updated 2026-11-08
           </p>
         </header>
 
         <Section title="What we store">
           <ul className="list-disc space-y-1 pl-5 text-base">
-            <li>Your Google email address and name, from sign-in.</li>
+            <li>Your verified email address and name, from sign-in.</li>
             <li>The scripts you add, and your melodies.</li>
             <li>
               Your last spot in the app (show, scene, and character), so it
               opens where you left off.
             </li>
-            <li>How many PDF imports you used this month.</li>
+            <li>How many PDF imports you attempted this month.</li>
           </ul>
           <p className="text-base text-muted-foreground">
             When you import a PDF, we send it to Claude (by Anthropic) to read
@@ -75,6 +75,12 @@ export default function PrivacyPage() {
             <span className="font-semibold">Delete account</span>. This deletes
             your scripts, melodies, and settings, and removes you from shows
             people shared with you. Shows you shared are deleted too.
+          </p>
+          <p className="text-base">
+            We keep a separate monthly PDF import counter after deletion to
+            prevent repeated account creation from bypassing the import limit.
+            This counter uses a coded identifier, without your name, email,
+            scripts, or PDFs.
           </p>
           <p className="text-base text-muted-foreground">
             Questions? Email{" "}
